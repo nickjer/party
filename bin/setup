@@ -15,6 +15,9 @@ FileUtils.chdir APP_ROOT do
   puts "== Installing dependencies =="
   system("bundle check") || system!("bundle install")
 
+  puts "== Installing RBS dependencies =="
+  system!("bundle exec rbs collection install")
+
   # Install JavaScript dependencies
   system("yarn install --check-files")
 

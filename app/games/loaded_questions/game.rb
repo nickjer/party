@@ -8,7 +8,15 @@ module LoadedQuestions
 
     def guesser_id = document.fetch(:guesser_id)
 
-    def players = game.players.map { |player| Player.new(player) }
+    def hide_answers? = document.fetch(:hide_answers)
+
+    def players = game.players.map { |player| Player.new(player, game: self) }
+
+    def question = document.fetch(:question)
+
+    def show_answers? = !hide_answers?
+
+    def status = document.fetch(:status).to_sym
 
     private
 

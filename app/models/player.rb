@@ -9,6 +9,8 @@ class Player < ApplicationRecord
     super(raw_json)
   end
 
+  def name = NormalizedString.new(super)
+
   def parsed_document
     @parsed_document ||= JSON.parse(document, symbolize_names: true)
   end

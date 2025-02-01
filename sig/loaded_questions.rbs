@@ -1,12 +1,19 @@
 module LoadedQuestions
   class Game
     type document = {
-      guesser_id: Integer
+      guesser_id: Integer,
+      hide_answers: bool,
+      question: String,
+      status: String,
     }
 
     def initialize: (::Game game) -> void
 
     def guesser_id: () -> Integer
+    def hide_answers?: () -> bool
+    def question: () -> String
+    def show_answers?: () -> bool
+    def status: () -> Symbol
 
     private
 
@@ -17,15 +24,19 @@ module LoadedQuestions
 
   class Player
     type document = {
-      active: bool
+      active: bool,
+      answer: String
     }
 
-    def initialize: (::Player player) -> void
+    def initialize: (::Player player, game: Game) -> void
 
     def active?: () -> bool
+    def answer: () -> ::NormalizedString
+    def guesser?: () -> bool
 
     private
 
+    attr_reader game: Game
     attr_reader player: ::Player
 
     def document: () -> document

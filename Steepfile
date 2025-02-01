@@ -6,6 +6,7 @@ target :app do
   signature 'sig'
 
   check 'app/games'
+  check 'app/lib'
 
   configure_code_diagnostics(D::Ruby.all_error)
 

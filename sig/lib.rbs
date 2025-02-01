@@ -1,0 +1,16 @@
+class NormalizedString
+  def initialize: (_ToS string) -> void
+
+  def <=>: (NormalizedString other) -> Integer
+  def ==: (NormalizedString other) -> bool
+  def eql?: (NormalizedString other) -> bool
+  def hash: () -> Integer
+  def sortable_value: () -> String
+  def to_s: () -> String
+
+  private
+
+  attr_reader string: String
+
+  def normalize: (_ToS value) -> String
+end

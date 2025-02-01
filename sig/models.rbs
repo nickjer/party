@@ -25,8 +25,8 @@ class Player < ::ApplicationRecord
 
   def game: () -> ::Game
   def game=: (::Game?) -> ::Game?
-  def name: () -> String
-  def name=: (String) -> String
+  def name: () -> ::NormalizedString
+  def name=: (::NormalizedString) -> ::NormalizedString
   def name?: () -> bool
   def parsed_document: () -> Hash[Symbol, untyped]
   def user: () -> ::User

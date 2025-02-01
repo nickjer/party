@@ -2,8 +2,8 @@
 
 module LoadedQuestions
   class NewGame
-    def initialize(player_name:, question:, hide_answers:)
-      @player = NewPlayer.new(name: player_name, guesser: true)
+    def initialize(user:, player_name:, question:, hide_answers:)
+      @player = NewPlayer.new(user:, name: player_name, guesser: true)
       @question = NormalizedString.new(question)
       @hide_answers = hide_answers.present?
     end

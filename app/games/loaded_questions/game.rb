@@ -2,6 +2,13 @@
 
 module LoadedQuestions
   class Game
+    class << self
+      def find(id)
+        relation = ::Game.strict_loading.loaded_questions.includes(:players)
+        new(relation.find(id))
+      end
+    end
+
     def initialize(game)
       @game = game
     end

@@ -2,7 +2,9 @@ class ApplicationRecord < ::ActiveRecord::Base
 end
 
 class Game < ::ApplicationRecord
-  extend ::_ActiveRecord_Relation_ClassMethods[::Game, ::Game::ActiveRecord_Relation, Integer]
+  extend ::ActiveRecord::Base::ClassMethods[::Game, ::Game::ActiveRecord_Relation, Integer]
+
+  def self.loaded_questions: () -> ::Game::ActiveRecord_Relation
 
   def document: () -> String
   def document=: (String) -> String
@@ -17,17 +19,19 @@ class Game < ::ApplicationRecord
   def slug=: (String) -> String
 
   class ActiveRecord_Relation < ::ActiveRecord::Relation
+    def loaded_questions: () -> ::Game::ActiveRecord_Relation
+
     include ::_ActiveRecord_Relation[::Game, Integer]
     include ::Enumerable[::Game]
   end
 
   class ActiveRecord_Associations_CollectionProxy < ::ActiveRecord::Associations::CollectionProxy
-    include ::_ActiveRecord_Relation[::Game, Integer]
+    include ::ActiveRecord::Relation::Methods[::Game, Integer]
   end
 end
 
 class Player < ::ApplicationRecord
-  extend ::_ActiveRecord_Relation_ClassMethods[::Player, ::Player::ActiveRecord_Relation, Integer]
+  extend ::ActiveRecord::Base::ClassMethods[::Player, ::Player::ActiveRecord_Relation, Integer]
 
   def document: () -> String
   def document=: (String) -> String
@@ -47,12 +51,12 @@ class Player < ::ApplicationRecord
   end
 
   class ActiveRecord_Associations_CollectionProxy < ::ActiveRecord::Associations::CollectionProxy
-    include ::_ActiveRecord_Relation[::Player, Integer]
+    include ::ActiveRecord::Relation::Methods[::Player, Integer]
   end
 end
 
 class User < ::ApplicationRecord
-  extend ::_ActiveRecord_Relation_ClassMethods[::User, ::User::ActiveRecord_Relation, Integer]
+  extend ::ActiveRecord::Base::ClassMethods[::User, ::User::ActiveRecord_Relation, Integer]
 
   class ActiveRecord_Relation < ::ActiveRecord::Relation
     include ::_ActiveRecord_Relation[::User, Integer]
@@ -60,6 +64,6 @@ class User < ::ApplicationRecord
   end
 
   class ActiveRecord_Associations_CollectionProxy < ::ActiveRecord::Associations::CollectionProxy
-    include ::_ActiveRecord_Relation[::User, Integer]
+    include ::ActiveRecord::Relation::Methods[::User, Integer]
   end
 end

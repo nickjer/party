@@ -2,13 +2,15 @@
 
 module LoadedQuestions
   class NewPlayer
-    def initialize(name:, guesser:)
+    def initialize(user:, name:, guesser:)
+      @user = user
       @name = NormalizedString.new(name)
       @guesser = guesser
     end
 
     def build
       player = ::Player.new
+      player.user = user
       player.name = name
       player.document = document.to_json
       player
@@ -21,6 +23,9 @@ module LoadedQuestions
 
     # @dynamic name
     attr_reader :name
+
+    # @dynamic user
+    attr_reader :user
 
     def document
       {

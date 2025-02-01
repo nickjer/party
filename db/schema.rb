@@ -28,6 +28,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_01_143957) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["game_id"], name: "index_players_on_game_id"
+    t.index ["name", "game_id"], name: "index_players_on_name_and_game_id", unique: true
+    t.index ["user_id", "game_id"], name: "index_players_on_user_id_and_game_id", unique: true
     t.index ["user_id"], name: "index_players_on_user_id"
   end
 

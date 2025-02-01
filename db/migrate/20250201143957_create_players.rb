@@ -7,6 +7,9 @@ class CreatePlayers < ActiveRecord::Migration[8.0]
       t.json :document, default: {}, null: false
 
       t.timestamps
+
+      t.index %i[user_id game_id], unique: true
+      t.index %i[name game_id], unique: true
     end
   end
 end

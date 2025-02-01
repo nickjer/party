@@ -6,8 +6,6 @@ module LoadedQuestions
       @game = game
     end
 
-    def guesser_id = document.fetch(:guesser_id)
-
     def hide_answers? = document.fetch(:hide_answers)
 
     def players = game.players.map { |player| Player.new(player, game: self) }

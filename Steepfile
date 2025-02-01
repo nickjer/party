@@ -3,10 +3,12 @@
 D = Steep::Diagnostic
 
 target :app do
-  signature 'sig'
+  signature "sig"
 
-  check 'app/games'
-  check 'app/lib'
+  check "app/games"
+  check "app/lib"
+
+  library "json"
 
   configure_code_diagnostics(D::Ruby.all_error)
 

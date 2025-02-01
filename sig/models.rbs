@@ -4,11 +4,17 @@ end
 class Game < ::ApplicationRecord
   extend ::_ActiveRecord_Relation_ClassMethods[::Game, ::Game::ActiveRecord_Relation, Integer]
 
+  def document: () -> String
+  def document=: (String) -> String
+  def kind: () -> Symbol
+  def kind=: (Symbol) -> Symbol
   def parsed_document: () -> Hash[Symbol, untyped]
   def players: () -> ::Player::ActiveRecord_Associations_CollectionProxy
   def players=: (::Player::ActiveRecord_Associations_CollectionProxy | Array[::Player]) -> (::Player::ActiveRecord_Associations_CollectionProxy | Array[::Player])
   def player_ids: () -> Array[Integer]
   def player_ids=: (Array[Integer]) -> Array[Integer]
+  def slug: () -> String
+  def slug=: (String) -> String
 
   class ActiveRecord_Relation < ::ActiveRecord::Relation
     include ::_ActiveRecord_Relation[::Game, Integer]
@@ -23,6 +29,9 @@ end
 class Player < ::ApplicationRecord
   extend ::_ActiveRecord_Relation_ClassMethods[::Player, ::Player::ActiveRecord_Relation, Integer]
 
+  def document: () -> String
+  def document=: (String) -> String
+  def document?: () -> bool
   def game: () -> ::Game
   def game=: (::Game?) -> ::Game?
   def name: () -> ::NormalizedString

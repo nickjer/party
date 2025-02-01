@@ -11,7 +11,7 @@ module LoadedQuestions
 
     def answer = NormalizedString.new(document.fetch(:answer))
 
-    def guesser? = game.guesser_id == player.id
+    def guesser? = document.fetch(:guesser)
 
     private
 

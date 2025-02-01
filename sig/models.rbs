@@ -1,0 +1,56 @@
+class ApplicationRecord < ::ActiveRecord::Base
+end
+
+class Game < ::ApplicationRecord
+  extend ::_ActiveRecord_Relation_ClassMethods[::Game, ::Game::ActiveRecord_Relation, Integer]
+
+  def parsed_document: () -> Hash[Symbol, untyped]
+  def players: () -> ::Player::ActiveRecord_Associations_CollectionProxy
+  def players=: (::Player::ActiveRecord_Associations_CollectionProxy | Array[::Player]) -> (::Player::ActiveRecord_Associations_CollectionProxy | Array[::Player])
+  def player_ids: () -> Array[Integer]
+  def player_ids=: (Array[Integer]) -> Array[Integer]
+
+  class ActiveRecord_Relation < ::ActiveRecord::Relation
+    include ::_ActiveRecord_Relation[::Game, Integer]
+    include ::Enumerable[::Game]
+  end
+
+  class ActiveRecord_Associations_CollectionProxy < ::ActiveRecord::Associations::CollectionProxy
+    include ::_ActiveRecord_Relation[::Game, Integer]
+  end
+end
+
+class Player < ::ApplicationRecord
+  extend ::_ActiveRecord_Relation_ClassMethods[::Player, ::Player::ActiveRecord_Relation, Integer]
+
+  def game: () -> ::Game
+  def game=: (::Game?) -> ::Game?
+  def name: () -> String
+  def name=: (String) -> String
+  def name?: () -> bool
+  def parsed_document: () -> Hash[Symbol, untyped]
+  def user: () -> ::User
+  def user=: (::User?) -> ::User?
+
+  class ActiveRecord_Relation < ::ActiveRecord::Relation
+    include ::_ActiveRecord_Relation[::Player, Integer]
+    include ::Enumerable[::Player]
+  end
+
+  class ActiveRecord_Associations_CollectionProxy < ::ActiveRecord::Associations::CollectionProxy
+    include ::_ActiveRecord_Relation[::Player, Integer]
+  end
+end
+
+class User < ::ApplicationRecord
+  extend ::_ActiveRecord_Relation_ClassMethods[::User, ::User::ActiveRecord_Relation, Integer]
+
+  class ActiveRecord_Relation < ::ActiveRecord::Relation
+    include ::_ActiveRecord_Relation[::User, Integer]
+    include ::Enumerable[::User]
+  end
+
+  class ActiveRecord_Associations_CollectionProxy < ::ActiveRecord::Associations::CollectionProxy
+    include ::_ActiveRecord_Relation[::User, Integer]
+  end
+end

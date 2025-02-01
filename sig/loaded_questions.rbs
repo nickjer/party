@@ -1,0 +1,33 @@
+module LoadedQuestions
+  class Game
+    type document = {
+      guesser_id: Integer
+    }
+
+    def initialize: (::Game game) -> void
+
+    def guesser_id: () -> Integer
+
+    private
+
+    attr_reader game: ::Game
+
+    def document: () -> document
+  end
+
+  class Player
+    type document = {
+      active: bool
+    }
+
+    def initialize: (::Player player) -> void
+
+    def active?: () -> bool
+
+    private
+
+    attr_reader player: ::Player
+
+    def document: () -> document
+  end
+end

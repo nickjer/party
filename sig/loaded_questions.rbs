@@ -21,9 +21,15 @@ module LoadedQuestions
   end
 
   class GamesController < ::ApplicationController
+    @new_game: NewGameForm
+
     def new: () -> untyped
     def create: () -> untyped
     def show: () -> untyped
+
+    private
+
+    def new_game_params: () -> ::ActionController::Parameters
   end
 
   class NewGame
@@ -40,6 +46,21 @@ module LoadedQuestions
     attr_reader question: ::NormalizedString
 
     def document: () -> Game::document
+  end
+
+  class NewGameForm
+    attr_reader player_name: String
+    attr_reader question: String
+    attr_reader hide_answers: bool
+    attr_reader errors: Hash[Symbol, String]
+
+    def initialize: (?::ActionController::Parameters? params) -> void
+
+    def valid?: () -> bool
+
+    private
+
+    def validate_length: (String value, min: Integer, max: Integer) -> String?
   end
 
   class NewPlayer

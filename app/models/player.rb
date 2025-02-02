@@ -1,4 +1,7 @@
 class Player < ApplicationRecord
+  MIN_NAME_LENGTH = 3
+  MAX_NAME_LENGTH = 25
+
   belongs_to :game
   belongs_to :user
 

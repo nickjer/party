@@ -1,2 +1,20 @@
-<h1>LoadedQuestions::Games#new</h1>
-<p>Find me in app/views/loaded_questions/games/new.html.erb</p>
+<h1>Loaded Questions</h1>
+
+<%= form_with(scope: :game, url: new_loaded_questions_game_path ) do |form| %>
+  <div>
+    <%= form.label :player_name %>
+    <%= form.text_field :player_name, value: @new_game.player_name %>
+  </div>
+
+  <div>
+    <%= form.label :question %>
+    <%= form.text_field :question, value: @new_game.question %>
+  </div>
+
+  <div>
+    <%= form.label :hide_answers %>
+    <%= form.check_box :hide_answers, checked: @new_game.hide_answers %>
+  </div>
+
+  <%= form.submit %>
+<% end %>

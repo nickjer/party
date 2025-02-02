@@ -21,7 +21,7 @@ module LoadedQuestions
         game.save!
         redirect_to loaded_questions_game_path(game.slug)
       else
-        render :new
+        render :new, status: :unprocessable_entity
       end
     end
 

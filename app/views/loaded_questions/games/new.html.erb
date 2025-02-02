@@ -1,20 +1,22 @@
-<h1>Loaded Questions</h1>
+<h1 class="text-2xl font-bold my-2">
+  Loaded Questions
+</h1>
 
-<%= form_with(scope: :game, url: loaded_questions_games_path ) do |form| %>
+<%= form_with(model: @new_game, scope: :game, url: loaded_questions_games_path) do |form| %>
   <div>
-    <%= form.label :player_name %>
-    <%= form.text_field :player_name, value: @new_game.player_name %>
+    <%= form.label :player_name, class: "mb-0.5 block" %>
+    <%= form.text_field :player_name, class: "mb-3 block w-full" %>
   </div>
 
   <div>
-    <%= form.label :question %>
-    <%= form.text_field :question, value: @new_game.question %>
+    <%= form.label :question, class: "mb-0.5 block" %>
+    <%= form.text_field :question, class: "mb-3 block w-full" %>
   </div>
 
-  <div>
-    <%= form.label :hide_answers %>
-    <%= form.check_box :hide_answers, checked: @new_game.hide_answers %>
+  <div class="flex items-center mb-3">
+    <%= form.check_box :hide_answers %>
+    <%= form.label :hide_answers, class: "ms-2" %>
   </div>
 
-  <%= form.submit %>
+  <%= form.submit "Create New Game", class: "w-full" %>
 <% end %>

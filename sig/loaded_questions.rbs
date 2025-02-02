@@ -6,6 +6,8 @@ module LoadedQuestions
       status: String,
     }
 
+    def self.find: (String slug) -> Game
+
     def initialize: (::Game game) -> void
 
     def hide_answers?: () -> bool
@@ -21,6 +23,7 @@ module LoadedQuestions
   end
 
   class GamesController < ::ApplicationController
+    @game: Game
     @new_game: NewGameForm
 
     def new: () -> untyped
@@ -89,6 +92,7 @@ module LoadedQuestions
     def active?: () -> bool
     def answer: () -> ::NormalizedString
     def guesser?: () -> bool
+    def name: () -> String
 
     private
 

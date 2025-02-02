@@ -3,9 +3,9 @@
 module LoadedQuestions
   class Game
     class << self
-      def find(id)
+      def find(slug)
         relation = ::Game.strict_loading.loaded_questions.includes(:players)
-        new(relation.find(id))
+        new(relation.find_by!(slug:))
       end
     end
 

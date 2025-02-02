@@ -13,6 +13,8 @@ module LoadedQuestions
 
     def guesser? = document.fetch(:guesser)
 
+    def name = player.name
+
     private
 
     # @dynamic game

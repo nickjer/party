@@ -9,16 +9,31 @@ module LoadedQuestions
 
     # POST /loaded_questions/games/create
     def create
+      @new_game = NewGameForm.new(new_game_params)
+
+      if @new_game.valid?
+        game = NewGame.new(
+          user: current_user,
+          player_name: @new_game.player_name,
+          question: @new_game.question,
+          hide_answers: @new_game.hide_answers
+        ).build
+        game.save!
+        redirect_to loaded_questions_game_path(game.slug)
+      else
+        render :new
+      end
     end
 
     # GET /loaded_questions/games/:id
     def show
+      @game = Game.find(params[:id])
     end
 
     private
 
     def new_game_params
-      params.expect(:player_name, :question, :hide_answers)
+      params.expect(game: %w[player_name question hide_answers])
     end
   end
 end

@@ -1,2 +1,22 @@
-<h1>LoadedQuestions::Games#show</h1>
-<p>Find me in app/views/loaded_questions/games/show.html.erb</p>
+<h1>Loaded Questions</h1>
+
+<div>
+  <strong>Question:</strong>
+  <%= @game.question %>
+</div>
+
+<div>
+  <strong>Players:</strong>
+  <ul>
+    <% @game.players.each do |player| %>
+      <li>
+        <% if player.guesser? %>
+          [X]
+        <% else %>
+          [ ]
+        <% end %>
+        <%= player.name %>
+      </li>
+    <% end %>
+  </ul>
+</div>

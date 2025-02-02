@@ -18,7 +18,7 @@ module LoadedQuestions
       if params
         @player_name = params[:player_name].to_s
         @question = params[:question].to_s
-        @hide_answers = params[:hide_answers].present?
+        @hide_answers = params[:hide_answers] == "1"
       else
         @player_name = ""
         @question = ""

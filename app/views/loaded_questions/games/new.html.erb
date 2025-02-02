@@ -1,6 +1,6 @@
 <h1>Loaded Questions</h1>
 
-<%= form_with(scope: :game, url: new_loaded_questions_game_path ) do |form| %>
+<%= form_with(scope: :game, url: loaded_questions_games_path ) do |form| %>
   <div>
     <%= form.label :player_name %>
     <%= form.text_field :player_name, value: @new_game.player_name %>

@@ -1,24 +1,26 @@
 <%= turbo_refreshes_with method: :morph, scroll: :preserve %>
 
-<h1 class="text-2xl font-bold my-2">Loaded Questions</h1>
+<div class="flex flex-wrap items-start gap-2 mt-2">
+  <div class="w-75 p-3 border border-gray-800 rounded-lg">
+    <p class="font-normal text-gray-700">
+      <strong>Question:</strong>
+      <%= @game.question %>
+    </p>
+  </div>
 
-<div>
-  <strong>Question:</strong>
-  <%= @game.question %>
-</div>
-
-<div>
-  <strong>Players:</strong>
-  <ul>
-    <% @game.players.each do |player| %>
-      <li>
-        <% if player.guesser? %>
-          [X]
-        <% else %>
-          [ ]
-        <% end %>
-        <%= player.name %>
-      </li>
-    <% end %>
-  </ul>
+  <div>
+    <strong>Players:</strong>
+    <ul>
+      <% @game.players.each do |player| %>
+        <li>
+          <% if player.guesser? %>
+            [X]
+          <% else %>
+            [ ]
+          <% end %>
+          <%= player.name %>
+        </li>
+      <% end %>
+    </ul>
+  </div>
 </div>

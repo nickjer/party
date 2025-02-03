@@ -11,8 +11,11 @@ module LoadedQuestions
     def initialize: (::Game game) -> void
 
     def hide_answers?: () -> bool
+    def player_for: (::User) -> Player?
+    def players: () -> Array[Player]
     def question: () -> String
     def show_answers?: () -> bool
+    def slug: () -> String
     def status: () -> Symbol
 
     private
@@ -23,8 +26,9 @@ module LoadedQuestions
   end
 
   class GamesController < ::ApplicationController
-    @game: Game
-    @new_game: NewGameForm
+    @game: Game?
+    @new_game: NewGameForm?
+    @current_player: Player?
 
     def new: () -> untyped
     def create: () -> untyped
@@ -110,6 +114,7 @@ module LoadedQuestions
     def answer: () -> ::NormalizedString
     def guesser?: () -> bool
     def name: () -> ::NormalizedString
+    def user: () -> ::User
 
     private
 
@@ -120,7 +125,7 @@ module LoadedQuestions
   end
 
   class PlayersController < ::ApplicationController
-    @new_player: NewPlayerForm
+    @new_player: NewPlayerForm?
 
     def new: () -> untyped
     def create: () -> untyped

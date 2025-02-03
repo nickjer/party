@@ -5,7 +5,13 @@ module LoadedQuestions
     # GET /games/:game_id/players/new
     def new
       game = Game.find(params[:game_id])
-      @new_player = NewPlayerForm.new(game:)
+
+      if game.player_for(current_user)
+        redirect_to loaded_questions_game_path(game.slug)
+      else
+        @new_player = NewPlayerForm.new(game:)
+        render :new
+      end
     end
 
     # POST /games/:game_id/players

@@ -15,6 +15,8 @@ module LoadedQuestions
 
     def name = player.name
 
+    def user = player.user
+
     private
 
     # @dynamic game

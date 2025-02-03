@@ -28,6 +28,11 @@ module LoadedQuestions
         errors[:player_name] = error
       end
 
+      player_names = game.players.map(&:name)
+      if player_names.include?(player_name)
+        errors[:player_name] = "has already been taken"
+      end
+
       errors.empty?
     end
 

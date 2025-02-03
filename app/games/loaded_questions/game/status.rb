@@ -30,7 +30,13 @@ module LoadedQuestions
 
       def completed? = status == :completed
 
-      private
+      def ==(other) = status == other.status
+
+      def eql?(other) = self == other
+
+      def hash = status.hash
+
+      protected
 
       # @dynamic status
       attr_reader :status

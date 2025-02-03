@@ -1,0 +1,7 @@
+<%= render layout: "game" do %>
+  <% if @current_player.guesser? %>
+    Yes
+  <% else %>
+    No
+  <% end %>
+<% end %>

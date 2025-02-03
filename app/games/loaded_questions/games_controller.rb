@@ -37,7 +37,15 @@ module LoadedQuestions
       else
         @game = game
         @current_player = current_player
-        render :show
+
+        case game.status
+        when Game::Status.polling
+          render :polling
+        when Game::Status.matching
+          render :matching
+        when Game::Status.completed
+          render :completed
+        end
       end
     end
 

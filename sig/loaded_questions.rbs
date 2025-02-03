@@ -32,15 +32,16 @@ module LoadedQuestions
       def self.parse: (String status) -> Status
       def self.polling: () -> Status
 
+      attr_reader status: Symbol
+
       def initialize: (Symbol status) -> void
 
-      def polling?: () -> bool
-      def matching?: () -> bool
+      def ==: (Status other) -> bool
       def completed?: () -> bool
-
-      private
-
-      attr_reader status: Symbol
+      def eql?: (Status other) -> bool
+      def hash: () -> Integer
+      def matching?: () -> bool
+      def polling?: () -> bool
     end
   end
 

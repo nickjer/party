@@ -11,6 +11,8 @@ class NormalizedString
 
   def hash = sortable_value.hash
 
+  def length = string.length
+
   def to_s = string
 
   protected

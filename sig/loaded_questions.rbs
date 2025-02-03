@@ -37,7 +37,10 @@ module LoadedQuestions
 
   class NewGame
     def initialize: (
-      user: ::User, player_name: String, question: String, hide_answers: bool
+      user: ::User,
+      player_name: ::NormalizedString,
+      question: ::NormalizedString,
+      hide_answers: bool
     ) -> void
 
     def build: () -> ::Game
@@ -52,22 +55,22 @@ module LoadedQuestions
   end
 
   class NewGameForm
-    attr_reader player_name: String
-    attr_reader question: String
-    attr_reader hide_answers: bool
     attr_reader errors: Hash[Symbol, String]
+    attr_reader hide_answers: bool
+    attr_reader player_name: ::NormalizedString
+    attr_reader question: ::NormalizedString
 
-    def initialize: (?::ActionController::Parameters? params) -> void
+    def initialize: (?params: ::ActionController::Parameters?) -> void
 
     def valid?: () -> bool
 
     private
 
-    def validate_length: (String value, min: Integer, max: Integer) -> String?
+    def validate_length: (::NormalizedString value, min: Integer, max: Integer) -> String?
   end
 
   class NewPlayer
-    def initialize: (user: ::User, name: String, guesser: bool) -> void
+    def initialize: (user: ::User, name: ::NormalizedString, guesser: bool) -> void
 
     def build: () -> ::Player
 
@@ -78,6 +81,20 @@ module LoadedQuestions
     attr_reader user: ::User
 
     def document: () -> Player::document
+  end
+
+  class NewPlayerForm
+    attr_reader errors: Hash[Symbol, String]
+    attr_reader game: Game
+    attr_reader player_name: ::NormalizedString
+
+    def initialize: (game: Game, ?params: ::ActionController::Parameters?) -> void
+
+    def valid?: () -> bool
+
+    private
+
+    def validate_length: (::NormalizedString value, min: Integer, max: Integer) -> String?
   end
 
   class Player
@@ -92,7 +109,7 @@ module LoadedQuestions
     def active?: () -> bool
     def answer: () -> ::NormalizedString
     def guesser?: () -> bool
-    def name: () -> String
+    def name: () -> ::NormalizedString
 
     private
 
@@ -100,5 +117,14 @@ module LoadedQuestions
     attr_reader player: ::Player
 
     def document: () -> document
+  end
+
+  class PlayersController < ::ApplicationController
+    @new_player: NewPlayerForm
+
+    def new: () -> untyped
+    def create: () -> untyped
+    def edit: () -> untyped
+    def update: () -> untyped
   end
 end

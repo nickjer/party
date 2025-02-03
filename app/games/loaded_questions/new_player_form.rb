@@ -1,28 +1,21 @@
 # frozen_string_literal: true
 
 module LoadedQuestions
-  class NewGameForm
+  class NewPlayerForm
+    # @dynamic game
+    attr_reader :game
+
     # @dynamic player_name
     attr_reader :player_name
-
-    # @dynamic question
-    attr_reader :question
-
-    # @dynamic hide_answers
-    attr_reader :hide_answers
 
     # @dynamic errors
     attr_reader :errors
 
-    def initialize(params: nil)
+    def initialize(game:, params: nil)
       if params
-        @player_name = ::NormalizedString.new(params[:player_name])
-        @question = ::NormalizedString.new(params[:question])
-        @hide_answers = params[:hide_answers] == "1"
+        @player_name = NormalizedString.new(params[:player_name])
       else
-        @player_name = ::NormalizedString.new("")
-        @question = ::NormalizedString.new("")
-        @hide_answers = false
+        @player_name = NormalizedString.new("")
       end
 
       @errors = {}
@@ -33,12 +26,6 @@ module LoadedQuestions
       max = ::Player::MAX_NAME_LENGTH
       if (error = validate_length(player_name, min:, max:))
         errors[:player_name] = error
-      end
-
-      min = ::Game::MIN_QUESTION_LENGTH
-      max = ::Game::MAX_QUESTION_LENGTH
-      if (error = validate_length(question, min:, max:))
-        errors[:question] = error
       end
 
       errors.empty?

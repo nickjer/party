@@ -1,6 +1,8 @@
 Rails.application.routes.draw do
   namespace :loaded_questions do
-    resources :games, only: %i[new create show]
+    resources :games, only: %i[create new show] do
+      resources :players, only: %i[create new edit update]
+    end
   end
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.

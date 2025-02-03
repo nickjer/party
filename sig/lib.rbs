@@ -5,6 +5,7 @@ class NormalizedString
   def ==: (NormalizedString other) -> bool
   def eql?: (NormalizedString other) -> bool
   def hash: () -> Integer
+  def length: () -> Integer
   def sortable_value: () -> String
   def to_s: () -> String
 

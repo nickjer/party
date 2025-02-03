@@ -9,7 +9,7 @@ module LoadedQuestions
 
     # POST /loaded_questions/games/create
     def create
-      @new_game = NewGameForm.new(new_game_params)
+      @new_game = NewGameForm.new(params:new_game_params)
 
       if @new_game.valid?
         game = NewGame.new(

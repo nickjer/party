@@ -4,7 +4,7 @@ module LoadedQuestions
   class NewPlayer
     def initialize(user:, name:, guesser:)
       @user = user
-      @name = NormalizedString.new(name)
+      @name = name
       @guesser = guesser
     end
 

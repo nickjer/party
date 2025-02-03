@@ -16,9 +16,13 @@ module LoadedQuestions
 
     def hide_answers? = document.fetch(:hide_answers)
 
+    def id = game.id
+
     def player_for(user) = players.find { |player| player.user == user }
 
-    def players = game.players.map { |player| Player.new(player, game: self) }
+    def players
+      game.players.map { |player| Player.new(player, game: self) }.sort
+    end
 
     def question = document.fetch(:question)
 

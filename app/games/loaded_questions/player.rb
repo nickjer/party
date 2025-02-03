@@ -7,6 +7,8 @@ module LoadedQuestions
       @game = game
     end
 
+    def <=>(other) = player.name <=> other.name
+
     def active? = document.fetch(:active)
 
     def answer = NormalizedString.new(document.fetch(:answer))

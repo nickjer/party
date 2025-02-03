@@ -5,32 +5,35 @@ module LoadedQuestions
     # @dynamic game
     attr_reader :game
 
-    # @dynamic player_name
-    attr_reader :player_name
+    # @dynamic name
+    attr_reader :name
 
     # @dynamic errors
     attr_reader :errors
 
     def initialize(game:, params: nil)
+      @game = game
+
       if params
-        @player_name = NormalizedString.new(params[:player_name])
+        @name = NormalizedString.new(params[:name])
       else
-        @player_name = NormalizedString.new("")
+        @name = NormalizedString.new("")
       end
 
       @errors = {}
     end
 
+    def game_slug = game.slug
+
     def valid?
       min = ::Player::MIN_NAME_LENGTH
       max = ::Player::MAX_NAME_LENGTH
-      if (error = validate_length(player_name, min:, max:))
-        errors[:player_name] = error
+      if (error = validate_length(name, min:, max:))
+        errors[:name] = error
       end
 
-      player_names = game.players.map(&:name)
-      if player_names.include?(player_name)
-        errors[:player_name] = "has already been taken"
+      if game.players.any? { |player| player.name == name }
+        errors[:name] = "has already been taken"
       end
 
       errors.empty?

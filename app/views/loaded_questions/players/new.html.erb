@@ -1,2 +1,10 @@
-<h1>LoadedQuestions::Players#new</h1>
-<p>Find me in app/views/loaded_questions/players/new.html.erb</p>
+<h1 class="text-2xl font-bold my-2">Loaded Questions</h1>
+
+<%= form_with(model: @new_player, scope: :player, url: loaded_questions_game_players_path(@new_player.game_slug)) do |form| %>
+  <div>
+    <%= form.label :name, class: "mt-3 block" %>
+    <%= form.text_field :name, class: "mt-0.5 block w-full" %>
+  </div>
+
+  <%= form.submit "Create New Player", class: "mt-3 w-full" %>
+<% end %>

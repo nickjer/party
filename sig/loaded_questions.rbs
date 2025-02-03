@@ -11,6 +11,7 @@ module LoadedQuestions
     def initialize: (::Game game) -> void
 
     def hide_answers?: () -> bool
+    def id: () -> Integer
     def player_for: (::User) -> Player?
     def players: () -> Array[Player]
     def question: () -> String
@@ -90,10 +91,11 @@ module LoadedQuestions
   class NewPlayerForm
     attr_reader errors: Hash[Symbol, String]
     attr_reader game: Game
-    attr_reader player_name: ::NormalizedString
+    attr_reader name: ::NormalizedString
 
     def initialize: (game: Game, ?params: ::ActionController::Parameters?) -> void
 
+    def game_slug: () -> String
     def valid?: () -> bool
 
     private
@@ -110,6 +112,7 @@ module LoadedQuestions
 
     def initialize: (::Player player, game: Game) -> void
 
+    def <=>: (Player other) -> Integer
     def active?: () -> bool
     def answer: () -> ::NormalizedString
     def guesser?: () -> bool
@@ -131,5 +134,9 @@ module LoadedQuestions
     def create: () -> untyped
     def edit: () -> untyped
     def update: () -> untyped
+
+    private
+
+    def new_player_params: () -> ::ActionController::Parameters
   end
 end

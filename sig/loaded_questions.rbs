@@ -17,13 +17,30 @@ module LoadedQuestions
     def question: () -> String
     def show_answers?: () -> bool
     def slug: () -> String
-    def status: () -> Symbol
+    def status: () -> Status
 
     private
 
     attr_reader game: ::Game
 
     def document: () -> document
+
+    class Status
+      def self.completed: () -> Status
+      def self.matching: () -> Status
+      def self.parse: (String status) -> Status
+      def self.polling: () -> Status
+
+      def initialize: (Symbol status) -> void
+
+      def polling?: () -> bool
+      def matching?: () -> bool
+      def completed?: () -> bool
+
+      private
+
+      attr_reader status: Symbol
+    end
   end
 
   class GamesController < ::ApplicationController

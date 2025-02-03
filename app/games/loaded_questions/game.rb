@@ -30,7 +30,7 @@ module LoadedQuestions
 
     def slug = game.slug
 
-    def status = document.fetch(:status).to_sym
+    def status = Status.parse(document.fetch(:status))
 
     private
 

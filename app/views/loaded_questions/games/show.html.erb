@@ -1,5 +1,7 @@
 <%= turbo_refreshes_with method: :morph, scroll: :preserve %>
 
+<%= turbo_stream_from @game %>
+
 <div class="flex flex-wrap items-start gap-2 mt-2">
   <div class="w-75 p-3 border border-gray-800 rounded-lg">
     <p class="font-normal text-gray-700">

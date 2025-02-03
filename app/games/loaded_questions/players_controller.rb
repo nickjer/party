@@ -27,6 +27,8 @@ module LoadedQuestions
         ).build
         player.game_id = game.id
         player.save!
+
+        ::Turbo::StreamsChannel.broadcast_refresh_to(game)
         redirect_to loaded_questions_game_path(game.slug)
       else
         @new_player = new_player

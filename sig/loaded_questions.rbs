@@ -18,6 +18,7 @@ module LoadedQuestions
     def show_answers?: () -> bool
     def slug: () -> String
     def status: () -> Status
+    def to_gid_param: () -> String
 
     private
 

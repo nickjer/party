@@ -1,0 +1,11 @@
+module Turbo
+  module Streams
+    module Broadcasts
+      def broadcast_refresh_to: (*untyped streamables, **untyped opts) -> untyped
+    end
+  end
+
+  class StreamsChannel
+    extend Streams::Broadcasts
+  end
+end

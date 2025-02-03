@@ -32,6 +32,8 @@ module LoadedQuestions
 
     def status = Status.parse(document.fetch(:status))
 
+    def to_gid_param = game.to_gid_param
+
     private
 
     # @dynamic game

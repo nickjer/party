@@ -24,8 +24,10 @@ class TailwindFormBuilder < ActionView::Helpers::FormBuilder
 
   SUBMIT_STYLE = %w[
     bg-blue-500
+    hover:bg-blue-800
     text-white
     p-2
+    font-medium
     text-sm
     rounded-lg
   ].join(" ").freeze

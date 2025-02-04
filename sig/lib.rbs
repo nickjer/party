@@ -3,6 +3,7 @@ class NormalizedString
 
   def <=>: (NormalizedString other) -> Integer
   def ==: (NormalizedString other) -> bool
+  def blank?: () -> bool
   def eql?: (NormalizedString other) -> bool
   def hash: () -> Integer
   def length: () -> Integer

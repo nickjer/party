@@ -7,6 +7,8 @@ class NormalizedString
 
   def ==(other) = sortable_value == other.sortable_value
 
+  def blank? = string.blank?
+
   def eql?(other) = self == other
 
   def hash = sortable_value.hash

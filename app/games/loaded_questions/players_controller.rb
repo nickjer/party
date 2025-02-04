@@ -58,7 +58,7 @@ module LoadedQuestions
       if answer_form.valid?
         current_player.update_answer(answer_form.answer)
         ::Turbo::StreamsChannel.broadcast_refresh_to(game)
-        head :no_content
+        redirect_to_game(game)
       else
         raise "TODO"
       end

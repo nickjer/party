@@ -6,3 +6,6 @@ import { application } from "./application"
 
 import HelloController from "./hello_controller"
 application.register("hello", HelloController)
+
+import RevealController from "@stimulus-components/reveal"
+application.register("reveal", RevealController)

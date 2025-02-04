@@ -15,7 +15,15 @@ module LoadedQuestions
 
     def guesser? = document.fetch(:guesser)
 
+    def id = player.id
+
     def name = player.name
+
+    def update_answer(answer)
+      document[:answer] = answer.to_s
+      player.document = document.to_json
+      player.save!
+    end
 
     def user = player.user
 

@@ -1,4 +1,20 @@
 module LoadedQuestions
+  class AnswerForm
+    MIN_LENGTH: Integer
+    MAX_LENGTH: Integer
+
+    attr_reader answer: ::NormalizedString
+    attr_reader errors: Hash[Symbol, String]
+
+    def initialize: (?answer: _ToS?) -> void
+
+    def valid?: () -> bool
+
+    private
+
+    def validate_length: (::NormalizedString value, min: Integer, max: Integer) -> String?
+  end
+
   class Game
     type document = {
       hide_answers: bool,
@@ -84,7 +100,11 @@ module LoadedQuestions
     attr_reader player_name: ::NormalizedString
     attr_reader question: ::NormalizedString
 
-    def initialize: (?params: ::ActionController::Parameters?) -> void
+    def initialize: (
+      ?player_name: _ToS?,
+      ?question: _ToS?,
+      ?hide_answers: String?
+    ) -> void
 
     def valid?: () -> bool
 
@@ -112,7 +132,7 @@ module LoadedQuestions
     attr_reader game: Game
     attr_reader name: ::NormalizedString
 
-    def initialize: (game: Game, ?params: ::ActionController::Parameters?) -> void
+    def initialize: (game: Game, ?name: _ToS?) -> void
 
     def game_slug: () -> String
     def valid?: () -> bool
@@ -135,7 +155,9 @@ module LoadedQuestions
     def active?: () -> bool
     def answer: () -> ::NormalizedString
     def guesser?: () -> bool
+    def id: () -> Integer
     def name: () -> ::NormalizedString
+    def update_answer: (::NormalizedString answer) -> void
     def user: () -> ::User
 
     private
@@ -156,6 +178,9 @@ module LoadedQuestions
 
     private
 
+    def answer_params: () -> ::ActionController::Parameters
     def new_player_params: () -> ::ActionController::Parameters
+    def redirect_to_game: (Game game) -> void
+    def redirect_to_new_player: (Game game) -> void
   end
 end

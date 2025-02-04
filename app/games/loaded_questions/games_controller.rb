@@ -10,7 +10,11 @@ module LoadedQuestions
 
     # POST /loaded_questions/games/create
     def create
-      new_game = NewGameForm.new(params: new_game_params)
+      new_game = NewGameForm.new(
+        player_name: new_game_params[:player_name],
+        question: new_game_params[:question],
+        hide_answers: new_game_params[:hide_answers]
+      )
 
       if new_game.valid?
         game = NewGame.new(
@@ -40,7 +44,8 @@ module LoadedQuestions
 
         case game.status
         when Game::Status.polling
-          render :polling
+          answer_form = AnswerForm.new(answer: current_player.answer)
+          render :polling, locals: { answer_form: }
         when Game::Status.matching
           render :matching
         when Game::Status.completed

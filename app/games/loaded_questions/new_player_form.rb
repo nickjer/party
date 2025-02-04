@@ -11,15 +11,9 @@ module LoadedQuestions
     # @dynamic errors
     attr_reader :errors
 
-    def initialize(game:, params: nil)
+    def initialize(game:, name: nil)
       @game = game
-
-      if params
-        @name = NormalizedString.new(params[:name])
-      else
-        @name = NormalizedString.new("")
-      end
-
+      @name = NormalizedString.new(name)
       @errors = {}
     end
 

@@ -1,7 +1,11 @@
 Rails.application.routes.draw do
   namespace :loaded_questions do
     resources :games, only: %i[create new show] do
-      resources :players, only: %i[create new edit update]
+      resource :player, only: %i[create new edit update] do
+        member do
+          patch :answer
+        end
+      end
     end
   end
 

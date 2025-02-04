@@ -14,17 +14,10 @@ module LoadedQuestions
     # @dynamic errors
     attr_reader :errors
 
-    def initialize(params: nil)
-      if params
-        @player_name = ::NormalizedString.new(params[:player_name])
-        @question = ::NormalizedString.new(params[:question])
-        @hide_answers = params[:hide_answers] == "1"
-      else
-        @player_name = ::NormalizedString.new("")
-        @question = ::NormalizedString.new("")
-        @hide_answers = false
-      end
-
+    def initialize(player_name: nil, question: nil, hide_answers: nil)
+      @player_name = ::NormalizedString.new(player_name)
+      @question = ::NormalizedString.new(question)
+      @hide_answers = hide_answers == "1"
       @errors = {}
     end
 

@@ -15,16 +15,17 @@
   </div>
 
   <div>
-    <strong>Players:</strong>
+    <div class="font-bold">Players:</div>
     <ul>
       <% @game.players.each do |player| %>
-        <li>
+        <li class="flex gap-1">
+          <%= render "icons/solid_circle", classes: "w-5 h-5 text-green-500" %>
           <% if player.guesser? %>
-            [X]
+            <%= render "icons/solid_star", classes: "w-5 h-5" %>
           <% else %>
-            [ ]
+            <%= render "icons/square", classes: "w-5 h-5" %>
           <% end %>
-          <%= player.name %>
+          <span class="block"><%= player.name %></span>
         </li>
       <% end %>
     </ul>

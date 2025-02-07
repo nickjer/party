@@ -14,6 +14,8 @@ class Player < ApplicationRecord
 
   def name = NormalizedString.new(super)
 
+  def online? = PlayerConnections.instance.count(id).positive?
+
   def parsed_document
     @parsed_document ||= JSON.parse(document, symbolize_names: true)
   end

@@ -152,9 +152,12 @@ module LoadedQuestions
     def initialize: (::Player player, game: Game) -> void
 
     def <=>: (Player other) -> Integer
+    def ==: (Player other) -> bool
     def active?: () -> bool
     def answer: () -> ::NormalizedString
+    def eql?: (Player other) -> bool
     def guesser?: () -> bool
+    def hash: () -> Integer
     def id: () -> Integer
     def name: () -> ::NormalizedString
     def update_answer: (::NormalizedString answer) -> void

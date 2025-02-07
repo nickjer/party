@@ -45,6 +45,7 @@ class Player < ::ApplicationRecord
   def document?: () -> bool
   def game_id: () -> Integer?
   def game_id=: (::Integer?) -> ::Integer?
+  def online?: () -> bool
   def name: () -> ::NormalizedString
   def name=: (::NormalizedString) -> ::NormalizedString
   def name?: () -> bool

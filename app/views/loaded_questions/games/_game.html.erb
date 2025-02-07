@@ -1,6 +1,6 @@
 <%= turbo_refreshes_with method: :morph, scroll: :preserve %>
 
-<%= turbo_stream_from @game %>
+<%= turbo_stream_from @game, channel: GameChannel %>
 
 <div class="flex flex-wrap items-start gap-2 mt-2">
   <div class="w-75">
@@ -19,7 +19,11 @@
     <ul>
       <% @game.players.each do |player| %>
         <li class="flex gap-1">
-          <%= render "icons/solid_circle", classes: "w-5 h-5 text-green-500" %>
+          <% if player == @current_player || player.online? %>
+            <%= render "icons/solid_circle", classes: "w-5 h-5 text-green-500" %>
+          <% else %>
+            <%= render "icons/solid_circle", classes: "w-5 h-5 text-red-500" %>
+          <% end %>
           <% if player.guesser? %>
             <%= render "icons/solid_star", classes: "w-5 h-5" %>
           <% else %>

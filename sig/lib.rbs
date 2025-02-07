@@ -16,3 +16,31 @@ class NormalizedString
 
   def normalize: (_ToS value) -> String
 end
+
+class PlayerConnections
+  include Singleton
+
+  def self.instance: () -> PlayerConnections
+
+  def initialize: () -> void
+
+  def count: (Integer player_id) -> Integer
+  def increment: (Integer player_id) -> void
+  def decrement: (Integer player_id) -> void
+
+  private
+
+  attr_reader connection_map: ScoreMap[Integer]
+end
+
+class ScoreMap[unchecked out K]
+  def initialize: () -> void
+
+  def increment_by: (K key, Integer new_score) -> Integer
+  def decrement_by: (K key, Integer new_score) -> Integer
+  def score: (K key) -> Integer
+
+  private
+
+  attr_reader score_map: Concurrent::Map[K, Integer]
+end

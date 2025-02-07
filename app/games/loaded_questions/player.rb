@@ -7,17 +7,25 @@ module LoadedQuestions
       @game = game
     end
 
-    def <=>(other) = player.name <=> other.name
+    def <=>(other) = name <=> other.name
+
+    def ==(other) = self.class == other.class && id == other.id
 
     def active? = document.fetch(:active)
 
     def answer = NormalizedString.new(document.fetch(:answer))
 
+    def eql?(other) = self == other
+
     def guesser? = document.fetch(:guesser)
+
+    def hash = id.hash
 
     def id = player.id
 
     def name = player.name
+
+    def online? = player.online?
 
     def update_answer(answer)
       document[:answer] = answer.to_s

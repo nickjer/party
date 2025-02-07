@@ -390,6 +390,7 @@ DEPENDENCIES
   bootsnap
   brakeman
   capybara
+  concurrent-ruby
   cssbundling-rails
   debug
   jbuilder

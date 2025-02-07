@@ -46,7 +46,7 @@ class TailwindFormBuilder < ActionView::Helpers::FormBuilder
     bg-gray-50
     border
     border-red-500
-    text-red-900
+    text-gray-900
     text-sm
     rounded-lg
     p-2.5
@@ -81,8 +81,16 @@ class TailwindFormBuilder < ActionView::Helpers::FormBuilder
   end
 
   def text_area(method, options = {})
-    options[:class] = "border rounded #{options[:class]}"
-    super(method, options)
+    style = error?(method) ? TEXT_FIELD_ERROR_STYLE : TEXT_FIELD_STYLE
+    options[:class] = "#{style} #{options[:class]}"
+    output = super(method, options)
+    if error?(method)
+      error = @template.content_tag(
+        :p, @object.errors[method], class: "text-sm text-red-600 mt-1"
+      )
+      output.concat(error)
+    end
+    output
   end
 
   def email_field(method, options = {})

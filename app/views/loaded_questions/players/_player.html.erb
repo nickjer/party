@@ -1,4 +1,4 @@
-<div class="flex gap-1">
+<div class="flex items-center gap-1">
   <% if player == current_player || player.online? %>
     <%= render "icons/solid_circle", classes: "w-5 h-5 text-green-500" %>
   <% else %>
@@ -9,5 +9,7 @@
   <% else %>
     <%= render "icons/square", classes: "w-5 h-5" %>
   <% end %>
-  <span class="block"><%= player.name %></span>
+  <span class="block<%= " font-bold" if player == current_player %>">
+    <%= player.name %>
+  </span>
 </div>

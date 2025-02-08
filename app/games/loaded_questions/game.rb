@@ -14,9 +14,16 @@ module LoadedQuestions
       @game = game
     end
 
+    def broadcast_reload_players = game.broadcast_reload_players
+
     def hide_answers? = document.fetch(:hide_answers)
 
     def id = game.id
+
+    def player_for!(user)
+      player_for(user) ||
+        raise(ActiveRecord::RecordNotFound, "Couldn't find Player")
+    end
 
     def player_for(user) = players.find { |player| player.user == user }
 

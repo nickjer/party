@@ -20,4 +20,9 @@ class Game < ApplicationRecord
   def parsed_document
     @parsed_document ||= JSON.parse(document, symbolize_names: true)
   end
+
+  def broadcast_reload_players
+    ::Turbo::StreamsChannel
+      .broadcast_action_to(self, action: :reload, target: "players")
+  end
 end

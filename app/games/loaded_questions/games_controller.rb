@@ -57,7 +57,7 @@ module LoadedQuestions
     # GET /loaded_questions/games/:id/players
     def players
       @game = Game.find(params[:id])
-      @current_player = @game.player_for(current_user)
+      @current_player = @game.player_for!(current_user)
     end
 
     private

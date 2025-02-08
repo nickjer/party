@@ -26,8 +26,10 @@ module LoadedQuestions
 
     def initialize: (::Game game) -> void
 
+    def broadcast_reload_players: () -> void
     def hide_answers?: () -> bool
     def id: () -> Integer
+    def player_for!: (::User) -> Player
     def player_for: (::User) -> Player?
     def players: () -> Array[Player]
     def question: () -> String
@@ -62,9 +64,9 @@ module LoadedQuestions
   end
 
   class GamesController < ::ApplicationController
-    @game: Game?
-    @new_game: NewGameForm?
-    @current_player: Player?
+    @game: Game
+    @new_game: NewGameForm
+    @current_player: Player
 
     def new: () -> untyped
     def create: () -> untyped
@@ -172,7 +174,9 @@ module LoadedQuestions
   end
 
   class PlayersController < ::ApplicationController
-    @new_player: NewPlayerForm?
+    @current_player: Player
+    @game: Game
+    @new_player: NewPlayerForm
 
     def new: () -> untyped
     def create: () -> untyped

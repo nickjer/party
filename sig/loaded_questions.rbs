@@ -157,6 +157,7 @@ module LoadedQuestions
     def ==: (Player other) -> bool
     def active?: () -> bool
     def answer: () -> ::NormalizedString
+    def answered?: () -> bool
     def eql?: (Player other) -> bool
     def guesser?: () -> bool
     def hash: () -> Integer

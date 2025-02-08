@@ -15,6 +15,8 @@ module LoadedQuestions
 
     def answer = NormalizedString.new(document.fetch(:answer))
 
+    def answered? = !answer.blank?
+
     def eql?(other) = self == other
 
     def guesser? = document.fetch(:guesser)

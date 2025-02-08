@@ -6,6 +6,8 @@
   <% end %>
   <% if player.guesser? %>
     <%= render "icons/solid_star", classes: "w-5 h-5" %>
+  <% elsif player.answered? %>
+    <%= render "icons/check_square", classes: "w-5 h-5" %>
   <% else %>
     <%= render "icons/square", classes: "w-5 h-5" %>
   <% end %>

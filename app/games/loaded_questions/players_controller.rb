@@ -57,7 +57,7 @@ module LoadedQuestions
       answer_form = AnswerForm.new(answer: answer_params[:answer])
       if answer_form.valid?
         current_player.update_answer(answer_form.answer)
-        ::Turbo::StreamsChannel.broadcast_refresh_to(game)
+        game.broadcast_reload_players
         redirect_to_game(game)
       else
         @game = game

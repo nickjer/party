@@ -36,6 +36,8 @@ class TailwindFormBuilder < ActionView::Helpers::FormBuilder
     bg-gray-50
     border
     border-gray-300
+    focus:outline-4
+    focus:outline-blue-300
     text-gray-900
     text-sm
     rounded-lg
@@ -46,6 +48,8 @@ class TailwindFormBuilder < ActionView::Helpers::FormBuilder
     bg-gray-50
     border
     border-red-500
+    focus:outline-4
+    focus:outline-red-300
     text-gray-900
     text-sm
     rounded-lg

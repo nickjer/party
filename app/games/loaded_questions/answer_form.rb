@@ -16,6 +16,8 @@ module LoadedQuestions
       @errors = {}
     end
 
+    def show? = answer.blank? || !errors.empty?
+
     def valid?
       min = MIN_LENGTH
       max = MAX_LENGTH

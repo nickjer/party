@@ -11,27 +11,31 @@
       </p>
     </div>
 
-    <%= yield %>
+    <%= turbo_frame_tag "game" do %>
+      <%= yield %>
+    <% end %>
   </div>
 
   <div>
     <div class="font-bold">Players:</div>
-    <ul>
-      <% @game.players.each do |player| %>
-        <li class="flex gap-1">
-          <% if player == @current_player || player.online? %>
-            <%= render "icons/solid_circle", classes: "w-5 h-5 text-green-500" %>
-          <% else %>
-            <%= render "icons/solid_circle", classes: "w-5 h-5 text-red-500" %>
-          <% end %>
-          <% if player.guesser? %>
-            <%= render "icons/solid_star", classes: "w-5 h-5" %>
-          <% else %>
-            <%= render "icons/square", classes: "w-5 h-5" %>
-          <% end %>
-          <span class="block"><%= player.name %></span>
-        </li>
-      <% end %>
-    </ul>
+    <%= turbo_frame_tag "players" do %>
+      <ul>
+        <% @game.players.each do |player| %>
+          <li class="flex gap-1">
+            <% if player == @current_player || player.online? %>
+              <%= render "icons/solid_circle", classes: "w-5 h-5 text-green-500" %>
+            <% else %>
+              <%= render "icons/solid_circle", classes: "w-5 h-5 text-red-500" %>
+            <% end %>
+            <% if player.guesser? %>
+              <%= render "icons/solid_star", classes: "w-5 h-5" %>
+            <% else %>
+              <%= render "icons/square", classes: "w-5 h-5" %>
+            <% end %>
+            <span class="block"><%= player.name %></span>
+          </li>
+        <% end %>
+      </ul>
+    <% end %>
   </div>
 </div>

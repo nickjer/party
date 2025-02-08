@@ -60,7 +60,10 @@ module LoadedQuestions
         ::Turbo::StreamsChannel.broadcast_refresh_to(game)
         redirect_to_game(game)
       else
-        raise "TODO"
+        @game = game
+        @current_player = current_player
+
+        render "loaded_questions/games/polling", locals: { answer_form: }
       end
     end
 

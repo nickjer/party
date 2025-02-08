@@ -18,7 +18,7 @@
 
   <div>
     <div class="font-bold">Players:</div>
-    <%= turbo_frame_tag "players", refresh: "morph", src: players_loaded_questions_game_path(@game.slug) do %>
+    <%= turbo_frame_tag "players", refresh: "morph", data: { src: players_loaded_questions_game_path(@game.slug) } do %>
       <%= render partial: "loaded_questions/players/player", collection: @game.players, as: :player, locals: { current_player: @current_player } %>
     <% end %>
   </div>

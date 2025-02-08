@@ -32,7 +32,9 @@ module LoadedQuestions
         player.game_id = game.id
         player.save!
 
-        ::Turbo::StreamsChannel.broadcast_refresh_to(game)
+        ::Turbo::StreamsChannel.broadcast_action_to(
+          game, action: :reload, target: "players"
+        )
         redirect_to_game(game)
       else
         @new_player = new_player

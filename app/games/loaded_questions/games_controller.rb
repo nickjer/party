@@ -54,6 +54,12 @@ module LoadedQuestions
       end
     end
 
+    # GET /loaded_questions/games/:id/players
+    def players
+      @game = Game.find(params[:id])
+      @current_player = @game.player_for(current_user)
+    end
+
     private
 
     def new_game_params

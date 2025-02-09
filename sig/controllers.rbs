@@ -3,4 +3,5 @@ class ApplicationController < ::ActionController::Base
 
   def loaded_questions_game_path: (String slug) -> String
   def new_loaded_questions_game_player_path: (String slug) -> String
+  def turbo_stream: () -> Turbo::Streams::TagBuilder
 end

@@ -3,6 +3,10 @@ module Turbo
     module Broadcasts
       def broadcast_refresh_to: (*untyped streamables, **untyped opts) -> untyped
     end
+
+    class TagBuilder
+      def refresh: (?request_id: String?) -> untyped
+    end
   end
 
   class StreamsChannel

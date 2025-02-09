@@ -45,13 +45,17 @@ module LoadedQuestions
         when Game::Status.polling
           if current_player.guesser?
             match_form = MatchForm.new(game: @game)
-            render :polling, locals: { match_form: }
+            render :polling_guesser, locals: { match_form: }
           else
             answer_form = AnswerForm.new(answer: current_player.answer)
-            render :polling, locals: { answer_form: }
+            render :polling_player, locals: { answer_form: }
           end
         when Game::Status.matching
-          render :matching
+          if current_player.guesser?
+            render :matching_guesser
+          else
+            render :matching_player
+          end
         when Game::Status.completed
           render :completed
         end
@@ -68,15 +72,15 @@ module LoadedQuestions
     def match
       @game = Game.find(params[:id])
       @current_player = @game.player_for!(current_user)
+      return(head :forbidden) unless @current_player.guesser?
 
-      if @current_player.guesser?
-        match_form = MatchForm.new(game: @game)
-        if match_form.valid?
-        else
-          render "loaded_questions/games/polling", locals: { match_form: }
-        end
+      match_form = MatchForm.new(game: @game)
+      if match_form.valid?
+        @game.update_status(Game::Status.matching)
+        target = loaded_questions_game_path(@game.slug)
+        render turbo_stream: turbo_stream.refresh(request_id: nil)
       else
-        head :forbidden
+        render :polling_guesser, locals: { match_form: }
       end
     end
 

@@ -30,6 +30,8 @@ module LoadedQuestions
 
       def completed? = status == :completed
 
+      def to_s = status.to_s
+
       def ==(other) = status == other.status
 
       def eql?(other) = self == other

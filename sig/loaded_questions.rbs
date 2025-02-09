@@ -37,6 +37,7 @@ module LoadedQuestions
     def slug: () -> String
     def status: () -> Status
     def to_gid_param: () -> String
+    def update_status: (Status status) -> void
 
     private
 
@@ -60,6 +61,7 @@ module LoadedQuestions
       def hash: () -> Integer
       def matching?: () -> bool
       def polling?: () -> bool
+      def to_s: () -> String
     end
   end
 

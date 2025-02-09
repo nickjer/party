@@ -63,7 +63,7 @@ module LoadedQuestions
         @game = game
         @current_player = current_player
 
-        render "loaded_questions/games/polling", locals: { answer_form: }
+        render "loaded_questions/games/polling_player", locals: { answer_form: }
       end
     end
 

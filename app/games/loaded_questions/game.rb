@@ -41,6 +41,12 @@ module LoadedQuestions
 
     def to_gid_param = game.to_gid_param
 
+    def update_status(status)
+      document[:status] = status.to_s
+      game.document = document.to_json
+      game.save!
+    end
+
     private
 
     # @dynamic game

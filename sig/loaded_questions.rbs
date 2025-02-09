@@ -30,6 +30,7 @@ module LoadedQuestions
     def broadcast_reload_game: () -> void
     def broadcast_reload_players: () -> void
     def id: () -> Integer
+    def matched_answers: () -> MatchedAnswers
     def player_for!: (::User) -> Player
     def player_for: (::User) -> Player?
     def players: () -> Array[Player]
@@ -44,6 +45,29 @@ module LoadedQuestions
     attr_reader game: ::Game
 
     def document: () -> document
+
+    class MatchedAnswers
+      def self.parse: (Array[matched_answer] matched_answers) -> MatchedAnswers
+
+      include Enumerable[MatchedAnswer]
+
+      def initialize: (matches: Array[MatchedAnswer]) -> void
+
+      def each: () { (MatchedAnswer) -> void } -> self
+      def find: (Integer player_id) -> MatchedAnswer
+
+      private
+
+      # @dynamic matches
+      attr_reader matches: Array[MatchedAnswer]
+
+      class MatchedAnswer
+        attr_reader answer: String
+        attr_reader player_id: Integer
+
+        def initialize: (player_id: Integer, answer: String) -> void
+      end
+    end
 
     class Status
       def self.completed: () -> Status

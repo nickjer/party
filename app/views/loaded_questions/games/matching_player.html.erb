@@ -1,2 +1,6 @@
 <%= render layout: "loaded_questions/games/game" do %>
+  <% @game.matched_answers.each do |matched_answer| %>
+    <div><%= matched_answer.player_id %></div>
+    <div><%= matched_answer.answer %></div>
+  <% end %>
 <% end %>

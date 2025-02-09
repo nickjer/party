@@ -20,6 +20,8 @@ module LoadedQuestions
 
     def id = game.id
 
+    def matched_answers = MatchedAnswers.parse(document.fetch(:matched_answers))
+
     def player_for!(user)
       player_for(user) ||
         raise(ActiveRecord::RecordNotFound, "Couldn't find Player")

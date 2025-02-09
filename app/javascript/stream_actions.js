@@ -1,7 +1,8 @@
 Turbo.StreamActions.reload = function () {
   this.targetElements.forEach((targetElement) => {
-    targetElement.removeAttribute("disabled")
-    targetElement.reload()
-    targetElement.setAttribute("disabled", "")
+    if (targetElement.dataset.src) {
+      targetElement.src = targetElement.dataset.src
+      targetElement.src = null
+    }
   })
 }

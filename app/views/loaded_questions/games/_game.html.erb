@@ -11,14 +11,14 @@
       </p>
     </div>
 
-    <%= turbo_frame_tag "game", refresh: "morph", src: loaded_questions_game_path(@game.slug), disabled: true do %>
+    <%= turbo_frame_tag "game", refresh: "morph", data: { src: loaded_questions_game_path(@game.slug) } do %>
       <%= yield %>
     <% end %>
   </div>
 
   <div>
     <div class="font-bold">Players:</div>
-    <%= turbo_frame_tag "players", refresh: "morph", src: players_loaded_questions_game_path(@game.slug), disabled: true do %>
+    <%= turbo_frame_tag "players", refresh: "morph", data: { src: players_loaded_questions_game_path(@game.slug) } do %>
       <%= render partial: "loaded_questions/players/player", collection: @game.players, as: :player, locals: { current_player: @current_player } %>
     <% end %>
   </div>

@@ -1,33 +1,17 @@
 <%= render layout: "loaded_questions/games/game" do %>
-  <div data-controller="dialog" data-action="click->dialog#backdropClose">
-    <dialog data-dialog-target="dialog" class="fixed z-50 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-100 bg-white rounded-md px-8 py-6 space-y-5 drop-shadow-lg">
-      <%= turbo_frame_tag "match" do %>
-        <% unless match_form.errors.empty? %>
-          <div class="p-2 bg-red-100 border border-red-400 rounded-lg">
-            <% match_form.errors.each do |error| %>
-              <div class="text-sm text-red-500">
-                &bull; <%= error %>
-              </div>
-            <% end %>
-          </div>
-        <% end %>
-        <div class="py-4">
-          Are you sure you would like to begin matching answers?
-        </div>
-
-        <div class="flex justify-between">
-          <button type="button" data-action="dialog#close" class="mt-3 w-24 text-white bg-gray-500 hover:bg-gray-800 active:bg-gray-800 outline-none font-medium rounded-lg text-sm p-2">
-            No
-          </button>
-          <%= form_with(scope: :game, url: match_loaded_questions_game_path(@game.slug), method: :patch) do |form| %>
-            <%= form.submit "Yes", class: "mt-3 w-24" %>
+  <%= turbo_frame_tag "match" do %>
+    <%= form_with(model: match_form, scope: :game, url: match_loaded_questions_game_path(@game.slug), method: :patch) do |form| %>
+      <% unless form.object.errors.empty? %>
+        <div class="p-2 mt-3 bg-red-100 border border-red-400 rounded-lg">
+          <% form.object.errors.each do |error| %>
+            <div class="text-sm text-red-500">
+              &bull; <%= error %>
+            </div>
           <% end %>
         </div>
       <% end %>
-    </dialog>
 
-    <button type="button" data-action="dialog#open" class="mt-3 w-full text-white bg-gray-500 hover:bg-gray-800 active:bg-gray-800 outline-none font-medium rounded-lg text-sm p-2">
-      Match Answers
-    </button>
-  </div>
+      <%= form.submit "Match Answers", class: "mt-3 w-full text-white bg-gray-500 hover:bg-gray-800 active:bg-gray-800 outline-none font-medium rounded-lg text-sm p-2" %>
+    <% end %>
+  <% end %>
 <% end %>

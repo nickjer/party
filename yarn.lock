@@ -239,11 +239,6 @@
   resolved "https://registry.yarnpkg.com/@rails/actioncable/-/actioncable-7.2.201.tgz#bfb3da01b3e2462f5a18f372c52dedd7de76037f"
   integrity sha512-wsTdWoZ5EfG5k3t7ORdyQF0ZmDEgN4aVPCanHAiNEwCROqibSZMXXmCbH7IDJUVri4FOeAVwwbPINI7HVHPKBw==
 
-"@stimulus-components/dialog@^1.0.1":
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/@stimulus-components/dialog/-/dialog-1.0.1.tgz#879452b4efb817e16f44c09ac920ae618d12591e"
-  integrity sha512-7cpazrXeFKVmmuGnJOrykEvjRNRTOhLuI7SzgDdAlKWxM8ivBKziBHwjJGR96vCvSkoKwlGMGRcDzXgVRnr/7w==
-
 "@stimulus-components/reveal@^5.0.0":
   version "5.0.0"
   resolved "https://registry.yarnpkg.com/@stimulus-components/reveal/-/reveal-5.0.0.tgz#87a17b91f8a556e3f3975740ebb3e760aea6fafc"

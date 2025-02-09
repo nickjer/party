@@ -39,8 +39,20 @@ module LoadedQuestions
 
     def to_gid_param = game.to_gid_param
 
-    def update_status(status)
-      document[:status] = status.to_s
+    def update_status(new_status)
+      if status.polling? && new_status.matching?
+        participants = players.select(&:answered?)
+        answers = participants.map(&:answer).map(&:to_s).shuffle
+        matched_answers =
+          participants.zip(answers).map do |participant, answer|
+            raise "Answer is missing" unless answer
+
+            { player_id: participant.id, answer: } #: matched_answer
+          end
+        document[:matched_answers] = matched_answers
+      end
+
+      document[:status] = new_status.to_s
       game.document = document.to_json
       game.save!
     end

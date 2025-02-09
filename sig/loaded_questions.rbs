@@ -16,8 +16,10 @@ module LoadedQuestions
   end
 
   class Game
+    type matched_answer = { player_id: Integer, answer: String }
     type document = {
       question: String,
+      matched_answers: Array[matched_answer],
       status: String,
     }
 

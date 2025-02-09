@@ -33,19 +33,23 @@ module LoadedQuestions
 
     # GET /loaded_questions/games/:id
     def show
-      game = Game.find(params[:id])
-      current_player = game.player_for(current_user)
+      @game = Game.find(params[:id])
+      current_player = @game.player_for(current_user)
 
       if current_player.nil?
-        redirect_to(new_loaded_questions_game_player_path(game.slug))
+        redirect_to(new_loaded_questions_game_player_path(@game.slug))
       else
-        @game = game
         @current_player = current_player
 
-        case game.status
+        case @game.status
         when Game::Status.polling
-          answer_form = AnswerForm.new(answer: current_player.answer)
-          render :polling, locals: { answer_form: }
+          if current_player.guesser?
+            match_form = MatchForm.new(game: @game)
+            render :polling, locals: { match_form: }
+          else
+            answer_form = AnswerForm.new(answer: current_player.answer)
+            render :polling, locals: { answer_form: }
+          end
         when Game::Status.matching
           render :matching
         when Game::Status.completed
@@ -58,6 +62,22 @@ module LoadedQuestions
     def players
       @game = Game.find(params[:id])
       @current_player = @game.player_for!(current_user)
+    end
+
+    # PATCH /loaded_questions/games/:id/match
+    def match
+      @game = Game.find(params[:id])
+      @current_player = @game.player_for!(current_user)
+
+      if @current_player.guesser?
+        match_form = MatchForm.new(game: @game)
+        if match_form.valid?
+        else
+          render "loaded_questions/games/polling", locals: { match_form: }
+        end
+      else
+        head :forbidden
+      end
     end
 
     private

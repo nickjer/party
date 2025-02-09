@@ -9,3 +9,6 @@ application.register("hello", HelloController)
 
 import RevealController from "@stimulus-components/reveal"
 application.register("reveal", RevealController)
+
+import Dialog from '@stimulus-components/dialog'
+application.register('dialog', Dialog)

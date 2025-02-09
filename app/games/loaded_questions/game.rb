@@ -14,6 +14,8 @@ module LoadedQuestions
       @game = game
     end
 
+    def broadcast_reload_game = game.broadcast_reload_game
+
     def broadcast_reload_players = game.broadcast_reload_players
 
     def hide_answers? = document.fetch(:hide_answers)

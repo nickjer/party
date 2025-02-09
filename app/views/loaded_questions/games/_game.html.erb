@@ -11,7 +11,7 @@
       </p>
     </div>
 
-    <%= turbo_frame_tag "game" do %>
+    <%= turbo_frame_tag "game", refresh: "morph", src: loaded_questions_game_path(@game.slug), disabled: true do %>
       <%= yield %>
     <% end %>
   </div>

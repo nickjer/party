@@ -9,6 +9,7 @@ class Game < ::ApplicationRecord
 
   def self.loaded_questions: () -> ::Game::ActiveRecord_Relation
 
+  def broadcast_reload_game: () -> void
   def broadcast_reload_players: () -> void
   def document: () -> String
   def document=: (String) -> String

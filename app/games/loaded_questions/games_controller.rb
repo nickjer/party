@@ -78,7 +78,8 @@ module LoadedQuestions
       if match_form.valid?
         @game.update_status(Game::Status.matching)
         target = loaded_questions_game_path(@game.slug)
-        render turbo_stream: turbo_stream.refresh(request_id: nil)
+        @game.broadcast_reload_game
+        head :ok
       else
         render :polling_guesser, locals: { match_form: }
       end

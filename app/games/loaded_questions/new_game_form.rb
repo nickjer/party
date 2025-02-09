@@ -8,16 +8,12 @@ module LoadedQuestions
     # @dynamic question
     attr_reader :question
 
-    # @dynamic hide_answers
-    attr_reader :hide_answers
-
     # @dynamic errors
     attr_reader :errors
 
-    def initialize(player_name: nil, question: nil, hide_answers: nil)
+    def initialize(player_name: nil, question: nil)
       @player_name = ::NormalizedString.new(player_name)
       @question = ::NormalizedString.new(question)
-      @hide_answers = hide_answers == "1"
       @errors = {}
     end
 

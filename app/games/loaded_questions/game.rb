@@ -18,8 +18,6 @@ module LoadedQuestions
 
     def broadcast_reload_players = game.broadcast_reload_players
 
-    def hide_answers? = document.fetch(:hide_answers)
-
     def id = game.id
 
     def player_for!(user)
@@ -34,8 +32,6 @@ module LoadedQuestions
     end
 
     def question = document.fetch(:question)
-
-    def show_answers? = !hide_answers?
 
     def slug = game.slug
 

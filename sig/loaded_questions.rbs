@@ -17,7 +17,6 @@ module LoadedQuestions
 
   class Game
     type document = {
-      hide_answers: bool,
       question: String,
       status: String,
     }
@@ -28,13 +27,11 @@ module LoadedQuestions
 
     def broadcast_reload_game: () -> void
     def broadcast_reload_players: () -> void
-    def hide_answers?: () -> bool
     def id: () -> Integer
     def player_for!: (::User) -> Player
     def player_for: (::User) -> Player?
     def players: () -> Array[Player]
     def question: () -> String
-    def show_answers?: () -> bool
     def slug: () -> String
     def status: () -> Status
     def to_gid_param: () -> String
@@ -98,15 +95,13 @@ module LoadedQuestions
     def initialize: (
       user: ::User,
       player_name: ::NormalizedString,
-      question: ::NormalizedString,
-      hide_answers: bool
+      question: ::NormalizedString
     ) -> void
 
     def build: () -> ::Game
 
     private
 
-    attr_reader hide_answers: bool
     attr_reader player: NewPlayer
     attr_reader question: ::NormalizedString
 
@@ -115,14 +110,12 @@ module LoadedQuestions
 
   class NewGameForm
     attr_reader errors: Hash[Symbol, String]
-    attr_reader hide_answers: bool
     attr_reader player_name: ::NormalizedString
     attr_reader question: ::NormalizedString
 
     def initialize: (
       ?player_name: _ToS?,
-      ?question: _ToS?,
-      ?hide_answers: String?
+      ?question: _ToS?
     ) -> void
 
     def valid?: () -> bool

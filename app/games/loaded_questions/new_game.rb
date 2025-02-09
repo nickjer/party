@@ -2,10 +2,9 @@
 
 module LoadedQuestions
   class NewGame
-    def initialize(user:, player_name:, question:, hide_answers:)
+    def initialize(user:, player_name:, question:)
       @player = NewPlayer.new(user:, name: player_name, guesser: true)
       @question = question
-      @hide_answers = hide_answers.present?
     end
 
     def build
@@ -19,9 +18,6 @@ module LoadedQuestions
 
     private
 
-    # @dynamic hide_answers
-    attr_reader :hide_answers
-
     # @dynamic player
     attr_reader :player
 
@@ -30,7 +26,6 @@ module LoadedQuestions
 
     def document
       {
-        hide_answers:,
         question: question.to_s,
         status: :polling.to_s
       }

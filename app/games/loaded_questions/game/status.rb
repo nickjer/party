@@ -8,14 +8,14 @@ module LoadedQuestions
 
         def polling = new(:polling)
 
-        def matching = new(:matching)
+        def guessing = new(:guessing)
 
         def completed = new(:completed)
 
         def parse(status)
           case status
           when "polling" then polling
-          when "matching" then matching
+          when "guessing" then guessing
           when "completed" then completed
           else raise(ArgumentError, "Unknown status: #{status}")
           end
@@ -26,7 +26,7 @@ module LoadedQuestions
 
       def polling? = status == :polling
 
-      def matching? = status == :matching
+      def guessing? = status == :guessing
 
       def completed? = status == :completed
 

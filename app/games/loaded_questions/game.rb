@@ -20,8 +20,8 @@ module LoadedQuestions
 
     def id = game.id
 
-    def matched_answers
-      MatchedAnswers.parse(document.fetch(:matched_answers), players:)
+    def guesses
+      Guesses.parse(document.fetch(:guesses), players:)
     end
 
     def player_for!(user)
@@ -44,16 +44,16 @@ module LoadedQuestions
     def to_gid_param = game.to_gid_param
 
     def update_status(new_status)
-      if status.polling? && new_status.matching?
+      if status.polling? && new_status.guessing?
         participants = players.select(&:answered?)
         answers = participants.map(&:answer).map(&:to_s).shuffle
-        matched_answers =
+        guesses =
           participants.zip(answers).map do |participant, answer|
             raise "Answer is missing" unless answer
 
-            { player_id: participant.id, answer: } #: matched_answer
+            { player_id: participant.id, answer: } #: guessed_answer
           end
-        document[:matched_answers] = matched_answers
+        document[:guesses] = guesses
       end
 
       document[:status] = new_status.to_s

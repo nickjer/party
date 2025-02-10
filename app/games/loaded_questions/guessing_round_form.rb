@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module LoadedQuestions
-  class MatchForm
+  class GuessingRoundForm
     MIN_ANSWERED = 2
 
     # @dynamic errors

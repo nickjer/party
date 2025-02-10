@@ -42,17 +42,17 @@ module LoadedQuestions
         case @game.status
         when Game::Status.polling
           if current_player.guesser?
-            match_form = MatchForm.new(game: @game)
-            render :polling_guesser, locals: { match_form: }
+            guessing_round_form = GuessingRoundForm.new(game: @game)
+            render :polling_guesser, locals: { guessing_round_form: }
           else
             answer_form = AnswerForm.new(answer: current_player.answer)
             render :polling_player, locals: { answer_form: }
           end
-        when Game::Status.matching
+        when Game::Status.guessing
           if current_player.guesser?
-            render :matching_guesser
+            render :guessing_guesser
           else
-            render :matching_player
+            render :guessing_player
           end
         when Game::Status.completed
           render :completed
@@ -66,20 +66,20 @@ module LoadedQuestions
       @current_player = @game.player_for!(current_user)
     end
 
-    # PATCH /loaded_questions/games/:id/match
-    def match
+    # PATCH /loaded_questions/games/:id/guessing_round
+    def guessing_round
       @game = Game.find(params[:id])
       @current_player = @game.player_for!(current_user)
       return(head :forbidden) unless @current_player.guesser?
 
-      match_form = MatchForm.new(game: @game)
-      if match_form.valid?
-        @game.update_status(Game::Status.matching)
+      guessing_round_form = GuessingRoundForm.new(game: @game)
+      if guessing_round_form.valid?
+        @game.update_status(Game::Status.guessing)
         target = loaded_questions_game_path(@game.slug)
         @game.broadcast_reload_game
         head :ok
       else
-        render :polling_guesser, locals: { match_form: }
+        render :polling_guesser, locals: { guessing_round_form: }
       end
     end
 

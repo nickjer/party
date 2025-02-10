@@ -3,7 +3,7 @@ Rails.application.routes.draw do
     resources :games, only: %i[create new show] do
       member do
         get :players
-        patch :match
+        patch :guessing_round
       end
       resource :player, only: %i[create new edit update] do
         member do

@@ -27,7 +27,7 @@ module LoadedQuestions
     def document
       {
         question: question.to_s,
-        matched_answers: [],
+        guesses: [],
         status: :polling.to_s
       }
     end

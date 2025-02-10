@@ -16,10 +16,10 @@ module LoadedQuestions
   end
 
   class Game
-    type matched_answer = { player_id: Integer, answer: String }
+    type guessed_answer = { player_id: Integer, answer: String }
     type document = {
       question: String,
-      matched_answers: Array[matched_answer],
+      guesses: Array[guessed_answer],
       status: String,
     }
 
@@ -30,7 +30,7 @@ module LoadedQuestions
     def broadcast_reload_game: () -> void
     def broadcast_reload_players: () -> void
     def id: () -> Integer
-    def matched_answers: () -> MatchedAnswers
+    def guesses: () -> Guesses
     def player_for!: (::User) -> Player
     def player_for: (::User) -> Player?
     def players: () -> Array[Player]
@@ -46,26 +46,26 @@ module LoadedQuestions
 
     def document: () -> document
 
-    class MatchedAnswers
+    class Guesses
       def self.parse: (
-        Array[matched_answer] matched_answers,
+        Array[guessed_answer] guesses,
         players: Array[Player]
-      ) -> MatchedAnswers
+      ) -> Guesses
 
-      include Enumerable[MatchedAnswer]
+      include Enumerable[GuessedAnswer]
 
-      def initialize: (matches: Array[MatchedAnswer]) -> void
+      def initialize: (guesses: Array[GuessedAnswer]) -> void
 
-      def each: () { (MatchedAnswer) -> void } -> self
-      def find: (Integer player_id) -> MatchedAnswer
+      def each: () { (GuessedAnswer) -> void } -> self
+      def find: (Integer player_id) -> GuessedAnswer
       def size: () -> Integer
 
       private
 
-      # @dynamic matches
-      attr_reader matches: Array[MatchedAnswer]
+      # @dynamic guesses
+      attr_reader guesses: Array[GuessedAnswer]
 
-      class MatchedAnswer
+      class GuessedAnswer
         attr_reader answer: String
         attr_reader player: Player
 
@@ -75,7 +75,7 @@ module LoadedQuestions
 
     class Status
       def self.completed: () -> Status
-      def self.matching: () -> Status
+      def self.guessing: () -> Status
       def self.parse: (String status) -> Status
       def self.polling: () -> Status
 
@@ -87,7 +87,7 @@ module LoadedQuestions
       def completed?: () -> bool
       def eql?: (Status other) -> bool
       def hash: () -> Integer
-      def matching?: () -> bool
+      def guessing?: () -> bool
       def polling?: () -> bool
       def to_s: () -> String
     end
@@ -107,7 +107,7 @@ module LoadedQuestions
     def new_game_params: () -> ::ActionController::Parameters
   end
 
-  class MatchForm
+  class GuessingRoundForm
     MIN_ANSWERED: Integer
 
     attr_reader errors: Array[String]

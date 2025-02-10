@@ -1,6 +1,6 @@
 <%= render layout: "loaded_questions/games/game" do %>
-  <%= turbo_frame_tag "match" do %>
-    <%= form_with(model: match_form, scope: :game, url: match_loaded_questions_game_path(@game.slug), method: :patch) do |form| %>
+  <%= turbo_frame_tag "guessing_round" do %>
+    <%= form_with(model: guessing_round_form, scope: :game, url: guessing_round_loaded_questions_game_path(@game.slug), method: :patch) do |form| %>
       <% unless form.object.errors.empty? %>
         <div class="p-2 mt-3 bg-red-100 border border-red-400 rounded-lg">
           <% form.object.errors.each do |error| %>
@@ -11,7 +11,7 @@
         </div>
       <% end %>
 
-      <%= form.submit "Match Answers", class: "mt-3 w-full text-white bg-gray-500 hover:bg-gray-800 active:bg-gray-800 outline-none font-medium rounded-lg text-sm p-2" %>
+      <%= form.submit "Begin Guessing", class: "mt-3 w-full text-white bg-gray-500 hover:bg-gray-800 active:bg-gray-800 outline-none font-medium rounded-lg text-sm p-2" %>
     <% end %>
   <% end %>
 <% end %>

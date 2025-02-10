@@ -4,11 +4,12 @@ module LoadedQuestions
   class Game
     class MatchedAnswers
       class << self
-        def parse(matched_answers)
+        def parse(matched_answers, players:)
+          player_map = players.index_by(&:id) #: Hash[Integer, Player]
           matches = matched_answers
             .map do |matched_answer|
               MatchedAnswer.new(
-                player_id: matched_answer[:player_id],
+                player: player_map.fetch(matched_answer[:player_id]),
                 answer: matched_answer[:answer]
               )
             end
@@ -26,7 +27,7 @@ module LoadedQuestions
       end
 
       def find(player_id)
-        match = matches.find { |match| match.player_id == player_id }
+        match = matches.find { |match| match.player.id == player_id }
         if match.nil?
           raise ActiveRecord::RecordNotFound, "Couldn't find matched answer"
         end
@@ -34,17 +35,19 @@ module LoadedQuestions
         match
       end
 
+      def size = matches.size
+
       private
 
       class MatchedAnswer
-        # @dynamic player_id
-        attr_reader :player_id
+        # @dynamic player
+        attr_reader :player
 
         # @dynamic answer
         attr_reader :answer
 
-        def initialize(player_id:, answer:)
-          @player_id = player_id
+        def initialize(player:, answer:)
+          @player = player
           @answer = answer
         end
       end

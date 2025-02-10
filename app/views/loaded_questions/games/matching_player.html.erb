@@ -1,6 +1,5 @@
 <%= render layout: "loaded_questions/games/game" do %>
-  <% @game.matched_answers.each do |matched_answer| %>
-    <div><%= matched_answer.player_id %></div>
-    <div><%= matched_answer.answer %></div>
-  <% end %>
+  <div id="answers" class="border rounded-lg">
+    <%= render partial: "loaded_questions/games/matched_answer", collection: @game.matched_answers, as: :matched_answer %>
+  </div>
 <% end %>

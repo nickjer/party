@@ -47,7 +47,10 @@ module LoadedQuestions
     def document: () -> document
 
     class MatchedAnswers
-      def self.parse: (Array[matched_answer] matched_answers) -> MatchedAnswers
+      def self.parse: (
+        Array[matched_answer] matched_answers,
+        players: Array[Player]
+      ) -> MatchedAnswers
 
       include Enumerable[MatchedAnswer]
 
@@ -55,6 +58,7 @@ module LoadedQuestions
 
       def each: () { (MatchedAnswer) -> void } -> self
       def find: (Integer player_id) -> MatchedAnswer
+      def size: () -> Integer
 
       private
 
@@ -63,9 +67,9 @@ module LoadedQuestions
 
       class MatchedAnswer
         attr_reader answer: String
-        attr_reader player_id: Integer
+        attr_reader player: Player
 
-        def initialize: (player_id: Integer, answer: String) -> void
+        def initialize: (player: Player, answer: String) -> void
       end
     end
 

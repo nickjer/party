@@ -13,6 +13,7 @@
     "@hotwired/turbo-rails": "^8.0.12",
     "@stimulus-components/reveal": "^5.0.0",
     "@tailwindcss/cli": "^4.0.3",
+    "sortablejs": "^1.15.6",
     "tailwindcss": "^4.0.3"
   }
 }

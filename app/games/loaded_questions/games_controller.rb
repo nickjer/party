@@ -87,13 +87,25 @@ module LoadedQuestions
     def swap_guesses
       @game = Game.find(params[:id])
       @current_player = @game.player_for!(current_user)
-       (head :forbidden) unless @current_player.guesser?
+      return (head :forbidden) unless @current_player.guesser?
+      return (head :forbidden) unless @game.status.guessing?
+
+      player_id_1 = swap_params[:guess_id].to_i
+      player_id_2 = swap_params[:swap_guess_id].to_i
+
+      @game.swap_guesses(player_id_1:, player_id_2:)
+
+      head :ok
     end
 
     private
 
     def new_game_params
       params.expect(game: %w[player_name question])
+    end
+
+    def swap_params
+      params.expect(guess_swapper: %w[guess_id swap_guess_id])
     end
   end
 end

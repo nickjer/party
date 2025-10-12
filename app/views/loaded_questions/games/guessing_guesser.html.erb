@@ -1,6 +1,8 @@
 <%= render layout: "loaded_questions/games/game" do %>
   <div id="answers" class="mt-2 px-2 pb-2 border rounded-lg"
-    data-controller="swap">
+    data-controller="swap"
+    data-swap-name-value="guess"
+    data-swap-url-value="<%= swap_guesses_loaded_questions_game_path(@game.slug) %>">
     <%=
       render(
         partial: "loaded_questions/games/guessed_answer",

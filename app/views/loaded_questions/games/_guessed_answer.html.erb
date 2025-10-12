@@ -1,8 +1,10 @@
+<%# locals: (guessed_answer:, gripper:) -%>
 <div class="pt-2" data-swap-target="group">
   <div class="font-bold">
     <%= guessed_answer.player.name %>
   </div>
-  <div class="swap-item flex items-center gap-2 p-2 border border-gray-300 bg-gray-100 rounded-lg">
+  <div class="swap-item flex items-center gap-2 p-2 border border-gray-300 bg-gray-100 rounded-lg"
+    data-id="<%= guessed_answer.player.id %>">
     <% if gripper %>
       <div>
         <%= render "icons/dots_2x3", classes: "w-5 h-5" %>

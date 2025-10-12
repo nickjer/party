@@ -4,6 +4,7 @@ Rails.application.routes.draw do
       member do
         get :players
         patch :guessing_round
+        patch :swap_guesses
       end
       resource :player, only: %i[create new edit update] do
         member do

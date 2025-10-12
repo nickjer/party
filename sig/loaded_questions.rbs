@@ -8,6 +8,7 @@ module LoadedQuestions
 
     def initialize: (?answer: _ToS?) -> void
 
+    def show?: () -> bool
     def valid?: () -> bool
 
     private
@@ -37,6 +38,7 @@ module LoadedQuestions
     def question: () -> String
     def slug: () -> String
     def status: () -> Status
+    def swap_guesses: (player_id_1: Integer, player_id_2: Integer) -> void
     def to_gid_param: () -> String
     def update_status: (Status status) -> void
 
@@ -59,6 +61,8 @@ module LoadedQuestions
       def each: () { (GuessedAnswer) -> void } -> self
       def find: (Integer player_id) -> GuessedAnswer
       def size: () -> Integer
+      def swap: (player_id_1: Integer, player_id_2: Integer) -> self
+      def as_json: () -> Array[guessed_answer]
 
       private
 
@@ -70,6 +74,7 @@ module LoadedQuestions
         attr_reader player: Player
 
         def initialize: (player: Player, answer: String) -> void
+        def as_json: () -> guessed_answer
       end
     end
 
@@ -101,10 +106,14 @@ module LoadedQuestions
     def new: () -> untyped
     def create: () -> untyped
     def show: () -> untyped
+    def players: () -> untyped
+    def guessing_round: () -> untyped
+    def swap_guesses: () -> untyped
 
     private
 
     def new_game_params: () -> ::ActionController::Parameters
+    def swap_params: () -> ::ActionController::Parameters
   end
 
   class GuessingRoundForm
@@ -203,6 +212,7 @@ module LoadedQuestions
     def hash: () -> Integer
     def id: () -> Integer
     def name: () -> ::NormalizedString
+    def online?: () -> bool
     def update_answer: (::NormalizedString answer) -> void
     def user: () -> ::User
 
@@ -223,6 +233,7 @@ module LoadedQuestions
     def create: () -> untyped
     def edit: () -> untyped
     def update: () -> untyped
+    def answer: () -> untyped
 
     private
 

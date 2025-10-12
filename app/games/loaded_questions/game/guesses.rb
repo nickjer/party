@@ -37,6 +37,32 @@ module LoadedQuestions
 
       def size = guesses.size
 
+      def swap(player_id_1:, player_id_2:)
+        index1 = guesses.find_index { |guess| guess.player.id == player_id_1 }
+        index2 = guesses.find_index { |guess| guess.player.id == player_id_2 }
+
+        raise ActiveRecord::RecordNotFound, "Player #{player_id_1} not found" if index1.nil?
+        raise ActiveRecord::RecordNotFound, "Player #{player_id_2} not found" if index2.nil?
+
+        answer1 = guesses.fetch(index1).answer
+        answer2 = guesses.fetch(index2).answer
+
+        guesses[index1] = GuessedAnswer.new(
+          player: guesses.fetch(index1).player,
+          answer: answer2
+        )
+        guesses[index2] = GuessedAnswer.new(
+          player: guesses.fetch(index2).player,
+          answer: answer1
+        )
+
+        self
+      end
+
+      def as_json
+        guesses.map(&:as_json)
+      end
+
       private
 
       class GuessedAnswer
@@ -49,6 +75,10 @@ module LoadedQuestions
         def initialize(player:, answer:)
           @player = player
           @answer = answer
+        end
+
+        def as_json
+          { player_id: player.id, answer: }
         end
       end
 

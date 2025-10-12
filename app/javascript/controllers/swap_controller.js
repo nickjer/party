@@ -34,7 +34,7 @@ export default class extends Controller {
     data.append(swap_item_name, event.swapItem.dataset.id)
 
     fetch(this.urlValue, {
-      method: 'POST',
+      method: 'PATCH',
       body: data,
       headers: {
         "X-CSRF-Token": csrfToken

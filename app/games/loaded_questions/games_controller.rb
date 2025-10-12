@@ -70,7 +70,7 @@ module LoadedQuestions
     def guessing_round
       @game = Game.find(params[:id])
       @current_player = @game.player_for!(current_user)
-      return(head :forbidden) unless @current_player.guesser?
+      return (head :forbidden) unless @current_player.guesser?
 
       guessing_round_form = GuessingRoundForm.new(game: @game)
       if guessing_round_form.valid?
@@ -81,6 +81,13 @@ module LoadedQuestions
       else
         render :polling_guesser, locals: { guessing_round_form: }
       end
+    end
+
+    # PATCH /loaded_questions/games/:id/swap_guesses
+    def swap_guesses
+      @game = Game.find(params[:id])
+      @current_player = @game.player_for!(current_user)
+       (head :forbidden) unless @current_player.guesser?
     end
 
     private

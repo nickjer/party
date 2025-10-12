@@ -1,10 +1,10 @@
-<h1 class="text-2xl font-bold my-2">Loaded Questions</h1>
+<h1 class="mb-3">Loaded Questions</h1>
 
 <%= form_with(model: @new_player, scope: :player, url: loaded_questions_game_player_path(@new_player.game_slug)) do |form| %>
-  <div>
-    <%= form.label :name, class: "mt-3 block" %>
-    <%= form.text_field :name, class: "mt-0.5 block w-full", maxlength: ::Player::MAX_NAME_LENGTH %>
+  <div class="mb-3">
+    <%= form.label :name %>
+    <%= form.text_field :name, class: "w-100", maxlength: ::Player::MAX_NAME_LENGTH %>
   </div>
 
-  <%= form.submit "Create New Player", class: "mt-3 w-full" %>
+  <%= form.submit "Create New Player", class: "w-100" %>
 <% end %>

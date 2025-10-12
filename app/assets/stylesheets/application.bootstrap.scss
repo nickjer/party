@@ -1,0 +1,14 @@
+/* Entry point for your SCSS build */
+
+// Import Bootstrap and its default variables
+@import "bootstrap/scss/bootstrap";
+
+// Configure Bootstrap Icons font source with paths from asset pipeline
+$bootstrap-icons-font-src:
+  url("bootstrap-icons/font/fonts/bootstrap-icons.woff2") format("woff2"),
+  url("bootstrap-icons/font/fonts/bootstrap-icons.woff") format("woff");
+
+// Import Bootstrap Icons
+@import "bootstrap-icons/font/bootstrap-icons";
+
+// Add your custom styles below

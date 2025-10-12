@@ -2,10 +2,10 @@
 
 <%= turbo_stream_from @game, channel: GameChannel %>
 
-<div class="flex flex-wrap items-start gap-2 mt-2">
-  <div class="w-75">
-    <div class="p-3 border border-gray-800 rounded-lg">
-      <p class="font-normal text-gray-700">
+<div class="d-flex flex-wrap align-items-start gap-2 mt-2">
+  <div class="flex-grow-1">
+    <div class="p-3 border border-secondary rounded">
+      <p class="fw-normal text-secondary">
         <strong>Question:</strong>
         <%= @game.question %>
       </p>
@@ -17,7 +17,7 @@
   </div>
 
   <div>
-    <div class="font-bold">Players:</div>
+    <div class="fw-bold">Players:</div>
     <%= turbo_frame_tag "players", refresh: "morph", data: { src: players_loaded_questions_game_path(@game.slug) } do %>
       <%= render partial: "loaded_questions/players/player", collection: @game.players, as: :player, locals: { current_player: @current_player } %>
     <% end %>

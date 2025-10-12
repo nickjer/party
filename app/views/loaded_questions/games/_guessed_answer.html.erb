@@ -1,16 +1,16 @@
 <%# locals: (guessed_answer:, gripper:) -%>
 <div class="pt-2" data-swap-target="group">
-  <div class="font-bold">
+  <div class="fw-bold">
     <%= guessed_answer.player.name %>
   </div>
-  <div class="swap-item flex items-center gap-2 p-2 border border-gray-300 bg-gray-100 rounded-lg"
+  <div class="swap-item d-flex align-items-center gap-2 p-2 border border-secondary bg-light rounded"
     data-id="<%= guessed_answer.player.id %>">
     <% if gripper %>
       <div>
-        <%= render "icons/dots_2x3", classes: "w-5 h-5" %>
+        <i class="bi bi-grip-vertical"></i>
       </div>
     <% end %>
-    <span class="block text-sm">
+    <span class="d-block small">
       <%= guessed_answer.answer %>
     </span>
   </div>

@@ -29,7 +29,7 @@ module LoadedQuestions
         click_on "Submit Answer"
 
         # Wait for answer form to be hidden after submitting
-        assert_selector "[data-reveal-target='item'].hidden", visible: :hidden, wait: 5
+        assert_selector "[data-reveal-target='item'].d-none", visible: :hidden, wait: 5
         assert_no_text "Blue"
 
         # Show answer and verify it was saved
@@ -49,7 +49,7 @@ module LoadedQuestions
         click_on "Submit Answer"
 
         # Wait for answer form to be hidden after submitting
-        assert_selector "[data-reveal-target='item'].hidden", visible: :hidden, wait: 5
+        assert_selector "[data-reveal-target='item'].d-none", visible: :hidden, wait: 5
         assert_no_text "Red"
 
         # Show answer and verify it was saved

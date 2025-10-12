@@ -1,3 +1,3 @@
 module ApplicationHelper
-  ActionView::Base.default_form_builder = TailwindFormBuilder
+  ActionView::Base.default_form_builder = BootstrapFormBuilder
 end

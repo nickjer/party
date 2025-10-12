@@ -6,14 +6,16 @@
   },
   "scripts": {
     "build": "esbuild app/javascript/*.* --bundle --sourcemap --format=esm --outdir=app/assets/builds --public-path=/assets",
-    "build:css": "npx @tailwindcss/cli -i ./app/assets/stylesheets/application.tailwind.css -o ./app/assets/builds/application.css"
+    "build:css": "sass ./app/assets/stylesheets/application.bootstrap.scss:./app/assets/builds/application.css --no-source-map --load-path=node_modules"
   },
   "dependencies": {
     "@hotwired/stimulus": "^3.2.2",
     "@hotwired/turbo-rails": "^8.0.12",
+    "@popperjs/core": "^2.11.8",
     "@stimulus-components/reveal": "^5.0.0",
-    "@tailwindcss/cli": "^4.0.3",
-    "sortablejs": "^1.15.6",
-    "tailwindcss": "^4.0.3"
+    "bootstrap": "^5.3.8",
+    "bootstrap-icons": "^1.13.1",
+    "sass": "^1.93.2",
+    "sortablejs": "^1.15.6"
   }
 }

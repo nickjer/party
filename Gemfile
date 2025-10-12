@@ -56,6 +56,7 @@ group :development, :test do
 
   gem "rbs", require: false
   gem "steep", require: false
+  gem "factory_bot_rails"
 end
 
 group :development do

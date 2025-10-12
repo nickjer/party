@@ -8,6 +8,8 @@ class Game < ApplicationRecord
     loaded_questions: 0
   }
 
+  validates :slug, uniqueness: true
+
   has_many :players
 
   def broadcast_reload_game

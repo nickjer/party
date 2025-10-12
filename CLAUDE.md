@@ -298,3 +298,4 @@ Configuration: `config/deploy.yml`
 - **../burn_unit**: Original Burn Unit game (PostgreSQL, UUIDs, full implementation)
 
 Refer to these for reference implementations when porting features. See `MIGRATION_REVIEW.md` for detailed comparison.
+- Test descriptions should follow the pattern: `"#instance_method returns ..."` or `".class_method returns ..."`

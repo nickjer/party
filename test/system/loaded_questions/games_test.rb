@@ -28,7 +28,8 @@ module LoadedQuestions
         fill_in "player[answer]", with: "Blue"
         click_on "Submit Answer"
 
-        # Answer should be hidden after submitting
+        # Wait for answer form to be hidden after submitting
+        assert_selector "[data-reveal-target='item'].hidden", visible: :hidden, wait: 5
         assert_no_text "Blue"
 
         # Show answer and verify it was saved
@@ -47,7 +48,8 @@ module LoadedQuestions
         fill_in "player[answer]", with: "Red"
         click_on "Submit Answer"
 
-        # Answer should be hidden after submitting
+        # Wait for answer form to be hidden after submitting
+        assert_selector "[data-reveal-target='item'].hidden", visible: :hidden, wait: 5
         assert_no_text "Red"
 
         # Show answer and verify it was saved
@@ -57,9 +59,6 @@ module LoadedQuestions
 
       # Back to Alice - she should be able to start matching
       using_session("default") do
-        # Wait for answers to be submitted
-        sleep 1
-
         # Start the guessing round
         click_on "Begin Guessing"
 

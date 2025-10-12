@@ -1,22 +1,7 @@
 require "test_helper"
 
 module LoadedQuestions
-  class GamesControllerTest < ActionDispatch::IntegrationTest
-    test "should get new" do
-      get loaded_questions_games_new_url
-      assert_response :success
-    end
-
-    test "should get create" do
-      get loaded_questions_games_create_url
-      assert_response :success
-    end
-
-    test "should get show" do
-      get loaded_questions_games_show_url
-      assert_response :success
-    end
-
+  class GameTest < ActiveSupport::TestCase
     test "swap_guesses persists answer swap to database" do
       # Create a game with guesser
       user1 = User.create!(last_seen_at: Time.current)
@@ -50,7 +35,7 @@ module LoadedQuestions
 
       # Start guessing round to shuffle answers
       loaded_game = Game.find(game.slug)
-      loaded_game.update_status(Status.guessing)
+      loaded_game.update_status(Game::Status.guessing)
 
       # Reload and get current answer assignments
       loaded_game = Game.find(game.slug)

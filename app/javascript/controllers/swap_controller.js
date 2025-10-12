@@ -25,7 +25,8 @@ export default class extends Controller {
   }
 
   end(event) {
-    const csrfToken = document.getElementsByName("csrf-token")[0].content
+    const csrfTokenElement = document.getElementsByName("csrf-token")[0]
+    const csrfToken = csrfTokenElement ? csrfTokenElement.content : ""
 
     let data = new FormData()
     let item_name = `${this.nameValue}_swapper[${this.nameValue}_id]`

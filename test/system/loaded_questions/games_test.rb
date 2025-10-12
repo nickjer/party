@@ -72,12 +72,28 @@ module LoadedQuestions
         swap_items = all(".swap-item")
         assert_equal 2, swap_items.length
 
-        # Drag the first swap item and drop it on the second
+        # Remember the original answer assignments (player names stay in same position)
+        answer1_original = swap_items[0].text
+        answer2_original = swap_items[1].text
+
+        # Drag the first swap item and drop it on the second to swap answers
         swap_items[0].drag_to(swap_items[1])
 
-        # The answers should be swapped now
-        # Note: We can't easily verify the swap happened visually in the test
-        # but the drag_to action should trigger the swap endpoint
+        # Wait for swap to complete and persist
+        sleep 0.5
+
+        # Verify the answers are now swapped visually
+        swap_items_after = all(".swap-item")
+        assert_equal answer2_original, swap_items_after[0].text, "First position should now have second answer"
+        assert_equal answer1_original, swap_items_after[1].text, "Second position should now have first answer"
+
+        # Refresh the page to verify swap persisted
+        visit current_path
+
+        # Verify the swapped order is maintained after refresh
+        swap_items_refreshed = all(".swap-item")
+        assert_equal answer2_original, swap_items_refreshed[0].text, "First position should still have second answer after refresh"
+        assert_equal answer1_original, swap_items_refreshed[1].text, "Second position should still have first answer after refresh"
       end
     end
   end

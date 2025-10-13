@@ -1,12 +1,10 @@
 <%# locals: (completed_answer:) -%>
 <div class="list-group-item list-group-item-<%= completed_answer.correct? ? "success" : "danger" %>">
   <div class="d-flex w-100 justify-content-between">
-    <div class="d-flex flex-wrap">
+    <div class="d-flex flex-wrap align-items-baseline gap-2">
       <h5 class="mb-1"><%= completed_answer.player.name %></h5>
       <% unless completed_answer.correct? %>
-        <h5 class="mb-1">
-          <s class="ms-2"><%= completed_answer.guessed_player.name %></s>
-        </h5>
+        <span class="text-danger-emphasis small">(not <%= completed_answer.guessed_player.name %>)</span>
       <% end %>
     </div>
     <% if completed_answer.correct? %>

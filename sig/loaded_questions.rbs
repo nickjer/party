@@ -106,6 +106,7 @@ module LoadedQuestions
   class GamesController < ::ApplicationController
     @game: Game
     @new_game: NewGameForm
+    @new_round: NewRoundForm
     @current_player: Player
 
     def new: () -> untyped
@@ -179,6 +180,21 @@ module LoadedQuestions
     def valid?: () -> bool
 
     private
+
+    def validate_length: (::NormalizedString value, min: Integer, max: Integer) -> String?
+  end
+
+  class NewRoundForm
+    attr_reader errors: Hash[Symbol, String]
+    attr_reader question: ::NormalizedString
+
+    def initialize: (game: Game, ?question: _ToS?) -> void
+
+    def valid?: () -> bool
+
+    private
+
+    attr_reader game: Game
 
     def validate_length: (::NormalizedString value, min: Integer, max: Integer) -> String?
   end

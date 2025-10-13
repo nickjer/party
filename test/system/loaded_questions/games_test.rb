@@ -179,5 +179,73 @@ module LoadedQuestions
         assert_text "Score =", wait: 5
       end
     end
+
+    test "create next turn hides previous question and shows players" do
+      # Create a new game
+      visit new_loaded_questions_game_path
+
+      fill_in "Player name", with: "Alice"
+      fill_in "Question", with: "What is your favorite color?"
+      click_on "Create New Game"
+
+      # Alice should see the question
+      assert_text "What is your favorite color?"
+
+      # Get the game slug from URL for joining as other players
+      game_slug = current_path.split("/").last
+
+      # Open another session as Bob
+      using_session("bob") do
+        visit new_loaded_questions_game_player_path(game_slug)
+        fill_in "Name", with: "Bob"
+        click_on "Create New Player"
+
+        # Bob submits answer
+        fill_in "player[answer]", with: "Blue"
+        click_on "Submit Answer"
+      end
+
+      # Open another session as Charlie
+      using_session("charlie") do
+        visit new_loaded_questions_game_player_path(game_slug)
+        fill_in "Name", with: "Charlie"
+        click_on "Create New Player"
+
+        # Charlie submits answer
+        fill_in "player[answer]", with: "Red"
+        click_on "Submit Answer"
+      end
+
+      # Back to Alice - complete the round
+      using_session("default") do
+        click_on "Begin Guessing"
+        click_on "Complete Matching"
+        within("dialog[open]") do
+          click_on "Yes, I am sure"
+        end
+        assert_text "Score =", wait: 5
+      end
+
+      # Bob should see the completed page with Create Next Turn link via live updates
+      using_session("bob") do
+        # Wait for live update to show completed view
+        assert_text "Score =", wait: 5
+        assert_link "Create Next Turn"
+
+        # Click Create Next Turn
+        click_on "Create Next Turn"
+
+        # Should NOT see the previous question
+        assert_no_text "What is your favorite color?"
+
+        # Should still see the players
+        assert_text "Alice"
+        assert_text "Bob"
+        assert_text "Charlie"
+
+        # Should see the question field for new round
+        assert_field "Question"
+      end
+    end
   end
 end

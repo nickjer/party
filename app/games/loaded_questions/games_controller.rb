@@ -66,8 +66,8 @@ module LoadedQuestions
       @current_player = @game.player_for!(current_user)
       return (head :forbidden) if @current_player.guesser?
 
-      # TODO: Implement new round creation
-      head :ok
+      @new_round = NewRoundForm.new(game: @game)
+      render :new_round
     end
 
     # GET /loaded_questions/games/:id/players

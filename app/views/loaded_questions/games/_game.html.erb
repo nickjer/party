@@ -4,11 +4,11 @@
 
 <div class="d-flex flex-wrap align-items-start gap-2 mt-2">
   <div class="flex-grow-1">
-    <div class="p-3 border border-secondary rounded">
-      <p class="fw-normal text-secondary">
+    <div class="card border-secondary mb-2">
+      <div class="card-body">
         <strong>Question:</strong>
         <%= @game.question %>
-      </p>
+      </div>
     </div>
 
     <%= turbo_frame_tag "game", refresh: "morph", data: { src: loaded_questions_game_path(@game.slug) } do %>

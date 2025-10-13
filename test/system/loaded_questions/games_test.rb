@@ -176,7 +176,7 @@ module LoadedQuestions
 
         # Should redirect to completed view
         assert_no_selector "dialog[open]", wait: 2
-        assert_text "round has been completed", wait: 5
+        assert_text "Score =", wait: 5
       end
     end
   end

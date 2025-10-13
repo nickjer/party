@@ -24,6 +24,10 @@ module LoadedQuestions
       Guesses.parse(document.fetch(:guesses), players:)
     end
 
+    def guesser
+      players.find(&:guesser?) || raise("Couldn't find guesser")
+    end
+
     def player_for!(user)
       player_for(user) ||
         raise(ActiveRecord::RecordNotFound, "Couldn't find Player")
@@ -53,12 +57,13 @@ module LoadedQuestions
     def update_status(new_status)
       if status.polling? && new_status.guessing?
         participants = players.select(&:answered?)
-        answers = participants.map(&:answer).map(&:to_s).shuffle
+        shuffled_participants = participants.shuffle
+        # @type var guesses: Array[guessed_answer]
         guesses =
-          participants.zip(answers).map do |participant, answer|
-            raise "Answer is missing" unless answer
+          participants.zip(shuffled_participants).map do |participant, guessed_participant|
+            raise "Guessed participant is missing" unless guessed_participant
 
-            { player_id: participant.id, answer: } #: guessed_answer
+            { player_id: participant.id, guessed_player_id: guessed_participant.id }
           end
         document[:guesses] = guesses
       end

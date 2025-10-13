@@ -17,7 +17,7 @@ module LoadedQuestions
   end
 
   class Game
-    type guessed_answer = { player_id: Integer, answer: String }
+    type guessed_answer = { player_id: Integer, guessed_player_id: Integer }
     type document = {
       question: String,
       guesses: Array[guessed_answer],
@@ -32,6 +32,7 @@ module LoadedQuestions
     def broadcast_reload_players: () -> void
     def id: () -> Integer
     def guesses: () -> Guesses
+    def guesser: () -> Player
     def player_for!: (::User) -> Player
     def player_for: (::User) -> Player?
     def players: () -> Array[Player]
@@ -63,6 +64,7 @@ module LoadedQuestions
       def size: () -> Integer
       def swap: (player_id_1: Integer, player_id_2: Integer) -> self
       def as_json: () -> Array[guessed_answer]
+      def score: () -> Integer
 
       private
 
@@ -70,10 +72,13 @@ module LoadedQuestions
       attr_reader guesses: Array[GuessedAnswer]
 
       class GuessedAnswer
-        attr_reader answer: String
         attr_reader player: Player
+        attr_reader guessed_player: Player
 
-        def initialize: (player: Player, answer: String) -> void
+        def initialize: (player: Player, guessed_player: Player) -> void
+        def answer: () -> ::NormalizedString
+        def guessed_answer: () -> ::NormalizedString
+        def correct?: () -> bool
         def as_json: () -> guessed_answer
       end
     end

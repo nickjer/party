@@ -10,7 +10,7 @@ module LoadedQuestions
             .map do |guessed_answer|
               GuessedAnswer.new(
                 player: player_map.fetch(guessed_answer[:player_id]),
-                answer: guessed_answer[:answer]
+                guessed_player: player_map.fetch(guessed_answer[:guessed_player_id])
               )
             end
           new(guesses:)
@@ -44,42 +44,37 @@ module LoadedQuestions
         raise ActiveRecord::RecordNotFound, "Player #{player_id_1} not found" if index1.nil?
         raise ActiveRecord::RecordNotFound, "Player #{player_id_2} not found" if index2.nil?
 
-        answer1 = guesses.fetch(index1).answer
-        answer2 = guesses.fetch(index2).answer
+        guess1 = guesses.fetch(index1)
+        guess2 = guesses.fetch(index2)
 
-        guesses[index1] = GuessedAnswer.new(
-          player: guesses.fetch(index1).player,
-          answer: answer2
-        )
-        guesses[index2] = GuessedAnswer.new(
-          player: guesses.fetch(index2).player,
-          answer: answer1
-        )
+        guesses[index1] = GuessedAnswer.new(player: guess1.player, guessed_player: guess2.guessed_player)
+        guesses[index2] = GuessedAnswer.new(player: guess2.player, guessed_player: guess1.guessed_player)
 
         self
       end
 
-      def as_json
-        guesses.map(&:as_json)
-      end
+      def as_json = guesses.map(&:as_json)
+
+      def score = guesses.count(&:correct?)
 
       private
 
       class GuessedAnswer
-        # @dynamic player
-        attr_reader :player
+        # @dynamic player, guessed_player
+        attr_reader :player, :guessed_player
 
-        # @dynamic answer
-        attr_reader :answer
-
-        def initialize(player:, answer:)
+        def initialize(player:, guessed_player:)
           @player = player
-          @answer = answer
+          @guessed_player = guessed_player
         end
 
-        def as_json
-          { player_id: player.id, answer: }
-        end
+        def answer = player.answer
+
+        def guessed_answer = guessed_player.answer
+
+        def correct? = answer == guessed_answer
+
+        def as_json = { player_id: player.id, guessed_player_id: guessed_player.id }
       end
 
       # @dynamic guesses

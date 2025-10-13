@@ -39,23 +39,20 @@ module LoadedQuestions
 
       # Reload and get current answer assignments
       loaded_game = Game.find(game.slug)
-      bob = loaded_game.players.find { |p| p.name.to_s == "Bob" }
-      charlie = loaded_game.players.find { |p| p.name.to_s == "Charlie" }
-
-      bob_answer_before = loaded_game.guesses.find(bob.id).answer
-      charlie_answer_before = loaded_game.guesses.find(charlie.id).answer
+      guess1, guess2 = loaded_game.guesses.to_a
+      guess1_guessed_answer_before = guess1.guessed_answer
+      guess2_guessed_answer_before = guess2.guessed_answer
 
       # Swap the answers
-      loaded_game.swap_guesses(player_id_1: bob.id, player_id_2: charlie.id)
+      loaded_game.swap_guesses(player_id_1: guess1.player.id, player_id_2: guess2.player.id)
 
       # Reload from database to verify persistence
       loaded_game_after = Game.find(game.slug)
-      bob_answer_after = loaded_game_after.guesses.find(bob.id).answer
-      charlie_answer_after = loaded_game_after.guesses.find(charlie.id).answer
+      guess1_after, guess2_after = loaded_game_after.guesses.to_a
 
       # Verify answers were swapped and persisted
-      assert_equal charlie_answer_before, bob_answer_after, "Bob should have Charlie's answer after swap"
-      assert_equal bob_answer_before, charlie_answer_after, "Charlie should have Bob's answer after swap"
+      assert_equal guess2_guessed_answer_before, guess1_after.guessed_answer, "First guess should have second guessed answer after swap"
+      assert_equal guess1_guessed_answer_before, guess2_after.guessed_answer, "Second guess should have first guessed answer after swap"
     end
 
     test "#completed_round changes game status from guessing to completed" do

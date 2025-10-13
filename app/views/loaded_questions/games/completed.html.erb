@@ -1,6 +1,18 @@
 <%= render layout: "loaded_questions/games/game" do %>
-  <div class="mt-3">
-    <h2>Round Completed!</h2>
-    <p>The round has been completed.</p>
+  <div id="answers" class="list-group mt-3 mb-2">
+    <%=
+      render(
+        partial: "loaded_questions/games/completed_answer",
+        collection: @game.guesses,
+        as: :completed_answer
+      )
+    %>
+  </div>
+  <div class="card text-bg-light mb-2">
+    <div class="card-body">
+      <p class="card-text">
+        <%= @game.guesser.name %>'s Score = <%= @game.guesses.score %>
+      </p>
+    </div>
   </div>
 <% end %>

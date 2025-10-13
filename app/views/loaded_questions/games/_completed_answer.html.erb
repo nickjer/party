@@ -1,0 +1,21 @@
+<%# locals: (completed_answer:) -%>
+<div class="list-group-item list-group-item-<%= completed_answer.correct? ? "success" : "danger" %>">
+  <div class="d-flex w-100 justify-content-between">
+    <div class="d-flex flex-wrap">
+      <h5 class="mb-1"><%= completed_answer.player.name %></h5>
+      <% unless completed_answer.correct? %>
+        <h5 class="mb-1">
+          <s class="ms-2"><%= completed_answer.guessed_player.name %></s>
+        </h5>
+      <% end %>
+    </div>
+    <% if completed_answer.correct? %>
+      <i class="bi bi-check-lg"></i>
+    <% else %>
+      <i class="bi bi-x-lg small"></i>
+    <% end %>
+  </div>
+  <div class="mb-1 p-2 w-100 bg-light border rounded">
+    <%= completed_answer.answer %>
+  </div>
+</div>

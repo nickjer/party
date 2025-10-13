@@ -3,7 +3,7 @@ FactoryBot.define do
     association :game
     association :user
 
-    sequence(:name) { |n| "Player#{n}" }
+    name { Faker::Name.unique.first_name }
     document { {}.to_json }
   end
 end

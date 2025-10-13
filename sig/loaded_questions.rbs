@@ -117,6 +117,18 @@ module LoadedQuestions
     def swap_params: () -> ::ActionController::Parameters
   end
 
+  class CompletedRoundForm
+    attr_reader errors: Array[String]
+
+    def initialize: (game: Game) -> void
+
+    def valid?: () -> bool
+
+    private
+
+    attr_reader game: Game
+  end
+
   class GuessingRoundForm
     MIN_ANSWERED: Integer
 

@@ -72,5 +72,38 @@ module LoadedQuestions
       assert_equal charlie_answer_before, bob_answer_after, "Bob should have Charlie's answer after swap"
       assert_equal bob_answer_before, charlie_answer_after, "Charlie should have Bob's answer after swap"
     end
+
+    test "#completed_round changes game status from guessing to completed" do
+      # Create game with guesser and players
+      game = create(:loaded_questions_game, players: [ "Bob", "Charlie" ])
+      bob = game.players.find { |p| p.name.to_s == "Bob" }
+      charlie = game.players.find { |p| p.name.to_s == "Charlie" }
+
+      # Submit answers
+      bob.update_answer(NormalizedString.new("Blue"))
+      charlie.update_answer(NormalizedString.new("Red"))
+
+      # Transition to guessing phase
+      game = LoadedQuestions::Game.find(game.slug)
+      game.update_status(LoadedQuestions::Game::Status.guessing)
+
+      # Verify game is in guessing status
+      game = LoadedQuestions::Game.find(game.slug)
+      assert_predicate game.status, :guessing?
+
+      # Sign in as guesser
+      guesser = game.players.find(&:guesser?)
+      sign_in(guesser.user)
+
+      # Make request to complete round
+      patch completed_round_loaded_questions_game_path(game.slug)
+
+      # Verify redirect
+      assert_redirected_to loaded_questions_game_path(game.slug)
+
+      # Reload and verify game status changed to completed
+      game = LoadedQuestions::Game.find(game.slug)
+      assert_predicate game.status, :completed?
+    end
   end
 end

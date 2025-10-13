@@ -72,8 +72,14 @@ module LoadedQuestions
       @current_player = @game.player_for!(current_user)
       return (head :forbidden) unless @current_player.guesser?
 
-      # TODO: Implement round completion logic
-      head :ok
+      completed_round_form = CompletedRoundForm.new(game: @game)
+      if completed_round_form.valid?
+        @game.update_status(Game::Status.completed)
+        @game.broadcast_reload_game
+        redirect_to loaded_questions_game_path(@game.slug)
+      else
+        render :guessing_guesser, locals: { completed_round_form: }, status: :unprocessable_content
+      end
     end
 
     # PATCH /loaded_questions/games/:id/guessing_round
@@ -89,7 +95,7 @@ module LoadedQuestions
         @game.broadcast_reload_game
         head :ok
       else
-        render :polling_guesser, locals: { guessing_round_form: }
+        render :polling_guesser, locals: { guessing_round_form: }, status: :unprocessable_content
       end
     end
 

@@ -13,5 +13,11 @@ module ActiveSupport
 
     # Add more helper methods to be used by all tests here...
     include FactoryBot::Syntax::Methods
+
+    def sign_in(user)
+      test_request = ActionDispatch::TestRequest.create
+      test_request.cookie_jar.encrypted[:current_user_id] = user.id
+      cookies[:current_user_id] = test_request.cookie_jar[:current_user_id]
+    end
   end
 end

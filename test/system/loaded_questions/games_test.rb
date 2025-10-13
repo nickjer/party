@@ -174,9 +174,9 @@ module LoadedQuestions
           click_on "Yes, I am sure"
         end
 
-        # Modal should close and request should be made
-        # The controller returns head :ok, so we should stay on the same page
+        # Should redirect to completed view
         assert_no_selector "dialog[open]", wait: 2
+        assert_text "round has been completed", wait: 5
       end
     end
   end

@@ -240,7 +240,7 @@ if form.valid?
   # Use form.field to build entities
 else
   @form = form
-  render :view, status: :unprocessable_entity
+  render :view, status: :unprocessable_content
 end
 ```
 

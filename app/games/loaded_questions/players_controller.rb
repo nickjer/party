@@ -36,7 +36,7 @@ module LoadedQuestions
         redirect_to_game(game)
       else
         @new_player = new_player
-        render :new, status: :unprocessable_entity
+        render :new, status: :unprocessable_content
       end
     end
 
@@ -63,7 +63,7 @@ module LoadedQuestions
         @game = game
         @current_player = current_player
 
-        render "loaded_questions/games/polling_player", locals: { answer_form: }
+        render "loaded_questions/games/polling_player", locals: { answer_form: }, status: :unprocessable_content
       end
     end
 

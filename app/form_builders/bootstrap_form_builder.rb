@@ -22,7 +22,7 @@ class BootstrapFormBuilder < ActionView::Helpers::FormBuilder
     output = super(method, options)
     if error?(method)
       error = @template.content_tag(
-        :div, @object.errors[method].join(", "), class: "invalid-feedback d-block"
+        :div, @object.errors[method], class: "invalid-feedback d-block"
       )
       output.concat(error)
     end
@@ -35,7 +35,7 @@ class BootstrapFormBuilder < ActionView::Helpers::FormBuilder
     output = super(method, options)
     if error?(method)
       error = @template.content_tag(
-        :div, @object.errors[method].join(", "), class: "invalid-feedback d-block"
+        :div, @object.errors[method], class: "invalid-feedback d-block"
       )
       output.concat(error)
     end

@@ -2,6 +2,7 @@ Rails.application.routes.draw do
   namespace :loaded_questions do
     resources :games, only: %i[create new show] do
       member do
+        get :new_round
         get :players
         patch :completed_round
         patch :guessing_round

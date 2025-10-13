@@ -60,6 +60,16 @@ module LoadedQuestions
       end
     end
 
+    # GET /loaded_questions/games/:id/new_round
+    def new_round
+      @game = Game.find(params[:id])
+      @current_player = @game.player_for!(current_user)
+      return (head :forbidden) if @current_player.guesser?
+
+      # TODO: Implement new round creation
+      head :ok
+    end
+
     # GET /loaded_questions/games/:id/players
     def players
       @game = Game.find(params[:id])

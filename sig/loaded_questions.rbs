@@ -111,6 +111,7 @@ module LoadedQuestions
     def new: () -> untyped
     def create: () -> untyped
     def show: () -> untyped
+    def new_round: () -> untyped
     def players: () -> untyped
     def completed_round: () -> untyped
     def guessing_round: () -> untyped

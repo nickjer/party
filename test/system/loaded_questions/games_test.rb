@@ -96,5 +96,88 @@ module LoadedQuestions
         assert_equal answer1_original, swap_items_refreshed[1].text, "Second position should still have first answer after refresh"
       end
     end
+
+    test "complete matching modal interactions" do
+      # Create a new game
+      visit new_loaded_questions_game_path
+
+      fill_in "Player name", with: "Alice"
+      fill_in "Question", with: "What is your favorite color?"
+      click_on "Create New Game"
+
+      # Alice should see polling view as the guesser
+      assert_text "What is your favorite color?"
+      assert_text "Alice"
+
+      # Get the game slug from URL for joining as other players
+      game_slug = current_path.split("/").last
+
+      # Open another session as Bob
+      using_session("bob") do
+        visit new_loaded_questions_game_player_path(game_slug)
+        fill_in "Name", with: "Bob"
+        click_on "Create New Player"
+
+        # Bob submits answer
+        fill_in "player[answer]", with: "Blue"
+        click_on "Submit Answer"
+      end
+
+      # Open another session as Charlie
+      using_session("charlie") do
+        visit new_loaded_questions_game_player_path(game_slug)
+        fill_in "Name", with: "Charlie"
+        click_on "Create New Player"
+
+        # Charlie submits answer
+        fill_in "player[answer]", with: "Red"
+        click_on "Submit Answer"
+      end
+
+      # Back to Alice - start matching phase
+      using_session("default") do
+        # Start the guessing round
+        click_on "Begin Guessing"
+
+        # Should see the Complete Matching button
+        assert_button "Complete Matching"
+
+        # Click the Complete Matching button to open modal
+        click_on "Complete Matching"
+
+        # Modal should be visible
+        assert_selector "dialog[open]", visible: true
+        assert_text "Are you sure you would like to finalize your matched answers?"
+
+        # Test clicking the X button closes the modal
+        find("button.btn-close").click
+        assert_no_selector "dialog[open]", wait: 2
+        assert_button "Complete Matching" # Button still visible, page unchanged
+
+        # Open modal again
+        click_on "Complete Matching"
+        assert_selector "dialog[open]", visible: true
+
+        # Test clicking Close button closes the modal
+        within("dialog[open]") do
+          click_on "Close"
+        end
+        assert_no_selector "dialog[open]", wait: 2
+        assert_button "Complete Matching" # Button still visible, page unchanged
+
+        # Open modal again and confirm
+        click_on "Complete Matching"
+        assert_selector "dialog[open]", visible: true
+
+        # Test clicking "Yes, I am sure" makes a request
+        within("dialog[open]") do
+          click_on "Yes, I am sure"
+        end
+
+        # Modal should close and request should be made
+        # The controller returns head :ok, so we should stay on the same page
+        assert_no_selector "dialog[open]", wait: 2
+      end
+    end
   end
 end

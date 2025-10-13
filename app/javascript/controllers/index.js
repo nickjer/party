@@ -10,5 +10,8 @@ application.register("hello", HelloController)
 import SwapController from "./swap_controller"
 application.register("swap", SwapController)
 
+import Dialog from '@stimulus-components/dialog'
+application.register('dialog', Dialog)
+
 import RevealController from '@stimulus-components/reveal'
 application.register('reveal', RevealController)

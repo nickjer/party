@@ -66,6 +66,16 @@ module LoadedQuestions
       @current_player = @game.player_for!(current_user)
     end
 
+    # PATCH /loaded_questions/games/:id/completed_round
+    def completed_round
+      @game = Game.find(params[:id])
+      @current_player = @game.player_for!(current_user)
+      return (head :forbidden) unless @current_player.guesser?
+
+      # TODO: Implement round completion logic
+      head :ok
+    end
+
     # PATCH /loaded_questions/games/:id/guessing_round
     def guessing_round
       @game = Game.find(params[:id])

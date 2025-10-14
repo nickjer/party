@@ -1,4 +1,4 @@
-<%= render layout: "loaded_questions/games/game" do %>
+<%= render layout: "loaded_questions/games/round", locals: { game: @game, current_player: @current_player } do %>
   <div id="answers" class="mt-2 px-2 pb-2 border rounded"
     data-controller="swap"
     data-swap-name-value="guess"

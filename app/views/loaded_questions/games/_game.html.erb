@@ -1,27 +1,19 @@
+<%# locals: (game:, current_player:) %>
 <%= turbo_refreshes_with method: :morph, scroll: :preserve %>
 
-<%= turbo_stream_from @game, channel: GameChannel %>
+<%= turbo_stream_from game, channel: GameChannel %>
 
 <div class="d-flex flex-wrap align-items-start gap-2 mt-2">
   <div class="flex-grow-1">
-    <% unless content_for?(:hide_question) %>
-      <div class="card border-secondary mb-2">
-        <div class="card-body">
-          <strong>Question:</strong>
-          <%= @game.question %>
-        </div>
-      </div>
-    <% end %>
-
-    <%= turbo_frame_tag "game", refresh: "morph", data: { src: loaded_questions_game_path(@game.slug) } do %>
+    <%= turbo_frame_tag "game", refresh: "morph", data: { src: loaded_questions_game_path(game.slug) } do %>
       <%= yield %>
     <% end %>
   </div>
 
   <div>
     <div class="fw-bold">Players:</div>
-    <%= turbo_frame_tag "players", refresh: "morph", data: { src: players_loaded_questions_game_path(@game.slug) } do %>
-      <%= render partial: "loaded_questions/players/player", collection: @game.players, as: :player, locals: { current_player: @current_player } %>
+    <%= turbo_frame_tag "players", refresh: "morph", data: { src: players_loaded_questions_game_path(game.slug) } do %>
+      <%= render partial: "loaded_questions/players/player", collection: game.players, as: :player, locals: { current_player: current_player } %>
     <% end %>
   </div>
 </div>

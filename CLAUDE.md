@@ -300,3 +300,4 @@ Configuration: `config/deploy.yml`
 Refer to these for reference implementations when porting features. See `MIGRATION_REVIEW.md` for detailed comparison.
 - Test descriptions should follow the pattern: `"#instance_method returns ..."` or `".class_method returns ..."`
 - If it can fit in one line then write definitions in a single line
+- Use ruby shorthand when setting keyword arguments with variables that have a matching name

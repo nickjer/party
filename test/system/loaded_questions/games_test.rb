@@ -58,6 +58,8 @@ module LoadedQuestions
       end
 
       # Back to Alice - she should be able to start matching
+      answer1_original = nil
+      answer2_original = nil
       using_session("default") do
         # Start the guessing round
         click_on "Begin Guessing"
@@ -94,6 +96,18 @@ module LoadedQuestions
         swap_items_refreshed = all(".swap-item")
         assert_equal answer2_original, swap_items_refreshed[0].text, "First position should still have second answer after refresh"
         assert_equal answer1_original, swap_items_refreshed[1].text, "Second position should still have first answer after refresh"
+      end
+
+      # Verify Bob (non-guesser) sees the swapped order via broadcast
+      using_session("bob") do
+        # Wait for the broadcast to update Bob's view
+        sleep 0.5
+
+        # Bob should see the same swapped order that Alice sees
+        guessed_answers = all(".swap-item")
+        assert_equal 2, guessed_answers.length
+        assert_equal answer2_original, guessed_answers[0].text, "Bob should see swapped order - first position"
+        assert_equal answer1_original, guessed_answers[1].text, "Bob should see swapped order - second position"
       end
     end
 

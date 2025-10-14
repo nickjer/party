@@ -120,6 +120,7 @@ module LoadedQuestions
       player_id_2 = swap_params[:swap_guess_id].to_i
 
       @game.swap_guesses(player_id_1:, player_id_2:)
+      @game.broadcast_reload_game
 
       head :ok
     end

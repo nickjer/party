@@ -1,6 +1,4 @@
-<% content_for :hide_question, true %>
-
-<%= render layout: "loaded_questions/games/game" do %>
+<%= render layout: "loaded_questions/games/game", locals: { game: @game, current_player: @current_player } do %>
   <%= form_with(model: @new_round, scope: :round, url: "#") do |form| %>
     <div class="mb-3">
       <%= form.label :question %>

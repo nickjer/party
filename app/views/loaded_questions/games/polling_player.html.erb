@@ -1,4 +1,4 @@
-<%= render layout: "loaded_questions/games/game" do %>
+<%= render layout: "loaded_questions/games/round", locals: { game: @game, current_player: @current_player } do %>
   <div data-controller="reveal" data-reveal-hidden-class="d-none">
     <button type="button" data-action="reveal#toggle" class="mt-3 w-100 btn btn-secondary">
       Show / Hide Answer

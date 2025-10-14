@@ -1,4 +1,4 @@
-<%= render layout: "loaded_questions/games/game" do %>
+<%= render layout: "loaded_questions/games/round", locals: { game: @game, current_player: @current_player } do %>
   <div id="answers" class="list-group mt-3 mb-2">
     <%=
       render(

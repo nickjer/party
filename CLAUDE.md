@@ -2,15 +2,40 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Quick Start
+
+```bash
+# Setup
+bin/rails db:setup              # Create database and load schema
+bin/rails server                # Start server on http://localhost:3000
+
+# Development workflow
+bin/rails test                  # Run all tests
+bin/rails test test/system      # Run system tests
+bin/steep check                 # Type check with RBS
+bin/rubocop                     # Lint code
+```
+
 ## Project Overview
 
-This is a Rails 8 application called **Party** - a composable, multi-game platform designed to host multiple party games under a single application. It uses a document-oriented architecture where game-specific state is stored in JSON documents, allowing different game types to coexist without schema changes.
+**Party** is a Rails 8 application - a composable, multi-game platform designed to host multiple party games under a single application. It uses a document-oriented architecture where game-specific state is stored in JSON documents, allowing different game types to coexist without schema changes.
 
-The app is actively being migrated from two standalone applications:
+### Migration Status
+
+The app is being migrated from two standalone applications:
 - `../loaded_questions` - A guessing/matching game (partially ported)
 - `../burn_unit` - A voting game (not yet ported)
 
 See `MIGRATION_REVIEW.md` for a comprehensive analysis of the migration status.
+
+### Tech Stack
+
+- **Rails 8** with Hotwire (Turbo & Stimulus)
+- **SQLite** for development/production
+- **RBS + Steep** for type checking
+- **Tailwind CSS** for styling
+- **esbuild** for JavaScript bundling
+- **Kamal** for deployment
 
 ## Development Commands
 
@@ -26,13 +51,15 @@ bin/rails db:create     # Create databases
 bin/rails db:migrate    # Run migrations
 bin/rails db:reset      # Drop, create, migrate, and seed
 bin/rails db:seed       # Load seed data
+bin/rails db:setup      # Create, migrate, and seed (initial setup)
 ```
 
 ### Testing
 ```bash
-bin/rails test                           # Run all tests
-bin/rails test test/models/game_test.rb  # Run specific test file
-bin/rails test test/system               # Run system tests
+bin/rails test                                      # Run all tests
+bin/rails test test/models/game_test.rb            # Run specific test file
+bin/rails test test/system                         # Run system tests
+bin/rails test test/system/loaded_questions/games_test.rb  # Run specific system test
 ```
 
 ### Type Checking (RBS + Steep)
@@ -42,6 +69,7 @@ bin/steep watch         # Watch mode for continuous type checking
 ```
 
 Type signatures are in `/sig/` directory. The project uses RBS extensively for type safety.
+**Always run `bin/steep check` before committing changes.**
 
 ### Linting and Security
 ```bash
@@ -57,8 +85,8 @@ npm run build:css       # Build Tailwind CSS
 bin/rails assets:precompile  # Precompile all assets for production
 ```
 
-JavaScript source: `app/javascript/`
-Output: `app/assets/builds/`
+**JavaScript source**: `app/javascript/`
+**Output**: `app/assets/builds/`
 
 ## Architecture
 
@@ -154,21 +182,89 @@ Type signatures in `/sig/`:
 - Hash types with symbol keys: `{ question: String, status: String }`
 - ActiveRecord relation types are fully specified
 
-Always run `bin/steep check` before committing changes.
+### JavaScript/Stimulus Controllers
 
-## Current Implementation Status
+Controllers in `app/javascript/controllers/`:
 
-### Loaded Questions (Partially Implemented)
+**dialog_controller** (from stimulus-components):
+- Handles modal/dialog interactions
+- Used for confirmation modals (Begin Guessing, Complete Matching)
+- Provides `open()` and `close()` actions
+- Wraps native `<dialog>` element
 
-**Working**:
+**swap_controller.js**:
+- Uses SortableJS with Swap plugin
+- Enables drag-and-drop reordering
+- Sends swap events via fetch to backend endpoint
+- Not yet connected to backend for Loaded Questions
+
+**hello_controller.js**:
+- Example Stimulus controller
+
+When adding new controllers:
+1. Create in `app/javascript/controllers/`
+2. Use Stimulus naming conventions
+3. Import automatically via `controllers/index.js`
+
+## Loaded Questions Game
+
+### Game Flow
+
+**Loaded Questions** is a guessing game where one player (the guesser) tries to match answers to the players who wrote them.
+
+**Phase 1: Polling (Status: "polling")**
+1. Guesser creates a game with a question
+2. Other players join the game
+3. Players submit text answers to the question
+4. Guesser waits until enough answers are submitted
+5. Guesser clicks "Begin Guessing" (with confirmation modal)
+
+**Phase 2: Guessing (Status: "guessing")**
+1. Answers are shuffled and displayed to all players
+2. Guesser sees answers matched to players in random order
+3. Guesser can swap answers to match them to the correct players (drag-and-drop)
+4. Guesser clicks "Complete Matching" (with confirmation modal)
+
+**Phase 3: Completed (Status: "completed")** - Not Yet Implemented
+1. Show correct matches vs guesser's guesses
+2. Calculate and display score
+3. Option to start a new round with a different guesser
+
+### Document Structure
+
+**Game document**:
+```ruby
+{
+  question: "What is your favorite color?",
+  status: "polling",  # or "guessing", "completed"
+  guesses: [
+    { player_id: 2, answer: "Blue", guessed_player_id: 2 },
+    { player_id: 3, answer: "Red", guessed_player_id: 3 }
+  ]
+}
+```
+
+**Player document**:
+```ruby
+{
+  guesser: true,  # or false
+  answer: "Blue"  # or nil if not yet submitted
+}
+```
+
+### Implementation Status
+
+**✅ Working**:
 - Game creation with initial question
 - Player joining
 - Answer submission (polling phase)
-- Transition to guessing phase (answers shuffled)
+- Transition to guessing phase (answers shuffled) with confirmation modal
 - Display of shuffled answers
 - Real-time player online/offline indicators
+- Confirmation modals for phase transitions (Begin Guessing, Complete Matching)
+- Comprehensive system tests for game flow and modal interactions
 
-**Not Yet Implemented**:
+**❌ Not Yet Implemented**:
 - Guess submission (matching answers to players)
 - Answer swapping backend (JS controller exists, no endpoint)
 - Round completion and results display
@@ -178,9 +274,25 @@ Always run `bin/steep check` before committing changes.
 - Player removal
 - Hide answers toggle
 
-### Burn Unit (Not Started)
+### Key Classes
 
-No code exists yet. See `MIGRATION_REVIEW.md` section 5.5 for recommended structure.
+**LoadedQuestions::Game** (`app/games/loaded_questions/game.rb`)
+- Wrapper around `::Game` model
+- Provides access to game document fields
+- Methods: `question`, `status`, `guesses`, etc.
+
+**LoadedQuestions::Player** (`app/games/loaded_questions/player.rb`)
+- Wrapper around `::Player` model
+- Provides access to player document fields
+- Methods: `guesser?`, `answer`, etc.
+
+**LoadedQuestions::Game::Status** (`app/games/loaded_questions/game/status.rb`)
+- Value object for game status
+- Valid statuses: `polling`, `guessing`, `completed`
+
+**LoadedQuestions::Game::Guesses** (`app/games/loaded_questions/game/guesses.rb`)
+- Collection of guess objects
+- Methods: `shuffled`, `to_a`, `find(player_id)`
 
 ## Development Patterns
 
@@ -265,23 +377,99 @@ class NewGame
 end
 ```
 
-## JavaScript/Stimulus Controllers
+## Testing
 
-Controllers in `app/javascript/controllers/`:
+### Test Structure
 
-**swap_controller.js**:
-- Uses SortableJS with Swap plugin
-- Enables drag-and-drop reordering
-- Sends swap events via fetch to backend endpoint
-- Not yet connected to backend for Loaded Questions
+```
+test/
+├── models/                    # Model unit tests
+├── system/                    # System tests (Capybara)
+│   └── loaded_questions/
+│       └── games_test.rb
+├── controllers/               # Controller tests
+└── lib/                       # Lib tests
+```
 
-**hello_controller.js**:
-- Example Stimulus controller
+### Running Tests
 
-When adding new controllers:
-1. Create in `app/javascript/controllers/`
-2. Use Stimulus naming conventions
-3. Import automatically via `controllers/index.js`
+```bash
+# All tests
+bin/rails test
+
+# Specific test file
+bin/rails test test/system/loaded_questions/games_test.rb
+
+# Specific test
+bin/rails test test/system/loaded_questions/games_test.rb:285
+```
+
+### System Test Patterns
+
+System tests use multiple browser sessions to simulate multiple players:
+
+```ruby
+test "complete game flow" do
+  # Create game as Alice (default session)
+  visit new_loaded_questions_game_path
+  fill_in "Player name", with: "Alice"
+  click_on "Create New Game"
+
+  game_slug = current_path.split("/").last
+
+  # Join as Bob (separate session)
+  using_session("bob") do
+    visit new_loaded_questions_game_player_path(game_slug)
+    fill_in "Name", with: "Bob"
+    click_on "Create New Player"
+  end
+
+  # Back to Alice
+  using_session("default") do
+    click_on "Begin Guessing"
+  end
+end
+```
+
+### Test Conventions
+
+- Test descriptions follow the pattern: `"#instance_method returns ..."` or `".class_method returns ..."`
+- System tests use descriptive names: `"complete game flow with answer swapping"`
+- Use `wait: 5` for assertions that depend on async updates
+- Add `sleep 0.5` when waiting for DOM transitions
+
+## Coding Conventions
+
+### Ruby Style
+
+- Follow Rails Omakase (enforced by RuboCop)
+- If it can fit in one line, write definitions in a single line
+- Use Ruby shorthand when setting keyword arguments with variables that have matching names:
+  ```ruby
+  # Good
+  def foo(name:, age:)
+    Person.new(name:, age:)
+  end
+
+  # Avoid
+  def foo(name:, age:)
+    Person.new(name: name, age: age)
+  end
+  ```
+
+### View Conventions
+
+- Use partials for reusable components
+- Keep views focused on presentation, logic in controllers/models
+- Use Turbo Frames for page sections that update independently
+- Use confirmation modals for destructive or important actions
+
+### JavaScript Conventions
+
+- Use Stimulus controllers for interactivity
+- Keep controllers small and focused
+- Use data attributes for configuration
+- Prefer stimulus-components for common patterns (modals, etc.)
 
 ## Deployment
 
@@ -298,6 +486,3 @@ Configuration: `config/deploy.yml`
 - **../burn_unit**: Original Burn Unit game (PostgreSQL, UUIDs, full implementation)
 
 Refer to these for reference implementations when porting features. See `MIGRATION_REVIEW.md` for detailed comparison.
-- Test descriptions should follow the pattern: `"#instance_method returns ..."` or `".class_method returns ..."`
-- If it can fit in one line then write definitions in a single line
-- Use ruby shorthand when setting keyword arguments with variables that have a matching name

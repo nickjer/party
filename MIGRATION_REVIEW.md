@@ -127,11 +127,13 @@ Similar structure to Loaded Questions but simpler:
 1. **Game creation**: `NewGame` and `NewGameForm`
 2. **Player joining**: `NewPlayer` and `NewPlayerForm`
 3. **Answer submission**: `AnswerForm` and player answer updates
-4. **Status transitions**: Polling → Guessing
+4. **Status transitions**: Polling → Guessing (with confirmation modal)
 5. **Basic game phases**: Polling (as polling), Matching (as guessing)
 6. **Real-time connections**: `GameChannel` tracks online players
 7. **Player management**: Name normalization, online status
 8. **Answer display during guessing**: Shows shuffled answers
+9. **Confirmation modals**: Both "Begin Guessing" and "Complete Matching" use dialog modals
+10. **System tests**: Comprehensive test coverage for modal interactions and game flow
 
 ### ❌ NOT Yet Ported to Party
 
@@ -288,13 +290,12 @@ enum :kind, {
 - **Modern Rails patterns** (Turbo Streams, Hotwire)
 - **Consistent naming** conventions
 - **Good use of value objects** (NormalizedString, Status, Guesses)
+- **Comprehensive system tests** covering game flow, modal interactions, and real-time features
 
 ### Areas for Improvement
 1. **Incomplete implementation**: Many stub methods
-2. **No tests visible** in the review
-3. **Missing documentation**: No README or setup guide visible
-4. **JSON document validation**: No schema validation for documents
-5. **Migration path**: No clear strategy documented for completing ports
+2. **JSON document validation**: No schema validation for documents
+3. **Migration path**: No clear strategy documented for completing ports
 
 ### Legacy Apps Strengths
 - **Complete, working implementations**

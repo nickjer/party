@@ -31,8 +31,8 @@ bin/rails db:seed       # Load seed data
 ### Testing
 ```bash
 bin/rails test                           # Run all tests
-bin/rails test test/models/game_test.rb # Run specific test file
-bin/rails test:system                    # Run system tests
+bin/rails test test/models/game_test.rb  # Run specific test file
+bin/rails test test/system               # Run system tests
 ```
 
 ### Type Checking (RBS + Steep)

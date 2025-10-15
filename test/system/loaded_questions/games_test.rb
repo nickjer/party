@@ -63,6 +63,9 @@ module LoadedQuestions
       using_session("default") do
         # Start the guessing round
         click_on "Begin Guessing"
+        within("dialog[open]") do
+          click_on "Yes, I am ready"
+        end
 
         # Should see the answers in shuffled order
         assert_text "Blue"
@@ -152,6 +155,9 @@ module LoadedQuestions
       using_session("default") do
         # Start the guessing round
         click_on "Begin Guessing"
+        within("dialog[open]") do
+          click_on "Yes, I am ready"
+        end
 
         # Should see the Complete Matching button
         assert_button "Complete Matching"
@@ -194,6 +200,88 @@ module LoadedQuestions
       end
     end
 
+    test "begin guessing modal interactions" do
+      # Create a new game
+      visit new_loaded_questions_game_path
+
+      fill_in "Player name", with: "Alice"
+      fill_in "Question", with: "What is your favorite color?"
+      click_on "Create New Game"
+
+      # Alice should see polling view as the guesser
+      assert_text "What is your favorite color?"
+      assert_text "Alice"
+
+      # Get the game slug from URL for joining as other players
+      game_slug = current_path.split("/").last
+
+      # Open another session as Bob
+      using_session("bob") do
+        visit new_loaded_questions_game_player_path(game_slug)
+        fill_in "Name", with: "Bob"
+        click_on "Create New Player"
+
+        # Bob submits answer
+        fill_in "player[answer]", with: "Blue"
+        click_on "Submit Answer"
+      end
+
+      # Open another session as Charlie
+      using_session("charlie") do
+        visit new_loaded_questions_game_player_path(game_slug)
+        fill_in "Name", with: "Charlie"
+        click_on "Create New Player"
+
+        # Charlie submits answer
+        fill_in "player[answer]", with: "Red"
+        click_on "Submit Answer"
+      end
+
+      # Back to Alice - test Begin Guessing modal
+      using_session("default") do
+        # Should see the Begin Guessing button
+        assert_button "Begin Guessing"
+
+        # Click the Begin Guessing button to open modal
+        click_on "Begin Guessing"
+
+        # Modal should be visible
+        assert_selector "dialog[open]", visible: true
+        assert_text "Are you ready to begin guessing? All answers have been submitted."
+
+        # Test clicking the X button closes the modal
+        find("button.btn-close").click
+        assert_no_selector "dialog[open]", wait: 2
+        assert_button "Begin Guessing" # Button still visible, page unchanged
+
+        # Open modal again
+        click_on "Begin Guessing"
+        assert_selector "dialog[open]", visible: true
+
+        # Test clicking Close button closes the modal
+        within("dialog[open]") do
+          click_on "Close"
+        end
+        assert_no_selector "dialog[open]", wait: 2
+        assert_button "Begin Guessing" # Button still visible, page unchanged
+
+        # Open modal again and confirm
+        click_on "Begin Guessing"
+        assert_selector "dialog[open]", visible: true
+
+        # Test clicking "Yes, I am ready" transitions to guessing phase
+        within("dialog[open]") do
+          click_on "Yes, I am ready"
+        end
+
+        # Should transition to guessing view
+        assert_no_selector "dialog[open]", wait: 2
+        assert_text "Blue", wait: 5
+        assert_text "Red"
+        assert_button "Complete Matching"
+      end
+    end
+
     test "create next turn hides previous question and shows players" do
       # Create a new game
       visit new_loaded_questions_game_path
@@ -233,11 +321,20 @@ module LoadedQuestions
       # Back to Alice - complete the round
       using_session("default") do
         click_on "Begin Guessing"
+        within("dialog[open]") do
+          click_on "Yes, I am ready"
+        end
+
+        # Wait for page transition to complete after modal
+        sleep 0.5
+
         click_on "Complete Matching"
         within("dialog[open]") do
           click_on "Yes, I am sure"
         end
-        assert_text "Score =", wait: 5
+
+        # Wait for page to load after full reload (turbo: false)
+        assert_text "Score =", wait: 10
       end
 
       # Bob should see the completed page with Create Next Turn link via live updates

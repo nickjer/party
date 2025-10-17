@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# Thread-safe singleton that tracks online player connections using Concurrent::Map.
 class PlayerConnections
   include Singleton
 

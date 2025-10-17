@@ -15,6 +15,8 @@ Layout/LeadingCommentSpace:
 
 Layout/LineLength:
   Max: 80
+  AllowedPatterns:
+    - '^\s*#'
 
 Layout/MultilineMethodCallIndentation:
   EnforcedStyle: indented
@@ -27,6 +29,11 @@ Metrics:
 
 Rails/Delegate:
   Enabled: false
+
+Style/Documentation:
+  Exclude:
+    - 'db/migrate/**/*'
+    - 'test/**/*'
 
 Style/StringLiterals:
   EnforcedStyle: double_quotes

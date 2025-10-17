@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 module LoadedQuestions
+  # Form object for validating player answers during the polling phase.
   class AnswerForm
     MIN_LENGTH = 3
     MAX_LENGTH = 80

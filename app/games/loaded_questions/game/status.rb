@@ -2,6 +2,7 @@
 
 module LoadedQuestions
   class Game
+    # Value object representing game status (polling, guessing, or completed).
     class Status
       class << self
         private :new

@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 module LoadedQuestions
+  # Builder object for constructing new players joining a Loaded Questions game.
   class NewPlayer
     def initialize(user:, name:, guesser:)
       @user = user

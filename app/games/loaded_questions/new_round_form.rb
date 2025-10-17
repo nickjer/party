@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 module LoadedQuestions
+  # Form object for validating new round creation after a round is completed.
   class NewRoundForm
     # @dynamic question, errors
     attr_reader :question, :errors

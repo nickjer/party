@@ -9,6 +9,7 @@ require "rails/all"
 Bundler.require(*Rails.groups)
 
 module Party
+  # Rails application class for the Party multi-game platform.
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.
     config.load_defaults 8.0

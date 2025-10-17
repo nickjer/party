@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 module LoadedQuestions
+  # Controller for Loaded Questions game actions including creation, viewing, and phase transitions.
   class GamesController < ::ApplicationController
     # GET /loaded_questions/games/new
     def new

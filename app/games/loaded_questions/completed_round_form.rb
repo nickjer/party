@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 module LoadedQuestions
+  # Form object for validating transition from guessing to completed phase.
   class CompletedRoundForm
     # @dynamic errors
     attr_reader :errors

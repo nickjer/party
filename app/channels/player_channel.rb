@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# Player-level ActionCable channel for real-time game updates and connection tracking.
 class PlayerChannel < ApplicationCable::Channel
   extend Turbo::Streams::Broadcasts
   extend Turbo::Streams::StreamName

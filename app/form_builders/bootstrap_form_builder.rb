@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# Custom form builder that automatically applies Bootstrap CSS classes and inline error display.
 class BootstrapFormBuilder < ActionView::Helpers::FormBuilder
   def check_box(method, options = {}, checked_value = "1",
     unchecked_value = "0")

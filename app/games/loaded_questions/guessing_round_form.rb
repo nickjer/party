@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 module LoadedQuestions
+  # Form object for validating transition from polling to guessing phase.
   class GuessingRoundForm
     MIN_ANSWERED = 2
 

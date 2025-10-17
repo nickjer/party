@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 module LoadedQuestions
+  # Form object for validating new game creation with player name and question.
   class NewGameForm
     # @dynamic player_name
     attr_reader :player_name

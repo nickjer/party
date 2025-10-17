@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# Player model that belongs to a game and user. Player-specific state is stored in the JSON document field for flexibility.
 class Player < ApplicationRecord
   MIN_NAME_LENGTH = 3
   MAX_NAME_LENGTH = 25

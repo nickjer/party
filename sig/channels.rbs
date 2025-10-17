@@ -24,7 +24,6 @@ class PlayerChannel < ::ApplicationCable::Channel
 
   private
 
+  attr_reader game_kind: Symbol
   attr_reader player: ::Player
-
-  def game: () -> ::Game
 end

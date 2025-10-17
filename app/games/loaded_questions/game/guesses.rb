@@ -10,7 +10,9 @@ module LoadedQuestions
             .map do |guessed_answer|
               GuessedAnswer.new(
                 player: player_map.fetch(guessed_answer[:player_id]),
-                guessed_player: player_map.fetch(guessed_answer[:guessed_player_id])
+                guessed_player: player_map.fetch(
+                  guessed_answer[:guessed_player_id]
+                )
               )
             end
           new(guesses:)
@@ -21,8 +23,8 @@ module LoadedQuestions
 
       def initialize(guesses:) = @guesses = guesses
 
-      def each(&block)
-        guesses.each(&block)
+      def each(&)
+        guesses.each(&)
         self
       end
 
@@ -41,14 +43,22 @@ module LoadedQuestions
         index1 = guesses.find_index { |guess| guess.player.id == player_id_1 }
         index2 = guesses.find_index { |guess| guess.player.id == player_id_2 }
 
-        raise ActiveRecord::RecordNotFound, "Player #{player_id_1} not found" if index1.nil?
-        raise ActiveRecord::RecordNotFound, "Player #{player_id_2} not found" if index2.nil?
+        if index1.nil?
+          raise ActiveRecord::RecordNotFound,
+            "Player #{player_id_1} not found"
+        end
+        if index2.nil?
+          raise ActiveRecord::RecordNotFound,
+            "Player #{player_id_2} not found"
+        end
 
         guess1 = guesses.fetch(index1)
         guess2 = guesses.fetch(index2)
 
-        guesses[index1] = GuessedAnswer.new(player: guess1.player, guessed_player: guess2.guessed_player)
-        guesses[index2] = GuessedAnswer.new(player: guess2.player, guessed_player: guess1.guessed_player)
+        guesses[index1] = GuessedAnswer.new(player: guess1.player,
+          guessed_player: guess2.guessed_player)
+        guesses[index2] = GuessedAnswer.new(player: guess2.player,
+          guessed_player: guess1.guessed_player)
 
         self
       end
@@ -74,7 +84,10 @@ module LoadedQuestions
 
         def correct? = answer == guessed_answer
 
-        def as_json = { player_id: player.id, guessed_player_id: guessed_player.id }
+        def as_json
+          { player_id: player.id,
+            guessed_player_id: guessed_player.id }
+        end
       end
 
       # @dynamic guesses

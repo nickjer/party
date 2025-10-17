@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Game < ApplicationRecord
   MIN_QUESTION_LENGTH = 3
   MAX_QUESTION_LENGTH = 160
@@ -24,7 +26,7 @@ class Game < ApplicationRecord
 
   def document=(raw_json)
     @parsed_document = nil
-    super(raw_json)
+    super
   end
 
   def kind = super.to_sym

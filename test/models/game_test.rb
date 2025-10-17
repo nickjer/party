@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "test_helper"
 
 class GameTest < ActiveSupport::TestCase
@@ -8,7 +10,8 @@ class GameTest < ActiveSupport::TestCase
   end
 
   test "#parsed_document returns JSON with symbolized keys" do
-    game = create(:game, document: { question: "Test?", status: "polling" }.to_json)
+    game = create(:game,
+      document: { question: "Test?", status: "polling" }.to_json)
 
     parsed = game.parsed_document
 

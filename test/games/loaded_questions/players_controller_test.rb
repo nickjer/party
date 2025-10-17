@@ -1,10 +1,12 @@
+# frozen_string_literal: true
+
 require "test_helper"
 
 module LoadedQuestions
   class PlayersControllerTest < ActionDispatch::IntegrationTest
     test "#answer returns unprocessable_content with validation error for single letter answer" do
       # Create game with guesser and one additional player
-      game = create(:loaded_questions_game, players: [ "Bob" ])
+      game = create(:loaded_questions_game, players: ["Bob"])
       bob = game.players.find { |p| p.name.to_s == "Bob" }
 
       # Sign in as Bob

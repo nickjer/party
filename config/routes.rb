@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 Rails.application.routes.draw do
   namespace :loaded_questions do
     resources :games, only: %i[create new show] do

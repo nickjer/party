@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :loaded_questions_game, class: "LoadedQuestions::Game" do
     transient do

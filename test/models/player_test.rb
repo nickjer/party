@@ -1,8 +1,11 @@
+# frozen_string_literal: true
+
 require "test_helper"
 
 class PlayerTest < ActiveSupport::TestCase
   test "#parsed_document returns JSON with symbolized keys" do
-    player = create(:player, document: { answer: "Blue", guesser: false }.to_json)
+    player = create(:player,
+      document: { answer: "Blue", guesser: false }.to_json)
 
     parsed = player.parsed_document
 
@@ -76,6 +79,7 @@ class PlayerTest < ActiveSupport::TestCase
     player = build(:player, game:, user: existing_player.user, name: "Bob")
 
     assert_not player.valid?
-    assert player.errors.added?(:user_id, :taken, value: existing_player.user.id)
+    assert player.errors.added?(:user_id, :taken,
+      value: existing_player.user.id)
   end
 end

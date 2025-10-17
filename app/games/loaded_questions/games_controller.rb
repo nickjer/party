@@ -64,7 +64,7 @@ module LoadedQuestions
     def new_round
       @game = Game.find(params[:id])
       @current_player = @game.player_for!(current_user)
-      return (head :forbidden) if @current_player.guesser?
+      return head :forbidden if @current_player.guesser?
 
       @new_round = NewRoundForm.new(game: @game)
       render :new_round
@@ -80,7 +80,7 @@ module LoadedQuestions
     def completed_round
       @game = Game.find(params[:id])
       @current_player = @game.player_for!(current_user)
-      return (head :forbidden) unless @current_player.guesser?
+      return head :forbidden unless @current_player.guesser?
 
       completed_round_form = CompletedRoundForm.new(game: @game)
       if completed_round_form.valid?
@@ -88,7 +88,8 @@ module LoadedQuestions
         @game.broadcast_reload_game
         redirect_to loaded_questions_game_path(@game.slug)
       else
-        render :guessing_guesser, locals: { completed_round_form: }, status: :unprocessable_content
+        render :guessing_guesser, locals: { completed_round_form: },
+          status: :unprocessable_content
       end
     end
 
@@ -96,16 +97,17 @@ module LoadedQuestions
     def guessing_round
       @game = Game.find(params[:id])
       @current_player = @game.player_for!(current_user)
-      return (head :forbidden) unless @current_player.guesser?
+      return head :forbidden unless @current_player.guesser?
 
       guessing_round_form = GuessingRoundForm.new(game: @game)
       if guessing_round_form.valid?
         @game.update_status(Game::Status.guessing)
-        target = loaded_questions_game_path(@game.slug)
+        loaded_questions_game_path(@game.slug)
         @game.broadcast_reload_game
         head :ok
       else
-        render :polling_guesser, locals: { guessing_round_form: }, status: :unprocessable_content
+        render :polling_guesser, locals: { guessing_round_form: },
+          status: :unprocessable_content
       end
     end
 
@@ -113,8 +115,8 @@ module LoadedQuestions
     def swap_guesses
       @game = Game.find(params[:id])
       @current_player = @game.player_for!(current_user)
-      return (head :forbidden) unless @current_player.guesser?
-      return (head :forbidden) unless @game.status.guessing?
+      return head :forbidden unless @current_player.guesser?
+      return head :forbidden unless @game.status.guessing?
 
       player_id_1 = swap_params[:guess_id].to_i
       player_id_2 = swap_params[:swap_guess_id].to_i

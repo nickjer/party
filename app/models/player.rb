@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Player < ApplicationRecord
   MIN_NAME_LENGTH = 3
   MAX_NAME_LENGTH = 25
@@ -12,7 +14,7 @@ class Player < ApplicationRecord
 
   def document=(raw_json)
     @parsed_document = nil
-    super(raw_json)
+    super
   end
 
   def name = NormalizedString.new(super)

@@ -61,7 +61,8 @@ module LoadedQuestions
           participants.zip(shuffled_participants).map do |participant, guessed_participant|
             raise "Guessed participant is missing" unless guessed_participant
 
-            { player_id: participant.id, guessed_player_id: guessed_participant.id }
+            { player_id: participant.id,
+              guessed_player_id: guessed_participant.id }
           end
         document[:guesses] = guesses
       end

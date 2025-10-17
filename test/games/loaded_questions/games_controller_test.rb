@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "test_helper"
 
 module LoadedQuestions
@@ -12,16 +14,18 @@ module LoadedQuestions
       ).build
       game.save!
 
-      loaded_game = Game.find(game.slug)
+      Game.find(game.slug)
 
       # Add two players with answers
       user2 = User.create!(last_seen_at: Time.current)
-      player2 = NewPlayer.new(user: user2, name: NormalizedString.new("Bob"), guesser: false).build
+      player2 = NewPlayer.new(user: user2, name: NormalizedString.new("Bob"),
+        guesser: false).build
       player2.game_id = game.id
       player2.save!
 
       user3 = User.create!(last_seen_at: Time.current)
-      player3 = NewPlayer.new(user: user3, name: NormalizedString.new("Charlie"), guesser: false).build
+      player3 = NewPlayer.new(user: user3,
+        name: NormalizedString.new("Charlie"), guesser: false).build
       player3.game_id = game.id
       player3.save!
 
@@ -44,20 +48,23 @@ module LoadedQuestions
       guess2_guessed_answer_before = guess2.guessed_answer
 
       # Swap the answers
-      loaded_game.swap_guesses(player_id_1: guess1.player.id, player_id_2: guess2.player.id)
+      loaded_game.swap_guesses(player_id_1: guess1.player.id,
+        player_id_2: guess2.player.id)
 
       # Reload from database to verify persistence
       loaded_game_after = Game.find(game.slug)
       guess1_after, guess2_after = loaded_game_after.guesses.to_a
 
       # Verify answers were swapped and persisted
-      assert_equal guess2_guessed_answer_before, guess1_after.guessed_answer, "First guess should have second guessed answer after swap"
-      assert_equal guess1_guessed_answer_before, guess2_after.guessed_answer, "Second guess should have first guessed answer after swap"
+      assert_equal guess2_guessed_answer_before, guess1_after.guessed_answer,
+        "First guess should have second guessed answer after swap"
+      assert_equal guess1_guessed_answer_before, guess2_after.guessed_answer,
+        "Second guess should have first guessed answer after swap"
     end
 
     test "#completed_round changes game status from guessing to completed" do
       # Create game with guesser and players
-      game = create(:loaded_questions_game, players: [ "Bob", "Charlie" ])
+      game = create(:loaded_questions_game, players: %w[Bob Charlie])
       bob = game.players.find { |p| p.name.to_s == "Bob" }
       charlie = game.players.find { |p| p.name.to_s == "Charlie" }
 
@@ -90,7 +97,7 @@ module LoadedQuestions
 
     test "#completed_round returns unprocessable_content when game is not in guessing phase" do
       # Create game with guesser and players in polling phase
-      game = create(:loaded_questions_game, players: [ "Bob", "Charlie" ])
+      game = create(:loaded_questions_game, players: %w[Bob Charlie])
 
       # Verify game is in polling status
       assert_predicate game.status, :polling?

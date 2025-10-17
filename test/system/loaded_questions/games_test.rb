@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "application_system_test_case"
 
 module LoadedQuestions
@@ -29,7 +31,8 @@ module LoadedQuestions
         click_on "Submit Answer"
 
         # Wait for answer form to be hidden after submitting
-        assert_selector "[data-reveal-target='item'].d-none", visible: :hidden, wait: 5
+        assert_selector "[data-reveal-target='item'].d-none", visible: :hidden,
+          wait: 5
         assert_no_text "Blue"
 
         # Show answer and verify it was saved
@@ -49,7 +52,8 @@ module LoadedQuestions
         click_on "Submit Answer"
 
         # Wait for answer form to be hidden after submitting
-        assert_selector "[data-reveal-target='item'].d-none", visible: :hidden, wait: 5
+        assert_selector "[data-reveal-target='item'].d-none", visible: :hidden,
+          wait: 5
         assert_no_text "Red"
 
         # Show answer and verify it was saved
@@ -89,16 +93,20 @@ module LoadedQuestions
 
         # Verify the answers are now swapped visually
         swap_items_after = all(".swap-item")
-        assert_equal answer2_original, swap_items_after[0].text, "First position should now have second answer"
-        assert_equal answer1_original, swap_items_after[1].text, "Second position should now have first answer"
+        assert_equal answer2_original, swap_items_after[0].text,
+          "First position should now have second answer"
+        assert_equal answer1_original, swap_items_after[1].text,
+          "Second position should now have first answer"
 
         # Refresh the page to verify swap persisted
         visit current_path
 
         # Verify the swapped order is maintained after refresh
         swap_items_refreshed = all(".swap-item")
-        assert_equal answer2_original, swap_items_refreshed[0].text, "First position should still have second answer after refresh"
-        assert_equal answer1_original, swap_items_refreshed[1].text, "Second position should still have first answer after refresh"
+        assert_equal answer2_original, swap_items_refreshed[0].text,
+          "First position should still have second answer after refresh"
+        assert_equal answer1_original, swap_items_refreshed[1].text,
+          "Second position should still have first answer after refresh"
       end
 
       # Verify Bob (non-guesser) sees the swapped order via broadcast
@@ -109,8 +117,10 @@ module LoadedQuestions
         # Bob should see the same swapped order that Alice sees
         guessed_answers = all(".swap-item")
         assert_equal 2, guessed_answers.length
-        assert_equal answer2_original, guessed_answers[0].text, "Bob should see swapped order - first position"
-        assert_equal answer1_original, guessed_answers[1].text, "Bob should see swapped order - second position"
+        assert_equal answer2_original, guessed_answers[0].text,
+          "Bob should see swapped order - first position"
+        assert_equal answer1_original, guessed_answers[1].text,
+          "Bob should see swapped order - second position"
       end
     end
 

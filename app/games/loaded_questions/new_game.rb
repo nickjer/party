@@ -11,7 +11,7 @@ module LoadedQuestions
       game = ::Game.new
       game.kind = :loaded_questions
       game.document = document.to_json
-      game.players = [ player.build ]
+      game.players = [player.build]
       game.slug = ::SecureRandom.alphanumeric(6)
       game
     end

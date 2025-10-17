@@ -12,9 +12,7 @@ module LoadedQuestions
     end
 
     def valid?
-      unless game.status.completed?
-        errors[:game] = "Game is not completed"
-      end
+      errors[:game] = "Game is not completed" unless game.status.completed?
 
       min = ::Game::MIN_QUESTION_LENGTH
       max = ::Game::MAX_QUESTION_LENGTH

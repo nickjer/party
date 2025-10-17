@@ -38,7 +38,7 @@ module LoadedQuestions
 
           ApplicationController.render(
             "loaded_questions/players/create",
-            formats: [ :turbo_stream ],
+            formats: [:turbo_stream],
             assigns: { game:, current_player: other_player }
           )
         end
@@ -51,12 +51,10 @@ module LoadedQuestions
     end
 
     # GET /games/:game_id/player/edit
-    def edit
-    end
+    def edit; end
 
     # PATCH/PUT /games/:game_id/player
-    def update
-    end
+    def update; end
 
     # PATCH /games/:game_id/player/answer
     def answer
@@ -73,7 +71,8 @@ module LoadedQuestions
         @game = game
         @current_player = current_player
 
-        render "loaded_questions/games/polling_player", locals: { answer_form: }, status: :unprocessable_content
+        render "loaded_questions/games/polling_player",
+          locals: { answer_form: }, status: :unprocessable_content
       end
     end
 

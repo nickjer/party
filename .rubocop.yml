@@ -1,5 +1,32 @@
-# Omakase Ruby styling for Rails
-inherit_gem: { rubocop-rails-omakase: rubocop.yml }
+plugins:
+  - rubocop-capybara
+  - rubocop-factory_bot
+  - rubocop-rails
+
+AllCops:
+  NewCops: enable
+
+Layout/ArgumentAlignment:
+  EnforcedStyle: with_fixed_indentation
 
 Layout/LeadingCommentSpace:
+  AllowRBSInlineAnnotation: true
   AllowSteepAnnotation: true
+
+Layout/LineLength:
+  Max: 80
+
+Layout/MultilineMethodCallIndentation:
+  EnforcedStyle: indented
+
+Layout/ParameterAlignment:
+  EnforcedStyle: with_fixed_indentation
+
+Metrics:
+  Enabled: false
+
+Rails/Delegate:
+  Enabled: false
+
+Style/StringLiterals:
+  EnforcedStyle: double_quotes

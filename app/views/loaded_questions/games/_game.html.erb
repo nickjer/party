@@ -1,19 +1,20 @@
 <%# locals: (game:, current_player:) %>
-<%= turbo_refreshes_with method: :morph, scroll: :preserve %>
-
 <%= turbo_stream_from current_player.to_model, channel: PlayerChannel %>
 
 <div class="d-flex flex-wrap align-items-start gap-2 mt-2">
   <div class="flex-grow-1">
-    <%= turbo_frame_tag "game", refresh: "morph", data: { src: loaded_questions_game_path(game.slug) } do %>
+    <div id="game">
       <%= yield %>
-    <% end %>
+    </div>
   </div>
 
   <div>
     <div class="fw-bold">Players:</div>
-    <%= turbo_frame_tag "players", refresh: "morph", data: { src: players_loaded_questions_game_path(game.slug) } do %>
-      <%= render partial: "loaded_questions/players/player", collection: game.players, as: :player, locals: { current_player: current_player } %>
-    <% end %>
+    <div id="players">
+      <%= render(partial: "loaded_questions/players/player",
+        collection: game.players,
+        as: :player,
+        locals: { current_player: current_player }) %>
+    </div>
   </div>
 </div>

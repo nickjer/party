@@ -45,16 +45,16 @@ class Player < ::ApplicationRecord
   def document=: (String) -> String
   def document?: () -> bool
   def game: () -> ::Game
-  def game=: (::Game?) -> ::Game?
-  def game_id: () -> Integer?
-  def game_id=: (::Integer?) -> ::Integer?
+  def game=: (::Game) -> ::Game
+  def game_id: () -> Integer
+  def game_id=: (::Integer) -> ::Integer
   def online?: () -> bool
   def name: () -> ::NormalizedString
   def name=: (::NormalizedString) -> ::NormalizedString
   def name?: () -> bool
   def parsed_document: () -> Hash[Symbol, untyped]
   def user: () -> ::User
-  def user=: (::User?) -> ::User?
+  def user=: (::User) -> ::User
 
   class ActiveRecord_Relation < ::ActiveRecord::Relation
     include ::_ActiveRecord_Relation[::Player, Integer]

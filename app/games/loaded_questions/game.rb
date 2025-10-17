@@ -5,10 +5,14 @@ module LoadedQuestions
   # behavior and document parsing.
   class Game
     class << self
-      def find(slug)
-        relation = ::Game.strict_loading.loaded_questions
-          .includes(players: :user)
-        new(relation.find_by!(slug:))
+      def from_id(id) = new(scope.find(id))
+
+      def from_slug(slug) = new(scope.find_by!(slug:))
+
+      private
+
+      def scope
+        ::Game.strict_loading.loaded_questions.includes(players: :user)
       end
     end
 
@@ -19,19 +23,6 @@ module LoadedQuestions
     def broadcast_reload_game = game.broadcast_reload_game
 
     def broadcast_reload_players = game.broadcast_reload_players
-
-    def broadcast_render(template, except_id: nil)
-      game = Game.find(slug)
-      PlayerChannel.broadcast_to(game.players) do |current_player|
-        next if except_id == current_player.id
-
-        ApplicationController.render(
-          template,
-          formats: [:turbo_stream],
-          assigns: { game:, current_player: }
-        )
-      end
-    end
 
     def id = game.id
 

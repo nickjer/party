@@ -6,7 +6,7 @@ module LoadedQuestions
   class PlayersController < ApplicationController
     # GET /games/:game_id/player/new
     def new
-      game = Game.find(params[:game_id])
+      game = Game.from_slug(params[:game_id])
       current_player = game.player_for(current_user)
 
       if current_player
@@ -19,7 +19,7 @@ module LoadedQuestions
 
     # POST /games/:game_id/player
     def create
-      game = Game.find(params[:game_id])
+      game = Game.from_slug(params[:game_id])
       new_player = NewPlayerForm.new(game:, user: current_user,
         name: new_player_params[:name])
 
@@ -28,8 +28,7 @@ module LoadedQuestions
         player.game_id = game.id
         player.save!
 
-        game.broadcast_render("loaded_questions/players/create",
-          except_id: player.id)
+        Broadcast::PlayerCreated.new(player_id: player.id).call
 
         redirect_to_game(game)
       else
@@ -46,7 +45,7 @@ module LoadedQuestions
 
     # PATCH /games/:game_id/player/answer
     def answer
-      game = Game.find(params[:game_id])
+      game = Game.from_slug(params[:game_id])
       current_player = game.player_for(current_user)
       return redirect_to_new_player(game) if current_player.nil?
 

@@ -22,7 +22,7 @@ FactoryBot.define do
       player_record.game_id = form.game.id
       player_record.save!
 
-      LoadedQuestions::Game.find(game.slug).player_for!(user)
+      LoadedQuestions::Game.from_slug(game.slug).player_for!(user)
     end
   end
 end

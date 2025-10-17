@@ -23,12 +23,12 @@ FactoryBot.define do
       ).build
       game_record.save!
 
-      game = LoadedQuestions::Game.find(game_record.slug)
+      game = LoadedQuestions::Game.from_slug(game_record.slug)
       players.each do |player_name|
         create(:loaded_questions_player, game:, name: player_name)
       end
 
-      LoadedQuestions::Game.find(game.slug)
+      LoadedQuestions::Game.from_slug(game.slug)
     end
   end
 end

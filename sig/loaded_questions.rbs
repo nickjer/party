@@ -24,13 +24,14 @@ module LoadedQuestions
       status: String,
     }
 
-    def self.find: (String slug) -> Game
+    def self.from_id: (Integer id) -> Game
+    def self.from_slug: (String slug) -> Game
+    private def self.scope: () -> ::Game::ActiveRecord_Relation
 
     def initialize: (::Game game) -> void
 
     def broadcast_reload_game: () -> void
     def broadcast_reload_players: () -> void
-    def broadcast_render: (String template, ?except_id: Integer?) -> void
     def id: () -> Integer
     def guesses: () -> Guesses
     def guesser: () -> Player
@@ -100,6 +101,17 @@ module LoadedQuestions
       def guessing?: () -> bool
       def polling?: () -> bool
       def to_s: () -> String
+    end
+  end
+
+  module Broadcast
+    class PlayerCreated
+      def initialize: (player_id: Integer) -> void
+      def call: () -> void
+
+      private
+
+      attr_reader created_player: ::Player
     end
   end
 

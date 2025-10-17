@@ -16,11 +16,11 @@ module LoadedQuestions
       charlie.update_answer(NormalizedString.new("Red"))
 
       # Start guessing round to shuffle answers
-      game = Game.find(game.slug)
+      game = Game.from_slug(game.slug)
       game.update_status(Game::Status.guessing)
 
       # Reload and get current answer assignments
-      game = Game.find(game.slug)
+      game = Game.from_slug(game.slug)
       guess1, guess2 = game.guesses.to_a
       guess1_guessed_answer_before = guess1.guessed_answer
       guess2_guessed_answer_before = guess2.guessed_answer
@@ -30,7 +30,7 @@ module LoadedQuestions
         player_id2: guess2.player.id)
 
       # Reload from database to verify persistence
-      game_after = Game.find(game.slug)
+      game_after = Game.from_slug(game.slug)
       guess1_after, guess2_after = game_after.guesses.to_a
 
       # Verify answers were swapped and persisted

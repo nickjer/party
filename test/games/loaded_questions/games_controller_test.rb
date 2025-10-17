@@ -14,7 +14,7 @@ module LoadedQuestions
       ).build
       game.save!
 
-      Game.find(game.slug)
+      Game.from_slug(game.slug)
 
       # Add two players with answers
       user2 = User.create!(last_seen_at: Time.current)
@@ -30,7 +30,7 @@ module LoadedQuestions
       player3.save!
 
       # Submit answers
-      loaded_game = Game.find(game.slug)
+      loaded_game = Game.from_slug(game.slug)
       bob = loaded_game.players.find { |p| p.name.to_s == "Bob" }
       charlie = loaded_game.players.find { |p| p.name.to_s == "Charlie" }
 
@@ -38,11 +38,11 @@ module LoadedQuestions
       charlie.update_answer(NormalizedString.new("Red"))
 
       # Start guessing round to shuffle answers
-      loaded_game = Game.find(game.slug)
+      loaded_game = Game.from_slug(game.slug)
       loaded_game.update_status(LoadedQuestions::Game::Status.guessing)
 
       # Reload and get current answer assignments
-      loaded_game = Game.find(game.slug)
+      loaded_game = Game.from_slug(game.slug)
       guess1, guess2 = loaded_game.guesses.to_a
       guess1_guessed_answer_before = guess1.guessed_answer
       guess2_guessed_answer_before = guess2.guessed_answer
@@ -52,7 +52,7 @@ module LoadedQuestions
         player_id2: guess2.player.id)
 
       # Reload from database to verify persistence
-      loaded_game_after = Game.find(game.slug)
+      loaded_game_after = Game.from_slug(game.slug)
       guess1_after, guess2_after = loaded_game_after.guesses.to_a
 
       # Verify answers were swapped and persisted
@@ -73,11 +73,11 @@ module LoadedQuestions
       charlie.update_answer(NormalizedString.new("Red"))
 
       # Transition to guessing phase
-      game = LoadedQuestions::Game.find(game.slug)
+      game = LoadedQuestions::Game.from_slug(game.slug)
       game.update_status(LoadedQuestions::Game::Status.guessing)
 
       # Verify game is in guessing status
-      game = LoadedQuestions::Game.find(game.slug)
+      game = LoadedQuestions::Game.from_slug(game.slug)
       assert_predicate game.status, :guessing?
 
       # Sign in as guesser
@@ -91,7 +91,7 @@ module LoadedQuestions
       assert_redirected_to loaded_questions_game_path(game.slug)
 
       # Reload and verify game status changed to completed
-      game = LoadedQuestions::Game.find(game.slug)
+      game = LoadedQuestions::Game.from_slug(game.slug)
       assert_predicate game.status, :completed?
     end
 
@@ -113,7 +113,7 @@ module LoadedQuestions
       assert_response :unprocessable_content
 
       # Reload and verify game status has not changed
-      game = LoadedQuestions::Game.find(game.slug)
+      game = LoadedQuestions::Game.from_slug(game.slug)
       assert_predicate game.status, :polling?
     end
   end

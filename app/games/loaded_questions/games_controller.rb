@@ -33,7 +33,7 @@ module LoadedQuestions
 
     # GET /loaded_questions/games/:id
     def show
-      @game = Game.find(params[:id])
+      @game = Game.from_slug(params[:id])
       current_player = @game.player_for(current_user)
 
       if current_player.nil?
@@ -64,7 +64,7 @@ module LoadedQuestions
 
     # GET /loaded_questions/games/:id/new_round
     def new_round
-      @game = Game.find(params[:id])
+      @game = Game.from_slug(params[:id])
       @current_player = @game.player_for!(current_user)
       return head :forbidden if @current_player.guesser?
 
@@ -74,13 +74,13 @@ module LoadedQuestions
 
     # GET /loaded_questions/games/:id/players
     def players
-      @game = Game.find(params[:id])
+      @game = Game.from_slug(params[:id])
       @current_player = @game.player_for!(current_user)
     end
 
     # PATCH /loaded_questions/games/:id/completed_round
     def completed_round
-      @game = Game.find(params[:id])
+      @game = Game.from_slug(params[:id])
       @current_player = @game.player_for!(current_user)
       return head :forbidden unless @current_player.guesser?
 
@@ -97,7 +97,7 @@ module LoadedQuestions
 
     # PATCH /loaded_questions/games/:id/guessing_round
     def guessing_round
-      @game = Game.find(params[:id])
+      @game = Game.from_slug(params[:id])
       @current_player = @game.player_for!(current_user)
       return head :forbidden unless @current_player.guesser?
 
@@ -115,7 +115,7 @@ module LoadedQuestions
 
     # PATCH /loaded_questions/games/:id/swap_guesses
     def swap_guesses
-      @game = Game.find(params[:id])
+      @game = Game.from_slug(params[:id])
       @current_player = @game.player_for!(current_user)
       return head :forbidden unless @current_player.guesser?
       return head :forbidden unless @game.status.guessing?

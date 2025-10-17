@@ -16,18 +16,18 @@ module LoadedQuestions
         charlie.update_answer(NormalizedString.new("red"))
 
         # Transition to guessing phase (shuffles guesses)
-        game = LoadedQuestions::Game.find(game.slug)
+        game = LoadedQuestions::Game.from_slug(game.slug)
         game.update_status(LoadedQuestions::Game::Status.guessing)
 
         # Reload and get guesses
-        game = LoadedQuestions::Game.find(game.slug)
+        game = LoadedQuestions::Game.from_slug(game.slug)
         guess1, guess2 = game.guesses.to_a
 
         # If guesses are not mismatched, swap them to ensure mismatch
         if guess1.player.id == guess1.guessed_player.id
           game.swap_guesses(player_id1: guess1.player.id,
             player_id2: guess2.player.id)
-          game = LoadedQuestions::Game.find(game.slug)
+          game = LoadedQuestions::Game.from_slug(game.slug)
           guess1, guess2 = game.guesses.to_a
         end
 

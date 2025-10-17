@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
 module LoadedQuestions
-  # Wrapper around ::Player model that provides Loaded Questions-specific behavior and document parsing.
+  # Wrapper around ::Player model that provides Loaded Questions-specific
+  # behavior and document parsing.
   class Player
     def initialize(player, game:)
       @player = player

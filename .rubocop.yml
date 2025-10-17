@@ -18,8 +18,6 @@ Layout/LineEndStringConcatenationIndentation:
 
 Layout/LineLength:
   Max: 80
-  AllowedPatterns:
-    - '^\s*#'
 
 Layout/MultilineMethodCallIndentation:
   EnforcedStyle: indented

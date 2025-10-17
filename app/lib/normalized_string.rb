@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
-# Immutable value object for normalized text with case-insensitive comparison using NFKC Unicode normalization.
+# Immutable value object for normalized text with case-insensitive comparison
+# using NFKC Unicode normalization.
 class NormalizedString
   def initialize(string) = @string = normalize(string)
 

@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
 module ApplicationCable
-  # WebSocket connection handler that authenticates users via encrypted session cookies.
+  # WebSocket connection handler that authenticates users via encrypted
+  # session cookies.
   class Connection < ActionCable::Connection::Base
     # @dynamic current_user, current_user=
     identified_by :current_user

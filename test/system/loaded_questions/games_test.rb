@@ -81,7 +81,8 @@ module LoadedQuestions
         swap_items = all(".swap-item")
         assert_equal 2, swap_items.length
 
-        # Remember the original answer assignments (player names stay in same position)
+        # Remember the original answer assignments (player names stay in
+        # same position)
         answer1_original = swap_items[0].text
         answer2_original = swap_items[1].text
 
@@ -349,7 +350,8 @@ module LoadedQuestions
         assert_text "Score =", wait: 10
       end
 
-      # Bob should see the completed page with Create Next Turn link via live updates
+      # Bob should see the completed page with Create Next Turn link via
+      # live updates
       using_session("bob") do
         # Wait for live update to show completed view
         assert_text "Score =", wait: 5

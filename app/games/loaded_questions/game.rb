@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
 module LoadedQuestions
-  # Wrapper around ::Game model that provides Loaded Questions-specific behavior and document parsing.
+  # Wrapper around ::Game model that provides Loaded Questions-specific
+  # behavior and document parsing.
   class Game
     class << self
       def find(slug)

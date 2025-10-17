@@ -70,7 +70,8 @@ module LoadedQuestions
 
       private
 
-      # Value object representing a player's answer matched with the guesser's guess.
+      # Value object representing a player's answer matched with the
+      # guesser's guess.
       class GuessedAnswer
         # @dynamic player, guessed_player
         attr_reader :player, :guessed_player

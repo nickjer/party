@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
 module LoadedQuestions
-  # Controller for player actions including joining games and submitting answers.
+  # Controller for player actions including joining games
+  # and submitting answers.
   class PlayersController < ApplicationController
     # GET /games/:game_id/player/new
     def new

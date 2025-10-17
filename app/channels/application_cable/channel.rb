@@ -2,5 +2,6 @@
 
 module ApplicationCable
   class Channel < ActionCable::Channel::Base
+    # @dynamic current_user
   end
 end

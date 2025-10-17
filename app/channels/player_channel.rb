@@ -21,24 +21,25 @@ class PlayerChannel < ApplicationCable::Channel
   end
 
   def subscribed
-    if (stream_name = verified_stream_name_from_params)
-      @player = GlobalID.find(stream_name) || raise("Invalid player GID")
-      stream_from stream_name
+    stream_name = verified_stream_name_from_params
+    return reject unless stream_name
 
-      count = ::PlayerConnections.instance.increment(player.id)
-      return if count > 1
+    @player = GlobalID.find(stream_name) || raise("Invalid player GID")
+    return reject if player.user != current_user
 
-      broadcaster =
-        case game_kind
-        when :loaded_questions
-          LoadedQuestions::Broadcast::PlayerConnected.new(player_id: player.id)
-        else
-          raise "Unknown game kind: #{game_kind.inspect}"
-        end
-      broadcaster.call
-    else
-      reject
-    end
+    stream_from stream_name
+
+    count = ::PlayerConnections.instance.increment(player.id)
+    return if count > 1
+
+    broadcaster =
+      case game_kind
+      when :loaded_questions
+        LoadedQuestions::Broadcast::PlayerConnected.new(player_id: player.id)
+      else
+        raise "Unknown game kind: #{game_kind.inspect}"
+      end
+    broadcaster.call
   end
 
   def unsubscribed

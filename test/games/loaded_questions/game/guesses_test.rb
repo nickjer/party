@@ -5,7 +5,7 @@ require "test_helper"
 module LoadedQuestions
   class Game
     class GuessesTest < ActiveSupport::TestCase
-      test "#correct? returns true when case-insensitive answers match despite different player ids" do
+      test "#correct? returns true with case-insensitive match" do
         # Create game with guesser and players
         game = create(:loaded_questions_game, players: %w[Bob Charlie])
         bob = game.players.find { |p| p.name.to_s == "Bob" }

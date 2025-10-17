@@ -59,12 +59,13 @@ module LoadedQuestions
         shuffled_participants = participants.shuffle
         # @type var guesses: Array[guessed_answer]
         guesses =
-          participants.zip(shuffled_participants).map do |participant, guessed_participant|
-            raise "Guessed participant is missing" unless guessed_participant
+          participants.zip(shuffled_participants)
+            .map do |participant, guessed_participant|
+              raise "Guessed participant is missing" unless guessed_participant
 
-            { player_id: participant.id,
-              guessed_player_id: guessed_participant.id }
-          end
+              { player_id: participant.id,
+                guessed_player_id: guessed_participant.id }
+            end
         document[:guesses] = guesses
       end
 

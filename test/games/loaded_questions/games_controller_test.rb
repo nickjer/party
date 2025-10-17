@@ -95,7 +95,7 @@ module LoadedQuestions
       assert_predicate game.status, :completed?
     end
 
-    test "#completed_round returns unprocessable_content when game is not in guessing phase" do
+    test "#completed_round returns error when not in guessing phase" do
       # Create game with guesser and players in polling phase
       game = create(:loaded_questions_game, players: %w[Bob Charlie])
 

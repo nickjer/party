@@ -31,7 +31,9 @@ module LoadedQuestions
 
       def find(player_id)
         found_guess = guesses.find { |guess| guess.player.id == player_id }
-        raise ActiveRecord::RecordNotFound, "Couldn't find guessed answer" if found_guess.nil?
+        if found_guess.nil?
+          raise ActiveRecord::RecordNotFound, "Couldn't find guessed answer"
+        end
 
         found_guess
       end

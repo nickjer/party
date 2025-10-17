@@ -33,7 +33,9 @@ class Player < ApplicationRecord
 
     existing_names = Player.where(game_id:).where.not(id:).pluck(:name)
 
-    return unless existing_names.any? { |existing| NormalizedString.new(existing) == name }
+    return unless existing_names.any? do |existing|
+      NormalizedString.new(existing) == name
+    end
 
     errors.add(:name, :taken, value: self[:name])
   end

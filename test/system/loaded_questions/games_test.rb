@@ -177,7 +177,8 @@ module LoadedQuestions
 
         # Modal should be visible
         assert_selector "dialog[open]", visible: true
-        assert_text "Are you sure you would like to finalize your matched answers?"
+        assert_text "Are you sure you would like to finalize your matched " \
+          "answers?"
 
         # Test clicking the X button closes the modal
         find("button.btn-close").click # rubocop:disable Capybara/SpecificActions
@@ -257,7 +258,8 @@ module LoadedQuestions
 
         # Modal should be visible
         assert_selector "dialog[open]", visible: true
-        assert_text "Are you ready to begin guessing? All answers have been submitted."
+        assert_text "Are you ready to begin guessing? All answers have been " \
+          "submitted."
 
         # Test clicking the X button closes the modal
         find("button.btn-close").click # rubocop:disable Capybara/SpecificActions

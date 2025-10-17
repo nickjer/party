@@ -1,11 +1,3 @@
-interface _ToGidParam
-  def to_gid_param: () -> String
-end
-
-interface _ToParam
-  def to_param: () -> String
-end
-
 module Turbo
   module Streams
     module Broadcasts

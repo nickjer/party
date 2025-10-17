@@ -10,6 +10,8 @@ class PlayerChannel < ApplicationCable::Channel
   class << self
     def broadcast_to(players, &block)
       players.each do |player|
+        next unless player.online?
+
         content = block.call(player)
         next unless content
 
@@ -32,7 +34,7 @@ class PlayerChannel < ApplicationCable::Channel
   end
 
   def unsubscribed
-    PlayerConnections.instance.decrement(player.id)
+    ::PlayerConnections.instance.decrement(player.id)
     game.broadcast_reload_players
   end
 

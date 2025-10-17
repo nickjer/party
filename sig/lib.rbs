@@ -1,3 +1,15 @@
+interface _Online
+  def online?: () -> bool
+end
+
+interface _ToGidParam
+  def to_gid_param: () -> String
+end
+
+interface _ToParam
+  def to_param: () -> String
+end
+
 class NormalizedString
   def initialize: (_ToS string) -> void
 

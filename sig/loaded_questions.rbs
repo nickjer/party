@@ -39,7 +39,7 @@ module LoadedQuestions
     def question: () -> String
     def slug: () -> String
     def status: () -> Status
-    def swap_guesses: (player_id_1: Integer, player_id_2: Integer) -> void
+    def swap_guesses: (player_id1: Integer, player_id2: Integer) -> void
     def update_status: (Status status) -> void
 
     private
@@ -61,7 +61,7 @@ module LoadedQuestions
       def each: () { (GuessedAnswer) -> void } -> self
       def find: (Integer player_id) -> GuessedAnswer
       def size: () -> Integer
-      def swap: (player_id_1: Integer, player_id_2: Integer) -> self
+      def swap: (player_id1: Integer, player_id2: Integer) -> self
       def as_json: () -> Array[guessed_answer]
       def score: () -> Integer
 

@@ -17,7 +17,7 @@ class PlayerChannel < ::ApplicationCable::Channel
   extend Turbo::Streams::Broadcasts
   include Turbo::Streams::StreamName::ClassMethods
 
-  def self.broadcast_to: [T < _ToGidParam] (Array[T] players) { (T) -> String? } -> void
+  def self.broadcast_to: [T < _Online & _ToGidParam] (Array[T] players) { (T) -> String? } -> void
 
   def subscribed: () -> void
   def unsubscribed: () -> void

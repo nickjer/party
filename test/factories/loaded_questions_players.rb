@@ -3,12 +3,12 @@
 FactoryBot.define do
   factory :loaded_questions_player, class: "LoadedQuestions::Player" do
     transient do
-      user { create(:user) }
+      user { association :user }
       name { Faker::Name.unique.first_name }
       guesser { false }
     end
 
-    association :game, factory: :loaded_questions_game
+    game { association :loaded_questions_game }
 
     skip_create
 

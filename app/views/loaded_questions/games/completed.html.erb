@@ -1,12 +1,8 @@
 <%= render layout: "loaded_questions/games/round", locals: { game: @game, current_player: @current_player } do %>
   <div id="answers" class="list-group mt-3 mb-2">
-    <%=
-      render(
-        partial: "loaded_questions/games/completed_answer",
-        collection: @game.guesses,
-        as: :completed_answer
-      )
-    %>
+    <%= render(partial: "loaded_questions/games/completed_answer",
+      collection: @game.guesses,
+      as: :completed_answer) %>
   </div>
   <div class="card text-bg-light mb-2">
     <div class="card-body">

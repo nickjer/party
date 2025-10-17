@@ -3,12 +3,12 @@
 <%= form_with(model: @new_game, scope: :game, url: loaded_questions_games_path) do |form| %>
   <div class="mb-3">
     <%= form.label :player_name %>
-    <%= form.text_field :player_name, class: "w-100", maxlength: ::Player::MAX_NAME_LENGTH %>
+    <%= form.text_field :player_name, class: "w-100", maxlength: Player::MAX_NAME_LENGTH %>
   </div>
 
   <div class="mb-3">
     <%= form.label :question %>
-    <%= form.text_area :question, class: "w-100", maxlength: ::Game::MAX_QUESTION_LENGTH %>
+    <%= form.text_area :question, class: "w-100", maxlength: Game::MAX_QUESTION_LENGTH %>
   </div>
 
   <%= form.submit "Create New Game", class: "w-100" %>

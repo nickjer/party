@@ -22,7 +22,6 @@ class Game < ::ApplicationRecord
   def player_ids=: (Array[Integer]) -> Array[Integer]
   def slug: () -> String
   def slug=: (String) -> String
-  def to_gid_param: () -> String
 
   class ActiveRecord_Relation < ::ActiveRecord::Relation
     def loaded_questions: () -> ::Game::ActiveRecord_Relation

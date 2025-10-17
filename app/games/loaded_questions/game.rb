@@ -45,8 +45,6 @@ module LoadedQuestions
 
     def status = Status.parse(document.fetch(:status))
 
-    def to_gid_param = game.to_gid_param
-
     def swap_guesses(player_id_1:, player_id_2:)
       swapped_guesses = guesses.swap(player_id_1:, player_id_2:)
       document[:guesses] = swapped_guesses.as_json

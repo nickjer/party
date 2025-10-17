@@ -40,7 +40,6 @@ module LoadedQuestions
     def slug: () -> String
     def status: () -> Status
     def swap_guesses: (player_id_1: Integer, player_id_2: Integer) -> void
-    def to_gid_param: () -> String
     def update_status: (Status status) -> void
 
     private

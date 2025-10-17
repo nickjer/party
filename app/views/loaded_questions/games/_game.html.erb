@@ -1,7 +1,7 @@
 <%# locals: (game:, current_player:) %>
 <%= turbo_refreshes_with method: :morph, scroll: :preserve %>
 
-<%= turbo_stream_from game, channel: GameChannel %>
+<%= turbo_stream_from current_player.id, channel: PlayerChannel %>
 
 <div class="d-flex flex-wrap align-items-start gap-2 mt-2">
   <div class="flex-grow-1">

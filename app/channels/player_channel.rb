@@ -1,13 +1,14 @@
 # frozen_string_literal: true
 
-class GameChannel < ApplicationCable::Channel
+class PlayerChannel < ApplicationCable::Channel
   extend Turbo::Streams::Broadcasts
   extend Turbo::Streams::StreamName
   include Turbo::Streams::StreamName::ClassMethods
 
   def subscribed
     if (stream_name = verified_stream_name_from_params).present?
-      @game = GlobalID.find(stream_name)
+      @player = Player.find(stream_name)
+
       PlayerConnections.instance.increment(player.id)
       game.broadcast_reload_players
 
@@ -18,15 +19,15 @@ class GameChannel < ApplicationCable::Channel
   end
 
   def unsubscribed
+    return unless player
+
     PlayerConnections.instance.decrement(player.id)
     game.broadcast_reload_players
   end
 
   private
 
-  attr_reader :game
+  attr_reader :player
 
-  def player = @player ||= Player.find_by!(game_id: game.id, user_id:)
-
-  def user_id = current_user.id
+  def game = player.game
 end

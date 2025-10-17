@@ -55,3 +55,9 @@ module ActionCable
     end
   end
 end
+
+module ActiveRecord
+  class Base
+    include GlobalID::Identification
+  end
+end

@@ -15,7 +15,7 @@ class PlayerChannel < ApplicationCable::Channel
         content = block.call(player)
         next unless content
 
-        ::Turbo::StreamsChannel.broadcast_stream_to(player, content:)
+        ::Turbo::StreamsChannel.broadcast_stream_to(player.to_model, content:)
       end
     end
   end

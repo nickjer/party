@@ -31,6 +31,8 @@ module LoadedQuestions
 
     def online? = player.online?
 
+    def to_model = player
+
     def update_answer(answer)
       document[:answer] = answer.to_s
       player.document = document.to_json
@@ -38,8 +40,6 @@ module LoadedQuestions
     end
 
     def user = player.user
-
-    def to_gid_param = player.to_gid_param
 
     private
 

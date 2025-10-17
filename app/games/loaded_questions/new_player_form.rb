@@ -26,9 +26,7 @@ module LoadedQuestions
         errors[:name] = error
       end
 
-      if game.players.any? { |player| player.name == name }
-        errors[:name] = "has already been taken"
-      end
+      errors[:name] = "has already been taken" if game.players.any? { |player| player.name == name }
 
       errors.empty?
     end

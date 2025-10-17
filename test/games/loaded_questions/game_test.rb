@@ -26,8 +26,8 @@ module LoadedQuestions
       guess2_guessed_answer_before = guess2.guessed_answer
 
       # Swap the answers
-      game.swap_guesses(player_id_1: guess1.player.id,
-        player_id_2: guess2.player.id)
+      game.swap_guesses(player_id1: guess1.player.id,
+        player_id2: guess2.player.id)
 
       # Reload from database to verify persistence
       game_after = Game.find(game.slug)

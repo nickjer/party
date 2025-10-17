@@ -12,7 +12,7 @@ class Game < ApplicationRecord
 
   validates :slug, uniqueness: true
 
-  has_many :players
+  has_many :players, dependent: :destroy
 
   def broadcast_reload_game
     ::Turbo::StreamsChannel

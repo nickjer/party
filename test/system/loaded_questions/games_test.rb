@@ -180,7 +180,7 @@ module LoadedQuestions
         assert_text "Are you sure you would like to finalize your matched answers?"
 
         # Test clicking the X button closes the modal
-        find("button.btn-close").click
+        find("button.btn-close").click # rubocop:disable Capybara/SpecificActions
         assert_no_selector "dialog[open]", wait: 2
         assert_button "Complete Matching" # Button still visible, page unchanged
 
@@ -260,7 +260,7 @@ module LoadedQuestions
         assert_text "Are you ready to begin guessing? All answers have been submitted."
 
         # Test clicking the X button closes the modal
-        find("button.btn-close").click
+        find("button.btn-close").click # rubocop:disable Capybara/SpecificActions
         assert_no_selector "dialog[open]", wait: 2
         assert_button "Begin Guessing" # Button still visible, page unchanged
 

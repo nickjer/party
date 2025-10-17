@@ -30,26 +30,24 @@ module LoadedQuestions
 
       def find(player_id)
         found_guess = guesses.find { |guess| guess.player.id == player_id }
-        if found_guess.nil?
-          raise ActiveRecord::RecordNotFound, "Couldn't find guessed answer"
-        end
+        raise ActiveRecord::RecordNotFound, "Couldn't find guessed answer" if found_guess.nil?
 
         found_guess
       end
 
       def size = guesses.size
 
-      def swap(player_id_1:, player_id_2:)
-        index1 = guesses.find_index { |guess| guess.player.id == player_id_1 }
-        index2 = guesses.find_index { |guess| guess.player.id == player_id_2 }
+      def swap(player_id1:, player_id2:)
+        index1 = guesses.find_index { |guess| guess.player.id == player_id1 }
+        index2 = guesses.find_index { |guess| guess.player.id == player_id2 }
 
         if index1.nil?
           raise ActiveRecord::RecordNotFound,
-            "Player #{player_id_1} not found"
+            "Player #{player_id1} not found"
         end
         if index2.nil?
           raise ActiveRecord::RecordNotFound,
-            "Player #{player_id_2} not found"
+            "Player #{player_id2} not found"
         end
 
         guess1 = guesses.fetch(index1)

@@ -118,10 +118,10 @@ module LoadedQuestions
       return head :forbidden unless @current_player.guesser?
       return head :forbidden unless @game.status.guessing?
 
-      player_id_1 = swap_params[:guess_id].to_i
-      player_id_2 = swap_params[:swap_guess_id].to_i
+      player_id1 = swap_params[:guess_id].to_i
+      player_id2 = swap_params[:swap_guess_id].to_i
 
-      @game.swap_guesses(player_id_1:, player_id_2:)
+      @game.swap_guesses(player_id1:, player_id2:)
       @game.broadcast_reload_game
 
       head :ok

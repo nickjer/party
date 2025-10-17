@@ -13,7 +13,7 @@ FactoryBot.define do
     skip_create
 
     initialize_with do
-      form = LoadedQuestions::NewPlayerForm.new(game:, name:)
+      form = LoadedQuestions::NewPlayerForm.new(game:, user:, name:)
 
       raise "Invalid player form: #{form.errors}" unless form.valid?
 

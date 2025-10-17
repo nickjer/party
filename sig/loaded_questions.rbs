@@ -30,6 +30,7 @@ module LoadedQuestions
 
     def broadcast_reload_game: () -> void
     def broadcast_reload_players: () -> void
+    def broadcast_render: (String template, ?except_id: Integer?) -> void
     def id: () -> Integer
     def guesses: () -> Guesses
     def guesser: () -> Player
@@ -199,6 +200,8 @@ module LoadedQuestions
   end
 
   class NewPlayer
+    def self.from: (NewPlayerForm form, ?guesser: bool) -> NewPlayer
+
     def initialize: (user: ::User, name: ::NormalizedString, guesser: bool) -> void
 
     def build: () -> ::Player
@@ -216,8 +219,9 @@ module LoadedQuestions
     attr_reader errors: Hash[Symbol, String]
     attr_reader game: Game
     attr_reader name: ::NormalizedString
+    attr_reader user: ::User
 
-    def initialize: (game: Game, ?name: _ToS?) -> void
+    def initialize: (game: Game, user: ::User, ?name: _ToS?) -> void
 
     def game_slug: () -> String
     def valid?: () -> bool

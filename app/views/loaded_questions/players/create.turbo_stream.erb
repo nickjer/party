@@ -1,3 +1,6 @@
 <%= turbo_stream.replace "players" do %>
-  <%= render partial: "loaded_questions/players/player", collection: @game.players, as: :player, locals: { current_player: @current_player } %>
+  <%= render partial: "loaded_questions/players/player",
+    collection: @game.players,
+    as: :player,
+    locals: { current_player: @current_player } %>
 <% end %>

@@ -20,6 +20,19 @@ module LoadedQuestions
 
     def broadcast_reload_players = game.broadcast_reload_players
 
+    def broadcast_render(template, except_id: nil)
+      game = Game.find(slug)
+      PlayerChannel.broadcast_to(game.players) do |current_player|
+        next if except_id == current_player.id
+
+        ApplicationController.render(
+          template,
+          formats: [:turbo_stream],
+          assigns: { game:, current_player: }
+        )
+      end
+    end
+
     def id = game.id
 
     def guesses

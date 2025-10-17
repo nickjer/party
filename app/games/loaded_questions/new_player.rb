@@ -3,6 +3,16 @@
 module LoadedQuestions
   # Builder object for constructing new players joining a Loaded Questions game.
   class NewPlayer
+    class << self
+      def from(new_player_form, guesser: false)
+        new(
+          user: new_player_form.user,
+          name: new_player_form.name,
+          guesser:
+        )
+      end
+    end
+
     def initialize(user:, name:, guesser:)
       @user = user
       @name = name

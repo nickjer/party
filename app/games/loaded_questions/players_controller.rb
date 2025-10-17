@@ -12,7 +12,7 @@ module LoadedQuestions
       if current_player
         redirect_to_game(game)
       else
-        @new_player = NewPlayerForm.new(game:)
+        @new_player = NewPlayerForm.new(game:, user: current_user)
         render :new
       end
     end
@@ -20,30 +20,16 @@ module LoadedQuestions
     # POST /games/:game_id/player
     def create
       game = Game.find(params[:game_id])
-      current_player = game.player_for(current_user)
-      return redirect_to_game(game) if current_player
-
-      new_player = NewPlayerForm.new(game:, name: new_player_params[:name])
+      new_player = NewPlayerForm.new(game:, user: current_user,
+        name: new_player_params[:name])
 
       if new_player.valid?
-        player = NewPlayer.new(
-          user: current_user,
-          name: new_player.name,
-          guesser: false
-        ).build
+        player = NewPlayer.from(new_player).build
         player.game_id = game.id
         player.save!
 
-        game = Game.find(game.slug) # Reload to include new player
-        PlayerChannel.broadcast_to(game.players) do |other_player|
-          next if player == other_player
-
-          ApplicationController.render(
-            "loaded_questions/players/create",
-            formats: [:turbo_stream],
-            assigns: { game:, current_player: other_player }
-          )
-        end
+        game.broadcast_render("loaded_questions/players/create",
+          except_id: player.id)
 
         redirect_to_game(game)
       else

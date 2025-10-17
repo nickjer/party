@@ -34,6 +34,10 @@ module LoadedQuestions
       players.find(&:guesser?) || raise("Couldn't find guesser")
     end
 
+    def find_player(id)
+      players.find { |player| player.id == id } || raise("Player not found")
+    end
+
     def player_for!(user)
       player_for(user) ||
         raise(ActiveRecord::RecordNotFound, "Couldn't find Player")

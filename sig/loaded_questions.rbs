@@ -35,6 +35,7 @@ module LoadedQuestions
     def id: () -> Integer
     def guesses: () -> Guesses
     def guesser: () -> Player
+    def find_player: (Integer id) -> Player
     def player_for!: (::User) -> Player
     def player_for: (::User) -> Player?
     def players: () -> Array[Player]
@@ -112,6 +113,24 @@ module LoadedQuestions
       private
 
       attr_reader created_player: ::Player
+    end
+
+    class PlayerConnected
+      def initialize: (player_id: Integer) -> void
+      def call: () -> void
+
+      private
+
+      attr_reader connected_player: ::Player
+    end
+
+    class PlayerDisconnected
+      def initialize: (player_id: Integer) -> void
+      def call: () -> void
+
+      private
+
+      attr_reader disconnected_player: ::Player
     end
   end
 

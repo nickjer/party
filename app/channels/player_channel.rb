@@ -5,11 +5,22 @@ class PlayerChannel < ApplicationCable::Channel
   extend Turbo::Streams::StreamName
   include Turbo::Streams::StreamName::ClassMethods
 
-  def subscribed
-    if (stream_name = verified_stream_name_from_params).present?
-      @player = Player.find(stream_name)
+  class << self
+    def broadcast_to(players, &block)
+      players.each do |player|
+        content = block.call(player)
+        next unless content
 
-      PlayerConnections.instance.increment(player.id)
+        ::Turbo::StreamsChannel.broadcast_stream_to(player, content:)
+      end
+    end
+  end
+
+  def subscribed
+    if (stream_name = verified_stream_name_from_params)
+      @player = GlobalID.find(stream_name) || raise("Invalid player GID")
+
+      ::PlayerConnections.instance.increment(player.id)
       game.broadcast_reload_players
 
       stream_from stream_name
@@ -19,14 +30,13 @@ class PlayerChannel < ApplicationCable::Channel
   end
 
   def unsubscribed
-    return unless player
-
     PlayerConnections.instance.decrement(player.id)
     game.broadcast_reload_players
   end
 
   private
 
+  # @dynamic player
   attr_reader :player
 
   def game = player.game

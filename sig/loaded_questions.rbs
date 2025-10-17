@@ -247,6 +247,7 @@ module LoadedQuestions
     def id: () -> Integer
     def name: () -> ::NormalizedString
     def online?: () -> bool
+    def to_gid_param: () -> String
     def update_answer: (::NormalizedString answer) -> void
     def user: () -> ::User
 

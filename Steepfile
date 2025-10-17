@@ -5,6 +5,7 @@ D = Steep::Diagnostic
 target :app do
   signature "sig"
 
+  check "app/channels"
   check "app/games"
   check "app/lib"
 

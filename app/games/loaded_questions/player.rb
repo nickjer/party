@@ -37,6 +37,8 @@ module LoadedQuestions
 
     def user = player.user
 
+    def to_gid_param = player.to_gid_param
+
     private
 
     # @dynamic game

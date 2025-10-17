@@ -44,6 +44,8 @@ class Player < ::ApplicationRecord
   def document: () -> String
   def document=: (String) -> String
   def document?: () -> bool
+  def game: () -> ::Game
+  def game=: (::Game?) -> ::Game?
   def game_id: () -> Integer?
   def game_id=: (::Integer?) -> ::Integer?
   def online?: () -> bool
@@ -51,6 +53,7 @@ class Player < ::ApplicationRecord
   def name=: (::NormalizedString) -> ::NormalizedString
   def name?: () -> bool
   def parsed_document: () -> Hash[Symbol, untyped]
+  def to_gid_param: () -> String
   def user: () -> ::User
   def user=: (::User?) -> ::User?
 

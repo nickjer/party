@@ -1,7 +1,24 @@
+interface _ToGidParam
+  def to_gid_param: () -> String
+end
+
+interface _ToParam
+  def to_param: () -> String
+end
+
 module Turbo
   module Streams
     module Broadcasts
-      def broadcast_refresh_to: (*untyped streamables, **untyped opts) -> untyped
+      type streamable = _ToGidParam | _ToParam
+
+      def broadcast_refresh_to: (*streamable streamables, **untyped opts) -> void
+      def broadcast_stream_to: (*streamable streamables, content: String) -> void
+    end
+
+    module StreamName
+      module ClassMethods
+        def verified_stream_name_from_params: () -> String?
+      end
     end
 
     class TagBuilder
@@ -11,5 +28,38 @@ module Turbo
 
   class StreamsChannel
     extend Streams::Broadcasts
+  end
+end
+
+module ActionCable
+  module Channel
+    module Streams
+      def stream_from: (String broadcasting, ?untyped callback, ?coder: untyped) ?{ () -> void } -> void
+    end
+
+    class Base
+      include Streams
+
+      def reject: () -> void
+    end
+  end
+
+  module Connection
+    module Identification
+      module ClassMethods
+        def identified_by: (*Symbol identifiers) -> void
+      end
+    end
+
+    module Authorization
+      def reject_unauthorized_connection: () -> bot
+    end
+
+    class Base
+      extend Identification::ClassMethods
+      include Authorization
+
+      def cookies: () -> untyped
+    end
   end
 end

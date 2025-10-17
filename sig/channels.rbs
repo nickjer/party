@@ -1,0 +1,30 @@
+module ApplicationCable
+  class Channel < ::ActionCable::Channel::Base
+  end
+
+  class Connection < ::ActionCable::Connection::Base
+    attr_accessor current_user: ::User
+
+    def connect: () -> void
+
+    private
+
+    def find_verified_user: () -> ::User
+  end
+end
+
+class PlayerChannel < ::ApplicationCable::Channel
+  extend Turbo::Streams::Broadcasts
+  include Turbo::Streams::StreamName::ClassMethods
+
+  def self.broadcast_to: [T < _ToGidParam] (Array[T] players) { (T) -> String? } -> void
+
+  def subscribed: () -> void
+  def unsubscribed: () -> void
+
+  private
+
+  attr_reader player: ::Player
+
+  def game: () -> ::Game
+end

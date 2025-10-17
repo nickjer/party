@@ -32,7 +32,17 @@ module LoadedQuestions
         player.game_id = game.id
         player.save!
 
-        game.broadcast_reload_players
+        game = Game.find(game.slug) # Reload to include new player
+        PlayerChannel.broadcast_to(game.players) do |other_player|
+          next if player == other_player
+
+          ApplicationController.render(
+            "loaded_questions/players/create",
+            formats: [ :turbo_stream ],
+            assigns: { game:, current_player: other_player }
+          )
+        end
+
         redirect_to_game(game)
       else
         @new_player = new_player

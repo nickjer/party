@@ -14,7 +14,7 @@ module LoadedQuestions
 
     def initialize(answer: nil)
       @answer = ::NormalizedString.new(answer)
-      @errors = {}
+      @errors = Errors.new
     end
 
     def show? = answer.blank? || !errors.empty?
@@ -23,7 +23,7 @@ module LoadedQuestions
       min = MIN_LENGTH
       max = MAX_LENGTH
       if (error = validate_length(answer, min:, max:))
-        errors[:answer] = error
+        errors.add(:answer, message: error)
       end
 
       errors.empty?

@@ -22,39 +22,13 @@ class BootstrapFormBuilder < ActionView::Helpers::FormBuilder
   def text_field(method, options = {})
     style = error?(method) ? "form-control is-invalid" : "form-control"
     options[:class] = "#{style} #{options[:class]}"
-    output = super
-    if error?(method)
-      error = @template.content_tag(
-        :div, @object.errors[method], class: "invalid-feedback d-block"
-      )
-      output.concat(error)
-    end
-    output
+    add_error(method, super)
   end
 
   def text_area(method, options = {})
     style = error?(method) ? "form-control is-invalid" : "form-control"
     options[:class] = "#{style} #{options[:class]}"
-    output = super
-    if error?(method)
-      error = @template.content_tag(
-        :div, @object.errors[method], class: "invalid-feedback d-block"
-      )
-      output.concat(error)
-    end
-    output
-  end
-
-  def email_field(method, options = {})
-    style = error?(method) ? "form-control is-invalid" : "form-control"
-    options[:class] = "#{style} #{options[:class]}"
-    super
-  end
-
-  def password_field(method, options = {})
-    style = error?(method) ? "form-control is-invalid" : "form-control"
-    options[:class] = "#{style} #{options[:class]}"
-    super
+    add_error(method, super)
   end
 
   def submit(value = "Submit", options = {})
@@ -66,5 +40,16 @@ class BootstrapFormBuilder < ActionView::Helpers::FormBuilder
 
   def error?(method)
     @object.errors[method].present?
+  end
+
+  def add_error(method, output)
+    if error?(method)
+      error_messages = @object.errors[method].join(". ")
+      error = @template.content_tag(
+        :div, error_messages, class: "invalid-feedback d-block"
+      )
+      output.concat(error)
+    end
+    output
   end
 end

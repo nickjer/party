@@ -1,11 +1,11 @@
 <%# locals: (game:, current_player:, guessing_round_form:) %>
 <%= render layout: "loaded_questions/games/round", locals: { game:, current_player: } do %>
   <%= turbo_frame_tag "guessing_round" do %>
-    <% unless guessing_round_form.errors.empty? %>
+    <% unless guessing_round_form.errors[:base].empty? %>
       <div class="alert alert-danger mt-3" role="alert">
-        <% guessing_round_form.errors.each do |error| %>
+        <% guessing_round_form.errors[:base].each do |error| %>
           <div>
-            &bull; <%= error %>
+            &bull; <%= error.full_message %>
           </div>
         <% end %>
       </div>

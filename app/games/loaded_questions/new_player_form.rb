@@ -19,7 +19,7 @@ module LoadedQuestions
       @game = game
       @user = user
       @name = NormalizedString.new(name)
-      @errors = {}
+      @errors = Errors.new
     end
 
     def game_slug = game.slug
@@ -28,15 +28,15 @@ module LoadedQuestions
       min = ::Player::MIN_NAME_LENGTH
       max = ::Player::MAX_NAME_LENGTH
       if (error = validate_length(name, min:, max:))
-        errors[:name] = error
+        errors.add(:name, message: error)
       end
 
       if game.players.any? { |player| player.name == name }
-        errors[:name] = "has already been taken"
+        errors.add(:name, message: "has already been taken")
       end
 
       if game.player_for(user)
-        errors[:base] = "You have already joined this game"
+        errors.add(:base, message: "You have already joined this game")
       end
 
       errors.empty?

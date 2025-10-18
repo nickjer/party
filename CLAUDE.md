@@ -160,6 +160,15 @@ Games are implemented as namespaced modules under `/app/games/{game_name}/`:
 - Uses `Concurrent::Map` for safe concurrent access
 - Reusable for connection tracking, scoring, tallies, etc.
 
+**Errors** (`errors.rb`):
+- Lightweight errors container similar to ActiveModel::Errors
+- Stores multiple error messages per attribute using `Hash[Symbol, Set[Error]]`
+- Methods: `#add(attribute, message:)`, `#added?(attribute, message:)`, `#empty?`, `#[]`
+- `#[]` returns an Array of `Error` objects for the given attribute
+- Nested `Errors::Error` class with proper humanization (`:email_address` → "Email address")
+- Used in all form objects for validation error tracking
+- Integrates with `BootstrapFormBuilder` for inline error display
+
 ### Real-time Communication
 
 The app uses a **player-based WebSocket architecture** with Action Cable and Turbo Streams. Each player subscribes to their own channel, and broadcast service objects handle real-time updates.
@@ -548,7 +557,7 @@ game.save!
 
 ### Form Objects
 
-Form objects separate validation from models:
+Form objects separate validation from models using the `Errors` class:
 
 ```ruby
 class SomeForm
@@ -556,15 +565,32 @@ class SomeForm
 
   def initialize(field: nil)
     @field = NormalizedString.new(field)
-    @errors = {}
+    @errors = Errors.new
   end
 
   def valid?
-    # Validation logic, populate @errors
+    if (error = validate_field(field))
+      errors.add(:field, message: error)
+    end
+
     errors.empty?
+  end
+
+  private
+
+  def validate_field(value)
+    return "is too short" if value.length < 3
+    return "is too long" if value.length > 100
   end
 end
 ```
+
+**Key points**:
+- Initialize `@errors = Errors.new` (not `{}` or `[]`)
+- Add errors with `errors.add(attribute, message:)` - attribute is positional, message is keyword
+- Use `:base` attribute for non-field-specific errors
+- Multiple errors can be added to the same attribute
+- `errors.empty?` returns `true` when valid
 
 Used in controllers:
 ```ruby
@@ -576,6 +602,8 @@ else
   render :view, status: :unprocessable_content
 end
 ```
+
+Form errors integrate with `BootstrapFormBuilder` for automatic inline display with Bootstrap styling.
 
 ### Builder Objects
 

@@ -4,7 +4,7 @@ module LoadedQuestions
     MAX_LENGTH: Integer
 
     attr_reader answer: ::NormalizedString
-    attr_reader errors: Hash[Symbol, String]
+    attr_reader errors: ::Errors
 
     def initialize: (?answer: _ToS?) -> void
 
@@ -160,7 +160,7 @@ module LoadedQuestions
   end
 
   class CompletedRoundForm
-    attr_reader errors: Array[String]
+    attr_reader errors: ::Errors
 
     def initialize: (game: Game) -> void
 
@@ -174,7 +174,7 @@ module LoadedQuestions
   class GuessingRoundForm
     MIN_ANSWERED: Integer
 
-    attr_reader errors: Array[String]
+    attr_reader errors: ::Errors
 
     def initialize: (game: Game) -> void
 
@@ -203,7 +203,7 @@ module LoadedQuestions
   end
 
   class NewGameForm
-    attr_reader errors: Hash[Symbol, String]
+    attr_reader errors: ::Errors
     attr_reader player_name: ::NormalizedString
     attr_reader question: ::NormalizedString
 
@@ -220,7 +220,7 @@ module LoadedQuestions
   end
 
   class NewRoundForm
-    attr_reader errors: Hash[Symbol, String]
+    attr_reader errors: ::Errors
     attr_reader question: ::NormalizedString
 
     def initialize: (game: Game, ?question: _ToS?) -> void
@@ -251,7 +251,7 @@ module LoadedQuestions
   end
 
   class NewPlayerForm
-    attr_reader errors: Hash[Symbol, String]
+    attr_reader errors: ::Errors
     attr_reader game: Game
     attr_reader name: ::NormalizedString
     attr_reader user: ::User

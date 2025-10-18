@@ -8,11 +8,13 @@ module LoadedQuestions
 
     def initialize(game:)
       @game = game
-      @errors = []
+      @errors = Errors.new
     end
 
     def valid?
-      errors << "Game is not in guessing phase" unless game.status.guessing?
+      unless game.status.guessing?
+        errors.add(:base, message: "Game is not in guessing phase")
+      end
 
       errors.empty?
     end

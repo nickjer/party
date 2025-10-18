@@ -48,3 +48,27 @@ class PlayerConnections
 
   attr_reader connection_map: Concurrent::Map[Integer, Integer]
 end
+
+class Errors
+  class Error
+    attr_reader attribute: Symbol
+    attr_reader message: String
+
+    def initialize: (attribute: (Symbol | String), message: _ToS) -> void
+    def full_message: () -> String
+    def to_s: () -> String
+    def ==: (untyped other) -> bool
+    def eql?: (untyped other) -> bool
+    def hash: () -> Integer
+  end
+
+  def initialize: () -> void
+  def add: (Symbol | String, message: _ToS) -> void
+  def added?: (Symbol | String, message: _ToS) -> bool
+  def empty?: () -> bool
+  def []: (Symbol | String) -> Array[Error]
+
+  private
+
+  attr_reader errors: Hash[Symbol, Set[Error]]
+end

@@ -15,20 +15,20 @@ module LoadedQuestions
     def initialize(player_name: nil, question: nil)
       @player_name = ::NormalizedString.new(player_name)
       @question = ::NormalizedString.new(question)
-      @errors = {}
+      @errors = Errors.new
     end
 
     def valid?
       min = ::Player::MIN_NAME_LENGTH
       max = ::Player::MAX_NAME_LENGTH
       if (error = validate_length(player_name, min:, max:))
-        errors[:player_name] = error
+        errors.add(:player_name, message: error)
       end
 
       min = ::Game::MIN_QUESTION_LENGTH
       max = ::Game::MAX_QUESTION_LENGTH
       if (error = validate_length(question, min:, max:))
-        errors[:question] = error
+        errors.add(:question, message: error)
       end
 
       errors.empty?

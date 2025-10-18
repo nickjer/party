@@ -9,16 +9,18 @@ module LoadedQuestions
     def initialize(game:, question: nil)
       @game = game
       @question = ::NormalizedString.new(question)
-      @errors = {}
+      @errors = Errors.new
     end
 
     def valid?
-      errors[:game] = "Game is not completed" unless game.status.completed?
+      unless game.status.completed?
+        errors.add(:game, message: "Game is not completed")
+      end
 
       min = ::Game::MIN_QUESTION_LENGTH
       max = ::Game::MAX_QUESTION_LENGTH
       if (error = validate_length(question, min:, max:))
-        errors[:question] = error
+        errors.add(:question, message: error)
       end
 
       errors.empty?

@@ -10,15 +10,18 @@ module LoadedQuestions
 
     def initialize(game:)
       @game = game
-      @errors = []
+      @errors = Errors.new
     end
 
     def valid?
-      errors << "Game is not polling" unless game.status.polling?
+      unless game.status.polling?
+        errors.add(:base, message: "Game is not polling")
+      end
 
       if game.players.count(&:answered?) < MIN_ANSWERED
-        errors <<
+        message =
           "Not enough players have answered (need at least #{MIN_ANSWERED})"
+        errors.add(:base, message:)
       end
 
       errors.empty?

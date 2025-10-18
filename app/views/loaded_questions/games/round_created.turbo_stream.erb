@@ -1,0 +1,11 @@
+<%# locals: (game:, current_player:, answer_form:) %>
+<%= turbo_stream.update "round_frame" do %>
+  <%= render "loaded_questions/games/polling_player_frame", game:, answer_form: %>
+<% end %>
+
+<%= turbo_stream.update "players" do %>
+  <%= render partial: "loaded_questions/players/player",
+    collection: game.players,
+    as: :player,
+    locals: { current_player: } %>
+<% end %>

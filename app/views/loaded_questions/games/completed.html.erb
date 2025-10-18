@@ -1,12 +1,14 @@
 <%# locals: (game:, current_player:) %>
 <%= render "loaded_questions/games/player_stream", current_player: %>
 
-<div class="d-flex flex-wrap align-items-start gap-2 mt-2">
-  <div class="flex-grow-1">
-    <%= turbo_frame_tag "round_frame" do %>
-      <%= render "loaded_questions/games/completed_frame", game:, current_player: %>
-    <% end %>
-  </div>
+<%= turbo_frame_tag "game_frame" do %>
+  <div class="d-flex flex-wrap align-items-start gap-2 mt-2">
+    <div class="flex-grow-1">
+      <%= turbo_frame_tag "round_frame" do %>
+        <%= render "loaded_questions/games/completed_frame", game:, current_player: %>
+      <% end %>
+    </div>
 
-  <%= render "loaded_questions/games/players_list", players: game.players, current_player: %>
-</div>
+    <%= render "loaded_questions/games/players_list", players: game.players, current_player: %>
+  </div>
+<% end %>

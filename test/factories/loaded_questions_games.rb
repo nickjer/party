@@ -18,12 +18,11 @@ FactoryBot.define do
         raise "Invalid game form: #{form.errors[:base].join(', ')}"
       end
 
-      game_record = LoadedQuestions::NewGame.new(
+      game_record = LoadedQuestions::CreateNewGame.new(
         user:,
         player_name: form.player_name,
         question: form.question
-      ).build
-      game_record.save!
+      ).call
 
       game = LoadedQuestions::Game.from_slug(game_record.slug)
       players.each do |player_name|

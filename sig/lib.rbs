@@ -19,6 +19,7 @@ class NormalizedString
 
   def <=>: (NormalizedString other) -> Integer
   def ==: (NormalizedString other) -> bool
+  def as_json: () -> String
   def blank?: () -> bool
   def eql?: (NormalizedString other) -> bool
   def hash: () -> Integer

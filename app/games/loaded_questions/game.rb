@@ -49,11 +49,13 @@ module LoadedQuestions
       game.players.map { |player| Player.new(player, game: self) }.sort
     end
 
-    def question = document.fetch(:question)
+    def question = NormalizedString.new(document.fetch(:question))
 
     def slug = game.slug
 
     def status = Status.parse(document.fetch(:status))
+
+    def to_model = game
 
     def swap_guesses(player_id1:, player_id2:)
       swapped_guesses = guesses.swap(player_id1:, player_id2:)
@@ -66,7 +68,7 @@ module LoadedQuestions
       if status.polling? && new_status.guessing?
         participants = players.select(&:answered?)
         shuffled_participants = participants.shuffle
-        # @type var guesses: Array[guessed_answer]
+        # @type var guesses: Array[json_guessed_answer]
         guesses =
           participants.zip(shuffled_participants)
             .map do |participant, guessed_participant|
@@ -88,6 +90,6 @@ module LoadedQuestions
     # @dynamic game
     attr_reader :game
 
-    def document = game.parsed_document #: document
+    def document = game.parsed_document #: json_document
   end
 end

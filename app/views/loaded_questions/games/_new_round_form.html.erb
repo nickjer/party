@@ -1,9 +1,0 @@
-<%# locals: (new_round:) %>
-<%= form_with(model: new_round, scope: :round, url: "#") do |form| %>
-  <div class="mb-3">
-    <%= form.label :question %>
-    <%= form.text_area :question, class: "w-100", maxlength: Game::MAX_QUESTION_LENGTH %>
-  </div>
-
-  <%= form.submit "Create Next Turn", class: "w-100" %>
-<% end %>

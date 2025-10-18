@@ -7,12 +7,11 @@ module LoadedQuestions
     test "#swap_guesses persists answer swap to database" do
       # Create a game with guesser
       user1 = User.create!(last_seen_at: Time.current)
-      game = NewGame.new(
+      game = CreateNewGame.new(
         user: user1,
         player_name: NormalizedString.new("Alice"),
         question: NormalizedString.new("What is your favorite color?")
-      ).build
-      game.save!
+      ).call
 
       Game.from_slug(game.slug)
 

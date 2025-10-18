@@ -3,18 +3,19 @@
 module LoadedQuestions
   # Builder object for constructing new Loaded Questions games with initial
   # player and question.
-  class NewGame
+  class CreateNewGame
     def initialize(user:, player_name:, question:)
       @player = NewPlayer.new(user:, name: player_name, guesser: true)
       @question = question
     end
 
-    def build
+    def call
       game = ::Game.new
       game.kind = :loaded_questions
       game.document = document.to_json
       game.players = [player.build]
       game.slug = ::SecureRandom.alphanumeric(6)
+      game.save!
       game
     end
 
@@ -28,9 +29,9 @@ module LoadedQuestions
 
     def document
       {
-        question: question.to_s,
-        guesses: [],
-        status: :polling.to_s
+        guesses: Game::Guesses.new(guesses: []),
+        question: question,
+        status: Game::Status.polling
       }
     end
   end

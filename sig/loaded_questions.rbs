@@ -17,11 +17,16 @@ module LoadedQuestions
   end
 
   class Game
-    type guessed_answer = { player_id: Integer, guessed_player_id: Integer }
-    type document = {
+    type json_guessed_answer = { player_id: Integer, guessed_player_id: Integer }
+    type json_document = {
       question: String,
-      guesses: Array[guessed_answer],
-      status: String,
+      guesses: Array[json_guessed_answer],
+      status: String
+    }
+    type document = {
+      question: NormalizedString,
+      guesses: Guesses,
+      status: Status
     }
 
     def self.from_id: (Integer id) -> Game
@@ -39,21 +44,22 @@ module LoadedQuestions
     def player_for!: (::User) -> Player
     def player_for: (::User) -> Player?
     def players: () -> Array[Player]
-    def question: () -> String
+    def question: () -> NormalizedString
     def slug: () -> String
     def status: () -> Status
     def swap_guesses: (player_id1: Integer, player_id2: Integer) -> void
+    def to_model: () -> ::Game
     def update_status: (Status status) -> void
 
     private
 
     attr_reader game: ::Game
 
-    def document: () -> document
+    def document: () -> json_document
 
     class Guesses
       def self.parse: (
-        Array[guessed_answer] guesses,
+        Array[json_guessed_answer] guesses,
         players: Array[Player]
       ) -> Guesses
 
@@ -65,7 +71,7 @@ module LoadedQuestions
       def find: (Integer player_id) -> GuessedAnswer
       def size: () -> Integer
       def swap: (player_id1: Integer, player_id2: Integer) -> self
-      def as_json: () -> Array[guessed_answer]
+      def as_json: () -> Array[json_guessed_answer]
       def score: () -> Integer
 
       private
@@ -81,7 +87,7 @@ module LoadedQuestions
         def answer: () -> ::NormalizedString
         def guessed_answer: () -> ::NormalizedString
         def correct?: () -> bool
-        def as_json: () -> guessed_answer
+        def as_json: () -> json_guessed_answer
       end
     end
 
@@ -96,6 +102,7 @@ module LoadedQuestions
       def initialize: (Symbol status) -> void
 
       def ==: (Status other) -> bool
+      def as_json: () -> String
       def completed?: () -> bool
       def eql?: (Status other) -> bool
       def hash: () -> Integer
@@ -168,6 +175,15 @@ module LoadedQuestions
 
       attr_reader game_id: Integer
     end
+
+    class RoundCreated
+      def initialize: (game_id: Integer) -> void
+      def call: () -> void
+
+      private
+
+      attr_reader game_id: Integer
+    end
   end
 
   class GamesController < ::ApplicationController
@@ -175,6 +191,7 @@ module LoadedQuestions
     def create: () -> untyped
     def show: () -> untyped
     def new_round: () -> untyped
+    def create_round: () -> untyped
     def completed_round: () -> untyped
     def guessing_round: () -> untyped
     def swap_guesses: () -> untyped
@@ -182,6 +199,7 @@ module LoadedQuestions
     private
 
     def new_game_params: () -> ::ActionController::Parameters
+    def new_round_params: () -> ::ActionController::Parameters
     def swap_params: () -> ::ActionController::Parameters
   end
 
@@ -211,14 +229,14 @@ module LoadedQuestions
     attr_reader game: Game
   end
 
-  class NewGame
+  class CreateNewGame
     def initialize: (
       user: ::User,
       player_name: ::NormalizedString,
       question: ::NormalizedString
     ) -> void
 
-    def build: () -> ::Game
+    def call: () -> ::Game
 
     private
 
@@ -226,6 +244,25 @@ module LoadedQuestions
     attr_reader question: ::NormalizedString
 
     def document: () -> Game::document
+  end
+
+  class CreateNewRound
+    def initialize: (
+      game: Game,
+      guesser: Player,
+      question: ::NormalizedString
+    ) -> void
+
+    def call: () -> Game
+
+    private
+
+    attr_reader game: Game
+    attr_reader guesser: Player
+    attr_reader question: ::NormalizedString
+
+    def game_document: () -> Game::document
+    def player_document: (::Player player_model) -> Player::document
   end
 
   class NewGameForm
@@ -293,11 +330,12 @@ module LoadedQuestions
   end
 
   class Player
-    type document = {
+    type json_document = {
       active: bool,
       answer: String,
       guesser: bool,
     }
+    type document = json_document
 
     def initialize: (::Player player, game: Game) -> void
 
@@ -321,7 +359,7 @@ module LoadedQuestions
     attr_reader game: Game
     attr_reader player: ::Player
 
-    def document: () -> document
+    def document: () -> json_document
   end
 
   class PlayersController < ::ApplicationController

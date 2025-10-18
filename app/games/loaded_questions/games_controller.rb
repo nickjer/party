@@ -18,12 +18,11 @@ module LoadedQuestions
       )
 
       if new_game.valid?
-        game = NewGame.new(
+        game = CreateNewGame.new(
           user: current_user,
           player_name: new_game.player_name,
           question: new_game.question
-        ).build
-        game.save!
+        ).call
         redirect_to loaded_questions_game_path(game.slug)
       else
         render :new, locals: { new_game: }, status: :unprocessable_content
@@ -69,6 +68,36 @@ module LoadedQuestions
 
       new_round = NewRoundForm.new(game:)
       render :new_round, locals: { game:, current_player:, new_round: }
+    end
+
+    # POST /loaded_questions/games/:id/create_round
+    def create_round
+      game = Game.from_slug(params[:id])
+      current_player = game.player_for!(current_user)
+      return head :forbidden if current_player.guesser?
+
+      new_round = NewRoundForm.new(
+        game:,
+        question: new_round_params[:question]
+      )
+
+      if new_round.valid?
+        CreateNewRound.new(
+          game:,
+          guesser: current_player,
+          question: new_round.question
+        ).call
+        Broadcast::RoundCreated.new(game_id: game.id).call
+
+        game = Game.from_slug(params[:id])
+        current_player = game.player_for!(current_user)
+        guessing_round_form = GuessingRoundForm.new(game:)
+        render :polling_guesser,
+          locals: { game:, current_player:, guessing_round_form: }
+      else
+        render :new_round, locals: { game:, current_player:, new_round: },
+          status: :unprocessable_content
+      end
     end
 
     # PATCH /loaded_questions/games/:id/completed_round
@@ -126,6 +155,10 @@ module LoadedQuestions
 
     def new_game_params
       params.expect(game: %w[player_name question])
+    end
+
+    def new_round_params
+      params.expect(round: %w[question])
     end
 
     def swap_params

@@ -1,12 +1,26 @@
 <%# locals: (game:, current_player:, new_round:) %>
 <%= render "loaded_questions/games/player_stream", current_player: %>
 
-<div class="d-flex flex-wrap align-items-start gap-2 mt-2">
-  <div class="flex-grow-1">
-    <%= turbo_frame_tag "round_frame" do %>
-      <%= render "loaded_questions/games/new_round_form", new_round: %>
-    <% end %>
-  </div>
+<%= turbo_frame_tag "game_frame" do %>
+  <div class="d-flex flex-wrap align-items-start gap-2 mt-2">
+    <div class="flex-grow-1">
+      <%= turbo_frame_tag "round_frame" do %>
+        <%= form_with(
+          model: new_round,
+          scope: :round,
+          url: create_round_loaded_questions_game_path(game.slug),
+          data: { turbo_frame: "game_frame" }
+        ) do |form| %>
+          <div class="mb-3">
+            <%= form.label :question %>
+            <%= form.text_area :question, class: "w-100", maxlength: Game::MAX_QUESTION_LENGTH %>
+          </div>
 
-  <%= render "loaded_questions/games/players_list", players: game.players, current_player: %>
-</div>
+          <%= form.submit "Create Next Turn", class: "w-100" %>
+        <% end %>
+      <% end %>
+    </div>
+
+    <%= render "loaded_questions/games/players_list", players: game.players, current_player: %>
+  </div>
+<% end %>

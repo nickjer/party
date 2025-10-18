@@ -9,6 +9,8 @@ class NormalizedString
 
   def ==(other) = sortable_value == other.sortable_value
 
+  def as_json = string
+
   def blank? = string.blank?
 
   def eql?(other) = self == other

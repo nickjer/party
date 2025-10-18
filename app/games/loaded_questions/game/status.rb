@@ -33,6 +33,8 @@ module LoadedQuestions
 
       def to_s = status.to_s
 
+      def as_json = status.to_s
+
       def ==(other) = status == other.status
 
       def eql?(other) = self == other

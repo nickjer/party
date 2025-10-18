@@ -150,6 +150,15 @@ module LoadedQuestions
 
       attr_reader game_id: Integer
     end
+
+    class AnswersSwapped
+      def initialize: (game_id: Integer) -> void
+      def call: () -> void
+
+      private
+
+      attr_reader game_id: Integer
+    end
   end
 
   class GamesController < ::ApplicationController

@@ -124,7 +124,7 @@ module LoadedQuestions
       player_id2 = swap_params[:swap_guess_id].to_i
 
       game.swap_guesses(player_id1:, player_id2:)
-      game.broadcast_reload_game
+      Broadcast::AnswersSwapped.new(game_id: game.id).call
 
       head :ok
     end

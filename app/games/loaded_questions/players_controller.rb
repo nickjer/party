@@ -12,8 +12,8 @@ module LoadedQuestions
       if current_player
         redirect_to_game(game)
       else
-        @new_player = NewPlayerForm.new(game:, user: current_user)
-        render :new
+        new_player = NewPlayerForm.new(game:, user: current_user)
+        render :new, locals: { new_player: }
       end
     end
 
@@ -32,8 +32,7 @@ module LoadedQuestions
 
         redirect_to_game(game)
       else
-        @new_player = new_player
-        render :new, status: :unprocessable_content
+        render :new, locals: { new_player: }, status: :unprocessable_content
       end
     end
 
@@ -55,11 +54,9 @@ module LoadedQuestions
         game.broadcast_reload_players
         redirect_to_game(game)
       else
-        @game = game
-        @current_player = current_player
-
         render "loaded_questions/games/polling_player",
-          locals: { answer_form: }, status: :unprocessable_content
+          locals: { game:, current_player:, answer_form: },
+          status: :unprocessable_content
       end
     end
 

@@ -1,5 +1,6 @@
-<%= render layout: "loaded_questions/games/game", locals: { game: @game, current_player: @current_player } do %>
-  <%= form_with(model: @new_round, scope: :round, url: "#") do |form| %>
+<%# locals: (game:, current_player:, new_round:) %>
+<%= render layout: "loaded_questions/games/game", locals: { game:, current_player: } do %>
+  <%= form_with(model: new_round, scope: :round, url: "#") do |form| %>
     <div class="mb-3">
       <%= form.label :question %>
       <%= form.text_area :question, class: "w-100", maxlength: Game::MAX_QUESTION_LENGTH %>

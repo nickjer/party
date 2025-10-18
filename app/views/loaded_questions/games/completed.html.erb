@@ -1,19 +1,20 @@
-<%= render layout: "loaded_questions/games/round", locals: { game: @game, current_player: @current_player } do %>
+<%# locals: (game:, current_player:) %>
+<%= render layout: "loaded_questions/games/round", locals: { game:, current_player: } do %>
   <div id="answers" class="list-group mt-3 mb-2">
     <%= render(partial: "loaded_questions/games/completed_answer",
-      collection: @game.guesses,
+      collection: game.guesses,
       as: :completed_answer) %>
   </div>
   <div class="card text-bg-light mb-2">
     <div class="card-body">
       <p class="card-text">
-        <%= @game.guesser.name %>'s Score = <%= @game.guesses.score %>
+        <%= game.guesser.name %>'s Score = <%= game.guesses.score %>
       </p>
     </div>
   </div>
-  <% unless @current_player.guesser? %>
+  <% unless current_player.guesser? %>
     <%= link_to "Create Next Turn",
-      new_round_loaded_questions_game_path(@game.slug),
+      new_round_loaded_questions_game_path(game.slug),
       class: "btn btn-primary w-100",
       data: { turbo_frame: "_top" } %>
   <% end %>

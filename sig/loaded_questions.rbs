@@ -135,11 +135,6 @@ module LoadedQuestions
   end
 
   class GamesController < ::ApplicationController
-    @game: Game
-    @new_game: NewGameForm
-    @new_round: NewRoundForm
-    @current_player: Player
-
     def new: () -> untyped
     def create: () -> untyped
     def show: () -> untyped
@@ -295,10 +290,6 @@ module LoadedQuestions
   end
 
   class PlayersController < ::ApplicationController
-    @current_player: Player
-    @game: Game
-    @new_player: NewPlayerForm
-
     def new: () -> untyped
     def create: () -> untyped
     def edit: () -> untyped

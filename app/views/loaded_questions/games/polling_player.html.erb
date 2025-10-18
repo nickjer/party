@@ -1,11 +1,12 @@
-<%= render layout: "loaded_questions/games/round", locals: { game: @game, current_player: @current_player } do %>
+<%# locals: (game:, current_player:, answer_form:) %>
+<%= render layout: "loaded_questions/games/round", locals: { game:, current_player: } do %>
   <div data-controller="reveal" data-reveal-hidden-class="d-none">
     <button type="button" data-action="reveal#toggle" class="mt-3 w-100 btn btn-secondary">
       Show / Hide Answer
     </button>
 
     <div data-reveal-target="item" class="<%= "d-none" unless answer_form.show? %>">
-      <%= form_with(model: answer_form, scope: :player, url: answer_loaded_questions_game_player_path(@game.slug), method: :patch) do |form| %>
+      <%= form_with(model: answer_form, scope: :player, url: answer_loaded_questions_game_player_path(game.slug), method: :patch) do |form| %>
         <%= form.text_area :answer, class: "mt-3 w-100", aria: { label: "Answer" }, maxlength: LoadedQuestions::AnswerForm::MAX_LENGTH %>
 
         <%= form.submit "Submit Answer", class: "mt-3 w-100" %>

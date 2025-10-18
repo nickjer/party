@@ -1,6 +1,7 @@
+<%# locals: (new_game:) %>
 <h1 class="mb-3">Loaded Questions</h1>
 
-<%= form_with(model: @new_game, scope: :game, url: loaded_questions_games_path) do |form| %>
+<%= form_with(model: new_game, scope: :game, url: loaded_questions_games_path) do |form| %>
   <div class="mb-3">
     <%= form.label :player_name %>
     <%= form.text_field :player_name, class: "w-100", maxlength: Player::MAX_NAME_LENGTH %>

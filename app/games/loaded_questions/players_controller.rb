@@ -52,12 +52,12 @@ module LoadedQuestions
       if answer_form.valid?
         current_player.update_answer(answer_form.answer)
         Broadcast::AnswerUpdated.new(player_id: current_player.id).call
-        render :answer, locals: { game:, current_player:, answer_form: }
-      else
-        render "loaded_questions/games/polling_player",
-          locals: { game:, current_player:, answer_form: },
-          status: :unprocessable_content
       end
+
+      status = answer_form.valid? ? :ok : :unprocessable_content
+      render "loaded_questions/games/polling_player",
+        locals: { game:, current_player:, answer_form: },
+        status:
     end
 
     private

@@ -713,6 +713,29 @@ end
 - Use Turbo Frames for page sections that update independently
 - Use confirmation modals for destructive or important actions
 
+**Turbo Frame Response Pattern**:
+When handling form submissions within Turbo Frames, prefer rendering the same view for both success and error states:
+
+```ruby
+# Controller action
+def answer
+  form = AnswerForm.new(answer: params[:answer])
+  if form.valid?
+    player.update_answer(form.answer)
+    # Trigger broadcasts here
+  end
+
+  status = form.valid? ? :ok : :unprocessable_content
+  render "polling_player", locals: { form: }, status:
+end
+```
+
+This pattern:
+- Simplifies code by eliminating separate turbo_stream templates
+- Keeps all rendering logic in one place
+- The Turbo Frame naturally updates with the new content
+- Status codes properly indicate success/failure for proper browser behavior
+
 ### JavaScript Conventions
 
 - Use Stimulus controllers for interactivity

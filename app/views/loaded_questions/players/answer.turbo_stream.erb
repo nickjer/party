@@ -1,0 +1,4 @@
+<%# locals: (game:, current_player:, answer_form:) %>
+<%= turbo_stream.update "answer_form_frame" do %>
+  <%= render "loaded_questions/games/answer_form", game:, current_player:, answer_form: %>
+<% end %>

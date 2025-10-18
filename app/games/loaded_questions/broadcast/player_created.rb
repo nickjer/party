@@ -17,7 +17,7 @@ module LoadedQuestions
           ApplicationController.render(
             "loaded_questions/players/create",
             formats: [:turbo_stream],
-            assigns: { game:, current_player: }
+            locals: { game:, current_player: }
           )
         end
       end

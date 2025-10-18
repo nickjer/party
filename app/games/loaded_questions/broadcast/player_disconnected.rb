@@ -16,7 +16,7 @@ module LoadedQuestions
           ApplicationController.render(
             "loaded_questions/players/disconnected",
             formats: [:turbo_stream],
-            assigns: { current_player:, player: }
+            locals: { current_player:, player: }
           )
         end
       end

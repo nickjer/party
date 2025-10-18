@@ -90,8 +90,7 @@ module LoadedQuestions
         game.broadcast_reload_game
         redirect_to loaded_questions_game_path(game.slug)
       else
-        render :guessing_guesser,
-          locals: { game:, current_player:, completed_round_form: },
+        render :guessing_guesser, locals: { game:, current_player: },
           status: :unprocessable_content
       end
     end

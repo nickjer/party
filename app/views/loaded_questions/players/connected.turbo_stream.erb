@@ -1,4 +1,4 @@
-<%= turbo_stream.replace dom_id(@player) do %>
-  <%= render partial: "loaded_questions/players/player",
-    locals: { player: @player, current_player: @current_player } %>
+<%# locals: (player:, current_player:) %>
+<%= turbo_stream.replace dom_id(player) do %>
+  <%= render partial: "loaded_questions/players/player", locals: { player:, current_player: } %>
 <% end %>

@@ -51,8 +51,8 @@ module LoadedQuestions
       answer_form = AnswerForm.new(answer: answer_params[:answer])
       if answer_form.valid?
         current_player.update_answer(answer_form.answer)
-        game.broadcast_reload_players
-        redirect_to_game(game)
+        Broadcast::AnswerUpdated.new(player_id: current_player.id).call
+        render :answer, locals: { game:, current_player:, answer_form: }
       else
         render "loaded_questions/games/polling_player",
           locals: { game:, current_player:, answer_form: },

@@ -132,6 +132,15 @@ module LoadedQuestions
 
       attr_reader disconnected_player: ::Player
     end
+
+    class AnswerUpdated
+      def initialize: (player_id: Integer) -> void
+      def call: () -> void
+
+      private
+
+      attr_reader updated_player: ::Player
+    end
   end
 
   class GamesController < ::ApplicationController

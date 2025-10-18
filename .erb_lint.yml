@@ -21,6 +21,8 @@ linters:
         Enabled: false
       Layout/ArgumentAlignment:
         Enabled: false
+      Layout/FirstArgumentIndentation:
+        Enabled: false
       Layout/InitialIndentation:
         Enabled: false
       Layout/LineLength:

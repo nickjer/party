@@ -25,7 +25,7 @@ npm run herb:lint app/views     # Lint HTML and ERB in views
 ### Migration Status
 
 The app is being migrated from two standalone applications:
-- `../loaded_questions` - A guessing/matching game (partially ported)
+- `../loaded_questions` - A guessing/matching game (fully ported)
 - `../burn_unit` - A voting game (not yet ported)
 
 See `MIGRATION_REVIEW.md` for a comprehensive analysis of the migration status.
@@ -117,21 +117,31 @@ Games are implemented as namespaced modules under `/app/games/{game_name}/`:
 
 ```
 /app/games/loaded_questions/
-  ├── game.rb                 # Wrapper around ::Game model
-  ├── player.rb               # Wrapper around ::Player model
-  ├── games_controller.rb     # Game-specific controller
-  ├── players_controller.rb   # Player management
-  ├── new_game.rb             # Builder object
-  ├── new_player.rb           # Builder object
-  ├── *_form.rb               # Form objects for validation
-  ├── broadcast/              # Real-time broadcast service objects
-  │   ├── player_connected.rb
-  │   ├── player_created.rb
-  │   ├── player_disconnected.rb
-  │   └── answer_updated.rb
+  ├── game.rb                    # Wrapper around ::Game model
+  ├── player.rb                  # Wrapper around ::Player model
+  ├── games_controller.rb        # Game-specific controller
+  ├── players_controller.rb      # Player management
+  ├── create_new_game.rb         # Builder for new game creation
+  ├── create_new_round.rb        # Builder for starting new rounds
+  ├── new_player.rb              # Builder for new player
+  ├── new_game_form.rb           # Form for game creation
+  ├── new_player_form.rb         # Form for player creation
+  ├── new_round_form.rb          # Form for new round creation
+  ├── answer_form.rb             # Form for answer submission
+  ├── guessing_round_form.rb     # Form for starting guessing phase
+  ├── completed_round_form.rb    # Form for completing round
+  ├── broadcast/                 # Real-time broadcast service objects
+  │   ├── player_connected.rb    # Player comes online
+  │   ├── player_created.rb      # New player joins
+  │   ├── player_disconnected.rb # Player goes offline
+  │   ├── answer_updated.rb      # Player submits answer
+  │   ├── round_created.rb       # New round started
+  │   ├── guessing_round_started.rb  # Guessing phase begins
+  │   ├── round_completed.rb     # Round ends
+  │   └── answers_swapped.rb     # Guesser swaps answers
   └── game/
-      ├── status.rb           # Value object for game state
-      └── guesses.rb          # Domain model for guess collection
+      ├── status.rb              # Value object for game state
+      └── guesses.rb             # Domain model for guess collection
 ```
 
 **Key principles**:
@@ -154,13 +164,9 @@ Games are implemented as namespaced modules under `/app/games/{game_name}/`:
 
 **PlayerConnections** (`player_connections.rb`):
 - Singleton tracking online player connections
-- Thread-safe using `Concurrent::Map` via `ScoreMap`
+- Thread-safe using `Concurrent::Map` directly
+- Provides `increment(player_id)`, `decrement(player_id)`, and `count(player_id)` methods
 - Powers the "online?" indicator for players
-
-**ScoreMap** (`score_map.rb`):
-- Generic thread-safe counter/accumulator
-- Uses `Concurrent::Map` for safe concurrent access
-- Reusable for connection tracking, scoring, tallies, etc.
 
 **Errors** (`errors.rb`):
 - Lightweight errors container similar to ActiveModel::Errors
@@ -245,8 +251,9 @@ WebSocket connections are authenticated using encrypted session cookies, making 
 
 #### Broadcast Service Objects
 
-Broadcast services follow a consistent pattern:
+Broadcast services follow two patterns depending on whether they're entity-specific or game-wide:
 
+**Pattern 1: Player-Specific Broadcasts** (use `player_id`)
 ```ruby
 class Broadcast::SomeEvent
   def initialize(player_id:)
@@ -255,6 +262,7 @@ class Broadcast::SomeEvent
 
   def call
     game = Game.from_id(affected_player.game_id)
+    player = game.find_player(affected_player.id)
 
     PlayerChannel.broadcast_to(game.players) do |current_player|
       ApplicationController.render(
@@ -267,71 +275,82 @@ class Broadcast::SomeEvent
 end
 ```
 
+**Pattern 2: Game-Wide Broadcasts** (use `game_id`, often filtered to non-guessers)
+```ruby
+class Broadcast::SomeGameEvent
+  def initialize(game_id:)
+    @game_id = game_id
+  end
+
+  def call
+    game = Game.from_id(game_id)
+
+    PlayerChannel.broadcast_to(game.players) do |current_player|
+      next if current_player.guesser?  # Often skip the guesser
+
+      ApplicationController.render(
+        "loaded_questions/games/some_event",
+        formats: [:turbo_stream],
+        locals: { game:, current_player: }
+      )
+    end
+  end
+end
+```
+
 **Available broadcasters** (`app/games/loaded_questions/broadcast/`):
 
+**Player-specific** (initialize with `player_id:`):
 - **PlayerConnected**: Updates player online status when they connect
 - **PlayerCreated**: Adds new player to all players' lists
 - **PlayerDisconnected**: Updates player offline status when they disconnect
 - **AnswerUpdated**: Shows checkmark when player submits an answer
 
+**Game-wide** (initialize with `game_id:`, typically skip guesser):
+- **RoundCreated**: Notifies non-guessers that a new round has started
+- **GuessingRoundStarted**: Transitions non-guessers to guessing phase
+- **AnswersSwapped**: Updates non-guesser view when guesser swaps answers
+- **RoundCompleted**: Transitions non-guessers to completed view
+
 Each broadcaster:
-1. Initializes with `player_id`
-2. Loads game and player state
-3. Uses `PlayerChannel.broadcast_to` to iterate through all players
-4. Renders a turbo_stream template for each online player
+1. Initializes with `player_id:` or `game_id:` keyword argument
+2. Loads necessary game/player data
+3. Uses `PlayerChannel.broadcast_to` to iterate through all online players
+4. Renders a turbo_stream template for each recipient
 5. Broadcasts individual updates via `Turbo::StreamsChannel`
 
 **Usage in controllers**:
 ```ruby
-# After creating a player
+# Player-specific events
 Broadcast::PlayerCreated.new(player_id: player.id).call
-
-# After player submits an answer
 Broadcast::AnswerUpdated.new(player_id: current_player.id).call
+
+# Game-wide events
+Broadcast::RoundCreated.new(game_id: game.id).call
+Broadcast::GuessingRoundStarted.new(game_id: game.id).call
+Broadcast::AnswersSwapped.new(game_id: game.id).call
+Broadcast::RoundCompleted.new(game_id: game.id).call
 ```
 
-#### Game-Level Broadcasting
+#### Two Broadcasting Approaches
 
-For major game state changes (phase transitions), use model-level broadcast methods:
+| Approach | When to Use | Example | Updates |
+|----------|------------|---------|---------|
+| **Player-Specific Broadcast Objects** | Individual player actions | Player joins, answers | Only affected players see changes |
+| **Game-Wide Broadcast Objects** | Phase transitions | Round starts/ends, answers swapped | All/most players transition together |
 
-```ruby
-game.broadcast_reload_game      # Reloads entire game state for all players
-game.broadcast_reload_players   # Updates player list for all players
-```
-
-These are simpler broadcasts that reload entire page sections instead of granular updates.
-
-**Usage in controllers**:
-```ruby
-# When transitioning to guessing phase
-game.update_status(Game::Status.guessing)
-game.broadcast_reload_game
-
-# When swapping guesses
-game.swap_guesses(player_id1:, player_id2:)
-game.broadcast_reload_game
-```
-
-#### Two Broadcasting Patterns
-
-| Pattern | When to Use | Example | Location |
-|---------|------------|---------|----------|
-| **Broadcast Service Objects** | Granular entity updates | Player joins, answers submitted | `app/games/{game}/broadcast/*.rb` |
-| **Model Broadcast Methods** | Full state reloads | Phase transitions, guess swaps | `game.broadcast_reload_game` |
-
-Both patterns ensure all online players see updates in real-time via Turbo Streams.
+**The application uses broadcast service objects exclusively for all real-time updates.**
 
 ### Type System (RBS)
 
 Type signatures in `/sig/`:
 - `models.rbs` - Core ActiveRecord models
-- `lib.rbs` - Shared utilities (NormalizedString, PlayerConnections, ScoreMap)
+- `lib.rbs` - Shared utilities (NormalizedString, PlayerConnections, Errors)
 - `loaded_questions.rbs` - Complete game module types
 - `controllers.rbs` - Controller instance variables
 - `external.rbs` - Third-party library types
 
 **Key patterns**:
-- Generic types: `ScoreMap[K]`
 - Structural typing: `_ToS` for anything with `to_s`
 - Hash types with symbol keys: `{ question: String, status: String }`
 - ActiveRecord relation types are fully specified
@@ -379,10 +398,18 @@ When adding new controllers:
 3. Guesser can swap answers to match them to the correct players (drag-and-drop)
 4. Guesser clicks "Complete Matching" (with confirmation modal)
 
-**Phase 3: Completed (Status: "completed")** - Not Yet Implemented
-1. Show correct matches vs guesser's guesses
-2. Calculate and display score
-3. Option to start a new round with a different guesser
+**Phase 3: Completed (Status: "completed")**
+1. Shows correct matches vs guesser's guesses with visual indicators
+   - Green background for correct matches
+   - Red background for incorrect matches
+2. Displays guesser's score (count of correct matches)
+3. Non-guessers see "Create Next Turn" button to start a new round
+
+**Phase 4: New Round**
+1. Any non-guesser can start a new round by providing a question
+2. The player who creates the round becomes the new guesser
+3. All players' documents are reset (active: true, answer: "", guesser: true/false)
+4. Game returns to polling phase with the new question
 
 ### Document Structure
 
@@ -401,68 +428,86 @@ When adding new controllers:
 **Player document**:
 ```ruby
 {
-  guesser: true,  # or false
-  answer: "Blue"  # or nil if not yet submitted
+  active: true,   # Whether player is active in current round
+  guesser: true,  # or false - role in current round
+  answer: "Blue"  # or "" if not yet submitted
 }
 ```
 
 ### Implementation Status
 
-**✅ Working**:
-- Game creation with initial question
-- Player joining with real-time updates
-- Answer submission (polling phase)
-- Transition to guessing phase (answers shuffled) with confirmation modal
-- Display of shuffled answers
-- Real-time player online/offline indicators via WebSocket
-- Answer swapping via drag-and-drop (guesser can reorder matches)
-- Real-time broadcast of player actions (connect, disconnect, answer submit)
-- Confirmation modals for phase transitions (Begin Guessing, Complete Matching)
-- Comprehensive system tests for game flow and modal interactions
+**✅ Fully Implemented**:
+- **Game Creation**: Initial game with question and first guesser
+- **Player Management**: Joining with unique names, real-time updates
+- **Polling Phase**: Answer submission with real-time checkmarks
+- **Guessing Phase**: Shuffled answer display, drag-and-drop swapping
+- **Completed Phase**: Score calculation, correct/incorrect indicators
+- **Multiple Rounds**: Players can start new rounds with rotating guesser
+- **Real-time Updates**: Player online/offline status via WebSocket
+- **Confirmation Modals**: For phase transitions (Begin Guessing, Complete Matching)
+- **Comprehensive Broadcasting**: 8 different broadcast events for all game state changes
+- **System Tests**: Complete coverage of game flow and interactions
 
 **❌ Not Yet Implemented**:
-- Round completion and results display
-- Score calculation
-- Multiple rounds per game
-- Score tracking across rounds
-- Starting new turns/rotating guesser
-- Player removal
-- Hide answers toggle
+- Score tracking across rounds (currently only shows score for current round)
+- Game history/statistics
+- Player removal (can join but can't leave)
+- Hide answers toggle for guesser
+- Round time limits
+- Answer editing after submission
 
 ### Key Classes
 
 **LoadedQuestions::Game** (`app/games/loaded_questions/game.rb`)
 - Wrapper around `::Game` model
 - Provides access to game document fields
-- Methods: `question`, `status`, `guesses`, etc.
+- Key methods: `question`, `status`, `guesses`, `guesser`, `players`, `player_for(user)`, `player_for!(user)`, `find_player(id)`, `swap_guesses(player_id1:, player_id2:)`, `update_status(new_status)`, `slug`, `to_model`
 
 **LoadedQuestions::Player** (`app/games/loaded_questions/player.rb`)
 - Wrapper around `::Player` model
 - Provides access to player document fields
-- Methods: `guesser?`, `answer`, etc.
+- Key methods: `active?`, `guesser?`, `answer`, `answered?`, `name`, `online?`, `update_answer(answer)`, `to_model`
 
 **LoadedQuestions::Game::Status** (`app/games/loaded_questions/game/status.rb`)
 - Value object for game status
 - Valid statuses: `polling`, `guessing`, `completed`
+- Provides predicate methods: `polling?`, `guessing?`, `completed?`
 
 **LoadedQuestions::Game::Guesses** (`app/games/loaded_questions/game/guesses.rb`)
-- Collection of guess objects
-- Methods: `shuffled`, `to_a`, `find(player_id)`
+- Collection of guess objects with swap and scoring capabilities
+- Key methods: `find(player_id)`, `swap(player_id1:, player_id2:)`, `score`, `size`, `as_json`
+- Includes `Enumerable` for iteration
+- Nested `GuessedAnswer` class with `correct?` method for scoring
+
+**Form Objects** (`app/games/loaded_questions/*_form.rb`)
+All forms follow the same pattern with `valid?` method and `errors` attribute:
+- **NewGameForm** - Validates game creation (player name + question)
+- **NewPlayerForm** - Validates player joining (unique name)
+- **AnswerForm** - Validates answer submission (length constraints)
+- **GuessingRoundForm** - Validates transition to guessing (min 2 answers)
+- **CompletedRoundForm** - Validates round completion (must be in guessing phase)
+- **NewRoundForm** - Validates new round creation (must be completed, valid question)
+
+**Builder Objects**
+- **CreateNewGame** - Constructs game with initial player/guesser and question
+- **CreateNewRound** - Resets game state and player documents for new round
+- **NewPlayer** - Builds player with game-specific document structure
 
 **Broadcast Service Objects** (`app/games/loaded_questions/broadcast/*.rb`)
 
-All broadcast services follow the same pattern:
-- Initialize with `player_id:` keyword argument
-- Implement `#call` method that triggers the broadcast
-- Load necessary game/player data
-- Use `PlayerChannel.broadcast_to(game.players)` to render and send turbo_stream updates
-- Each has a corresponding turbo_stream view template
+Two patterns: player-specific (use `player_id:`) and game-wide (use `game_id:`):
 
-Available broadcasters:
+**Player-specific broadcasters**:
 - **PlayerConnected** - Triggered by PlayerChannel on first connection
 - **PlayerCreated** - Triggered by PlayersController after player creation
 - **PlayerDisconnected** - Triggered by PlayerChannel on last disconnect
 - **AnswerUpdated** - Triggered by PlayersController after answer submission
+
+**Game-wide broadcasters** (typically skip guesser):
+- **RoundCreated** - Triggered after new round creation
+- **GuessingRoundStarted** - Triggered when guesser starts guessing phase
+- **AnswersSwapped** - Triggered when guesser swaps answers
+- **RoundCompleted** - Triggered when guesser completes the round
 
 ## Development Patterns
 
@@ -479,9 +524,47 @@ Available broadcasters:
 9. Create RBS signatures in `sig/{game_name}.rbs`
 10. Run `bin/steep check` to verify types
 
+### Routes
+
+The application uses namespaced routes for game-specific functionality:
+
+```ruby
+namespace :loaded_questions do
+  resources :games, only: %i[create new show] do
+    member do
+      get :new_round              # Form for creating new round
+      post :create_round          # Create new round with new guesser
+      patch :completed_round      # Complete current round (guesser only)
+      patch :guessing_round       # Start guessing phase (guesser only)
+      patch :swap_guesses         # Swap answer positions (guesser only)
+    end
+    resource :player, only: %i[create new edit update] do
+      member do
+        patch :answer             # Submit/update answer (non-guesser only)
+      end
+    end
+  end
+end
+```
+
+**Key routes**:
+- `GET /loaded_questions/games/new` - New game form
+- `POST /loaded_questions/games` - Create game
+- `GET /loaded_questions/games/:id` - Show game (main view, renders different partials based on status and role)
+- `GET /loaded_questions/games/:id/new_round` - New round form (non-guesser only, after completion)
+- `POST /loaded_questions/games/:id/create_round` - Create new round
+- `PATCH /loaded_questions/games/:id/guessing_round` - Start guessing phase
+- `PATCH /loaded_questions/games/:id/completed_round` - Complete round
+- `PATCH /loaded_questions/games/:id/swap_guesses` - Swap answer positions
+- `GET /loaded_questions/games/:id/player/new` - New player form
+- `POST /loaded_questions/games/:id/player` - Create player (join game)
+- `PATCH /loaded_questions/games/:id/player/answer` - Submit answer
+
 ### Creating Broadcast Service Objects
 
-When you need real-time updates for entity changes:
+When you need real-time updates for entity or game state changes, choose the appropriate pattern:
+
+**Pattern 1: Player-Specific Broadcasts** (for entity updates like player actions)
 
 1. **Create the service object** (`app/games/{game_name}/broadcast/some_event.rb`):
 
@@ -521,23 +604,66 @@ end
 <%= turbo_stream.replace dom_id(player) do %>
   <%= render partial: "game_name/players/player", locals: { player:, current_player: } %>
 <% end %>
+```
 
-<%# Or update a section %>
-<%= turbo_stream.update "some_section" do %>
-  <%# Updated content %>
+3. **Trigger from controller**:
+
+```ruby
+Broadcast::SomeEvent.new(player_id: player.id).call
+```
+
+**Pattern 2: Game-Wide Broadcasts** (for phase transitions, typically skip guesser)
+
+1. **Create the service object** (`app/games/{game_name}/broadcast/some_game_event.rb`):
+
+```ruby
+module GameName
+  module Broadcast
+    class SomeGameEvent
+      def initialize(game_id:)
+        @game_id = game_id
+      end
+
+      def call
+        game = Game.from_id(game_id)
+
+        PlayerChannel.broadcast_to(game.players) do |current_player|
+          next if current_player.guesser?  # Skip if needed
+
+          ApplicationController.render(
+            "game_name/games/some_event",
+            formats: [:turbo_stream],
+            locals: { game:, current_player: }
+          )
+        end
+      end
+
+      private
+
+      attr_reader :game_id
+    end
+  end
+end
+```
+
+2. **Create the turbo_stream template** (`app/views/{game_name}/games/some_event.turbo_stream.erb`):
+
+```erb
+<%# Update the main game frame %>
+<%= turbo_stream.replace "round_frame" do %>
+  <%= render "game_name/games/new_phase_frame", game:, current_player: %>
 <% end %>
 ```
 
 3. **Trigger from controller**:
 
 ```ruby
-# After the entity state change
-Broadcast::SomeEvent.new(player_id: player.id).call
+Broadcast::SomeGameEvent.new(game_id: game.id).call
 ```
 
-**When to use broadcast service objects vs model methods**:
-- Use **service objects** for granular entity updates (player joined, answer submitted)
-- Use **model methods** (`game.broadcast_reload_game`) for full state reloads (phase transitions)
+**When to use each pattern**:
+- Use **player-specific broadcasts** (Pattern 1) for entity updates: player joined, player answered, player connected/disconnected
+- Use **game-wide broadcasts** (Pattern 2) for phase transitions: round started, round completed, answers swapped
 
 ### Working with Documents
 
@@ -609,24 +735,64 @@ Form errors integrate with `BootstrapFormBuilder` for automatic inline display w
 
 ### Builder Objects
 
-Builders construct complex entities:
+Builders construct complex entities with proper document initialization:
 
 ```ruby
-class NewGame
+class CreateNewGame
   def initialize(user:, player_name:, question:)
-    @player = NewPlayer.new(user:, name: player_name, guesser: true)
+    @user = user
+    @player_name = player_name
     @question = question
   end
 
-  def build
-    game = ::Game.new
-    game.kind = :game_type
-    game.document = { /* initial state */ }.to_json
-    game.players = [ player.build ]
-    game
+  def call
+    game = ::Game.new(
+      kind: :loaded_questions,
+      document: game_document.to_json
+    )
+
+    player = ::Player.new(
+      game:,
+      user:,
+      name: player_name,
+      document: player_document.to_json
+    )
+
+    game.players << player
+
+    ::ActiveRecord::Base.transaction do
+      game.save!
+      player.save!
+    end
+
+    Game.from_id(game.id)  # Return wrapped game
+  end
+
+  private
+
+  def game_document
+    {
+      question: question,
+      status: Game::Status.polling,
+      guesses: []
+    }
+  end
+
+  def player_document
+    {
+      active: true,
+      guesser: true,
+      answer: ""
+    }
   end
 end
 ```
+
+**Key points**:
+- Builders return saved, persisted objects (not just built objects)
+- Use transactions when creating multiple related objects
+- Initialize documents with proper structure for the game type
+- Return wrapped objects (e.g., `LoadedQuestions::Game`) not raw ActiveRecord models
 
 ## Testing
 

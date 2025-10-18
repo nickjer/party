@@ -35,8 +35,6 @@ module LoadedQuestions
 
     def initialize: (::Game game) -> void
 
-    def broadcast_reload_game: () -> void
-    def broadcast_reload_players: () -> void
     def id: () -> Integer
     def guesses: () -> Guesses
     def guesser: () -> Player

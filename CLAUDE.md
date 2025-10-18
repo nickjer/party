@@ -13,7 +13,9 @@ bin/rails server                # Start server on http://localhost:3000
 bin/rails test                  # Run all tests
 bin/rails test test/system      # Run system tests
 bin/steep check                 # Type check with RBS
+bin/brakeman                    # Security scan
 bin/rubocop                     # Lint code
+bin/erb_lint --lint-all         # Lint ERB templates
 ```
 
 ## Project Overview

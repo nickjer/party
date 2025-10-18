@@ -122,6 +122,11 @@ Games are implemented as namespaced modules under `/app/games/{game_name}/`:
   ├── new_game.rb             # Builder object
   ├── new_player.rb           # Builder object
   ├── *_form.rb               # Form objects for validation
+  ├── broadcast/              # Real-time broadcast service objects
+  │   ├── player_connected.rb
+  │   ├── player_created.rb
+  │   ├── player_disconnected.rb
+  │   └── answer_updated.rb
   └── game/
       ├── status.rb           # Value object for game state
       └── guesses.rb          # Domain model for guess collection
@@ -131,8 +136,9 @@ Games are implemented as namespaced modules under `/app/games/{game_name}/`:
 1. Wrapper classes encapsulate document JSON parsing
 2. Form objects handle validation without touching models
 3. Builder objects construct complex entities
-4. Controllers are namespaced (e.g., `LoadedQuestions::GamesController`)
-5. Routes are namespaced (e.g., `namespace :loaded_questions`)
+4. Broadcast service objects handle real-time updates
+5. Controllers are namespaced (e.g., `LoadedQuestions::GamesController`)
+6. Routes are namespaced (e.g., `namespace :loaded_questions`)
 
 ### Shared Infrastructure
 
@@ -156,16 +162,153 @@ Games are implemented as namespaced modules under `/app/games/{game_name}/`:
 
 ### Real-time Communication
 
-**GameChannel** (`app/channels/game_channel.rb`):
-- Subscribes players to game-specific Turbo Streams
-- Tracks player connections (increment on subscribe, decrement on unsubscribe)
-- Broadcasts reload events to all players in a game
+The app uses a **player-based WebSocket architecture** with Action Cable and Turbo Streams. Each player subscribes to their own channel, and broadcast service objects handle real-time updates.
 
-**Broadcasting pattern**:
+#### PlayerChannel (`app/channels/player_channel.rb`)
+
+Players subscribe to their own channel using a GlobalID-based stream:
+
 ```ruby
-game.broadcast_reload_game      # Reloads game state for all players
+class PlayerChannel < ApplicationCable::Channel
+  def subscribed
+    @player = GlobalID.find(stream_name)
+    return reject if player.user != current_user  # Verify ownership
+
+    stream_from stream_name
+
+    # Track connection and trigger game-specific broadcaster
+    count = ::PlayerConnections.instance.increment(player.id)
+    return if count > 1  # Only broadcast on first connection
+
+    # Dispatch to game-specific broadcaster
+    broadcaster = case game_kind
+    when :loaded_questions
+      LoadedQuestions::Broadcast::PlayerConnected.new(player_id: player.id)
+    end
+    broadcaster.call
+  end
+
+  def unsubscribed
+    count = ::PlayerConnections.instance.decrement(player.id)
+    return if count.positive?  # Only broadcast on last disconnect
+
+    broadcaster = case game_kind
+    when :loaded_questions
+      LoadedQuestions::Broadcast::PlayerDisconnected.new(player_id: player.id)
+    end
+    broadcaster.call
+  end
+end
+```
+
+**Key features**:
+- Player-level subscription with user authentication
+- Connection tracking via `PlayerConnections` singleton
+- First/last connection optimization (multiple tabs don't trigger duplicate broadcasts)
+- Game-specific dispatching based on `game.kind`
+- Custom `PlayerChannel.broadcast_to(players) { render template }` class method
+
+#### Connection Authentication (`app/channels/application_cable/connection.rb`)
+
+```ruby
+class Connection < ActionCable::Connection::Base
+  identified_by :current_user
+
+  def connect
+    self.current_user = find_verified_user
+  end
+
+  private
+
+  def find_verified_user
+    if (verified_user = User.find_by(id: cookies.encrypted[:current_user_id]))
+      verified_user
+    else
+      reject_unauthorized_connection
+    end
+  end
+end
+```
+
+WebSocket connections are authenticated using encrypted session cookies, making `current_user` available in all channels.
+
+#### Broadcast Service Objects
+
+Broadcast services follow a consistent pattern:
+
+```ruby
+class Broadcast::SomeEvent
+  def initialize(player_id:)
+    @affected_player = ::Player.find(player_id)
+  end
+
+  def call
+    game = Game.from_id(affected_player.game_id)
+
+    PlayerChannel.broadcast_to(game.players) do |current_player|
+      ApplicationController.render(
+        "loaded_questions/players/some_event",
+        formats: [:turbo_stream],
+        locals: { current_player:, player: }
+      )
+    end
+  end
+end
+```
+
+**Available broadcasters** (`app/games/loaded_questions/broadcast/`):
+
+- **PlayerConnected**: Updates player online status when they connect
+- **PlayerCreated**: Adds new player to all players' lists
+- **PlayerDisconnected**: Updates player offline status when they disconnect
+- **AnswerUpdated**: Shows checkmark when player submits an answer
+
+Each broadcaster:
+1. Initializes with `player_id`
+2. Loads game and player state
+3. Uses `PlayerChannel.broadcast_to` to iterate through all players
+4. Renders a turbo_stream template for each online player
+5. Broadcasts individual updates via `Turbo::StreamsChannel`
+
+**Usage in controllers**:
+```ruby
+# After creating a player
+Broadcast::PlayerCreated.new(player_id: player.id).call
+
+# After player submits an answer
+Broadcast::AnswerUpdated.new(player_id: current_player.id).call
+```
+
+#### Game-Level Broadcasting
+
+For major game state changes (phase transitions), use model-level broadcast methods:
+
+```ruby
+game.broadcast_reload_game      # Reloads entire game state for all players
 game.broadcast_reload_players   # Updates player list for all players
 ```
+
+These are simpler broadcasts that reload entire page sections instead of granular updates.
+
+**Usage in controllers**:
+```ruby
+# When transitioning to guessing phase
+game.update_status(Game::Status.guessing)
+game.broadcast_reload_game
+
+# When swapping guesses
+game.swap_guesses(player_id1:, player_id2:)
+game.broadcast_reload_game
+```
+
+#### Two Broadcasting Patterns
+
+| Pattern | When to Use | Example | Location |
+|---------|------------|---------|----------|
+| **Broadcast Service Objects** | Granular entity updates | Player joins, answers submitted | `app/games/{game}/broadcast/*.rb` |
+| **Model Broadcast Methods** | Full state reloads | Phase transitions, guess swaps | `game.broadcast_reload_game` |
+
+Both patterns ensure all online players see updates in real-time via Turbo Streams.
 
 ### Type System (RBS)
 
@@ -194,9 +337,9 @@ Controllers in `app/javascript/controllers/`:
 
 **swap_controller.js**:
 - Uses SortableJS with Swap plugin
-- Enables drag-and-drop reordering
+- Enables drag-and-drop reordering of answers
 - Sends swap events via fetch to backend endpoint
-- Not yet connected to backend for Loaded Questions
+- Connected to `GamesController#swap_guesses` for Loaded Questions
 
 **hello_controller.js**:
 - Example Stimulus controller
@@ -256,18 +399,19 @@ When adding new controllers:
 
 **✅ Working**:
 - Game creation with initial question
-- Player joining
+- Player joining with real-time updates
 - Answer submission (polling phase)
 - Transition to guessing phase (answers shuffled) with confirmation modal
 - Display of shuffled answers
-- Real-time player online/offline indicators
+- Real-time player online/offline indicators via WebSocket
+- Answer swapping via drag-and-drop (guesser can reorder matches)
+- Real-time broadcast of player actions (connect, disconnect, answer submit)
 - Confirmation modals for phase transitions (Begin Guessing, Complete Matching)
 - Comprehensive system tests for game flow and modal interactions
 
 **❌ Not Yet Implemented**:
-- Guess submission (matching answers to players)
-- Answer swapping backend (JS controller exists, no endpoint)
 - Round completion and results display
+- Score calculation
 - Multiple rounds per game
 - Score tracking across rounds
 - Starting new turns/rotating guesser
@@ -294,6 +438,21 @@ When adding new controllers:
 - Collection of guess objects
 - Methods: `shuffled`, `to_a`, `find(player_id)`
 
+**Broadcast Service Objects** (`app/games/loaded_questions/broadcast/*.rb`)
+
+All broadcast services follow the same pattern:
+- Initialize with `player_id:` keyword argument
+- Implement `#call` method that triggers the broadcast
+- Load necessary game/player data
+- Use `PlayerChannel.broadcast_to(game.players)` to render and send turbo_stream updates
+- Each has a corresponding turbo_stream view template
+
+Available broadcasters:
+- **PlayerConnected** - Triggered by PlayerChannel on first connection
+- **PlayerCreated** - Triggered by PlayersController after player creation
+- **PlayerDisconnected** - Triggered by PlayerChannel on last disconnect
+- **AnswerUpdated** - Triggered by PlayersController after answer submission
+
 ## Development Patterns
 
 ### Adding a New Game
@@ -304,8 +463,70 @@ When adding new controllers:
 4. Create form objects for validation
 5. Build controller(s) with namespace
 6. Add namespaced routes
-7. Create RBS signatures in `sig/{game_name}.rbs`
-8. Run `bin/steep check` to verify types
+7. Create broadcast service objects in `app/games/{game_name}/broadcast/`
+8. Add case branch in `PlayerChannel#subscribed` and `#unsubscribed` for new game kind
+9. Create RBS signatures in `sig/{game_name}.rbs`
+10. Run `bin/steep check` to verify types
+
+### Creating Broadcast Service Objects
+
+When you need real-time updates for entity changes:
+
+1. **Create the service object** (`app/games/{game_name}/broadcast/some_event.rb`):
+
+```ruby
+module GameName
+  module Broadcast
+    class SomeEvent
+      def initialize(player_id:)
+        @affected_player = ::Player.find(player_id)
+      end
+
+      def call
+        game = Game.from_id(affected_player.game_id)
+        player = game.find_player(affected_player.id)
+
+        PlayerChannel.broadcast_to(game.players) do |current_player|
+          ApplicationController.render(
+            "game_name/players/some_event",
+            formats: [:turbo_stream],
+            locals: { current_player:, player: }
+          )
+        end
+      end
+
+      private
+
+      attr_reader :affected_player
+    end
+  end
+end
+```
+
+2. **Create the turbo_stream template** (`app/views/{game_name}/players/some_event.turbo_stream.erb`):
+
+```erb
+<%# Replace a single player in the list %>
+<%= turbo_stream.replace dom_id(player) do %>
+  <%= render partial: "game_name/players/player", locals: { player:, current_player: } %>
+<% end %>
+
+<%# Or update a section %>
+<%= turbo_stream.update "some_section" do %>
+  <%# Updated content %>
+<% end %>
+```
+
+3. **Trigger from controller**:
+
+```ruby
+# After the entity state change
+Broadcast::SomeEvent.new(player_id: player.id).call
+```
+
+**When to use broadcast service objects vs model methods**:
+- Use **service objects** for granular entity updates (player joined, answer submitted)
+- Use **model methods** (`game.broadcast_reload_game`) for full state reloads (phase transitions)
 
 ### Working with Documents
 

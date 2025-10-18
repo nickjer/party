@@ -15,7 +15,7 @@ bin/rails test test/system      # Run system tests
 bin/steep check                 # Type check with RBS
 bin/brakeman                    # Security scan
 bin/rubocop                     # Lint code
-bin/erb_lint --lint-all         # Lint ERB templates
+npm run herb:lint app/views     # Lint HTML and ERB in views
 ```
 
 ## Project Overview

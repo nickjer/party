@@ -1,0 +1,10 @@
+<%# locals: (players:, current_player:) %>
+<div>
+  <div class="fw-bold">Players:</div>
+  <div id="players">
+    <%= render(partial: "loaded_questions/players/player",
+      collection: players,
+      as: :player,
+      locals: { current_player: }) %>
+  </div>
+</div>

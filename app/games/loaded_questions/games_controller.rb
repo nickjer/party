@@ -104,9 +104,8 @@ module LoadedQuestions
       guessing_round_form = GuessingRoundForm.new(game:)
       if guessing_round_form.valid?
         game.update_status(Game::Status.guessing)
-        loaded_questions_game_path(game.slug)
-        game.broadcast_reload_game
-        head :ok
+        Broadcast::GuessingRoundStarted.new(game_id: game.id).call
+        render :guessing_guesser, locals: { game:, current_player: }
       else
         render :polling_guesser,
           locals: { game:, current_player:, guessing_round_form: },

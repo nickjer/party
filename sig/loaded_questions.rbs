@@ -141,6 +141,15 @@ module LoadedQuestions
 
       attr_reader updated_player: ::Player
     end
+
+    class GuessingRoundStarted
+      def initialize: (game_id: Integer) -> void
+      def call: () -> void
+
+      private
+
+      attr_reader game_id: Integer
+    end
   end
 
   class GamesController < ::ApplicationController

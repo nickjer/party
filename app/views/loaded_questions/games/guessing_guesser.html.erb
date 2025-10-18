@@ -1,38 +1,12 @@
 <%# locals: (game:, current_player:) %>
-<%= render layout: "loaded_questions/games/round", locals: { game:, current_player: } do %>
-  <div id="answers" class="mt-2 px-2 pb-2 border rounded"
-    data-controller="swap"
-    data-swap-name-value="guess"
-    data-swap-url-value="<%= swap_guesses_loaded_questions_game_path(game.slug) %>">
-    <%= render(partial: "loaded_questions/games/guessed_answer",
-      collection: game.guesses,
-      as: :guessed_answer,
-      locals: { gripper: true }) %>
+<%= render "loaded_questions/games/player_stream", current_player: %>
+
+<div class="d-flex flex-wrap align-items-start gap-2 mt-2">
+  <div class="flex-grow-1">
+    <%= turbo_frame_tag "round_frame" do %>
+      <%= render "loaded_questions/games/guessing_guesser_frame", game: %>
+    <% end %>
   </div>
 
-  <div data-controller="dialog">
-    <button type="button" class="mt-3 w-100 btn btn-primary" data-action="dialog#open">
-      Complete Matching
-    </button>
-
-    <dialog data-dialog-target="dialog" class="border-0 p-4 rounded-3 bg-white" style="max-width: 500px;">
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h1 class="fs-5 mb-0">Complete Matching</h1>
-        <button type="button" class="btn-close" data-action="dialog#close" aria-label="Close"></button>
-      </div>
-      <div class="mb-3">
-        Are you sure you would like to finalize your matched answers?
-      </div>
-      <div class="d-flex justify-content-end gap-2">
-        <button type="button" class="btn btn-secondary" data-action="dialog#close">
-          Close
-        </button>
-        <%= button_to("Yes, I am sure",
-          completed_round_loaded_questions_game_path(game.slug),
-          method: :patch,
-          class: "btn btn-primary",
-          form: { data: { turbo: false } }) %>
-      </div>
-    </dialog>
-  </div>
-<% end %>
+  <%= render "loaded_questions/games/players_list", players: game.players, current_player: %>
+</div>

@@ -71,13 +71,6 @@ module LoadedQuestions
       render :new_round, locals: { game:, current_player:, new_round: }
     end
 
-    # GET /loaded_questions/games/:id/players
-    def players
-      game = Game.from_slug(params[:id])
-      current_player = game.player_for!(current_user)
-      render locals: { game:, current_player: }
-    end
-
     # PATCH /loaded_questions/games/:id/completed_round
     def completed_round
       game = Game.from_slug(params[:id])

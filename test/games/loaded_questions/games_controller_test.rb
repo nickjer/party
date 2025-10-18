@@ -87,8 +87,8 @@ module LoadedQuestions
       # Make request to complete round
       patch completed_round_loaded_questions_game_path(game.slug)
 
-      # Verify redirect
-      assert_redirected_to loaded_questions_game_path(game.slug)
+      # Verify successful response
+      assert_response :success
 
       # Reload and verify game status changed to completed
       game = LoadedQuestions::Game.from_slug(game.slug)

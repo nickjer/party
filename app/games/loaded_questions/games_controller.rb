@@ -87,8 +87,8 @@ module LoadedQuestions
       completed_round_form = CompletedRoundForm.new(game:)
       if completed_round_form.valid?
         game.update_status(Game::Status.completed)
-        game.broadcast_reload_game
-        redirect_to loaded_questions_game_path(game.slug)
+        Broadcast::RoundCompleted.new(game_id: game.id).call
+        render :completed, locals: { game:, current_player: }
       else
         render :guessing_guesser, locals: { game:, current_player: },
           status: :unprocessable_content

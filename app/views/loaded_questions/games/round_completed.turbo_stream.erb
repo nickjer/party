@@ -1,0 +1,4 @@
+<%# locals: (game:, current_player:) %>
+<%= turbo_stream.update "round_frame" do %>
+  <%= render "loaded_questions/games/completed_frame", game:, current_player: %>
+<% end %>

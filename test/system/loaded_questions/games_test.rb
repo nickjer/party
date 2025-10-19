@@ -41,6 +41,10 @@ module LoadedQuestions
 
         # Zoe should see the answer form
         assert_text "What is your favorite color?"
+        assert_field "player[answer]"
+
+        # Zoe should NOT see Begin Guessing button (not the guesser)
+        assert_no_button "Begin Guessing"
 
         # Verify Zoe sees alphabetized player list: Mia, Zoe
         within("#players") do
@@ -90,6 +94,10 @@ module LoadedQuestions
 
         # Alice should see the answer form
         assert_text "What is your favorite color?"
+        assert_field "player[answer]"
+
+        # Alice should NOT see Begin Guessing button (not the guesser)
+        assert_no_button "Begin Guessing"
 
         # Verify Alice sees alphabetized player list: Alice, Mia, Zoe
         within("#players") do
@@ -256,6 +264,9 @@ module LoadedQuestions
       answer1_original = nil
       answer2_original = nil
       using_session("default") do
+        # Mia (guesser) should see Begin Guessing button
+        assert_button "Begin Guessing"
+
         # Start the guessing round
         click_on "Begin Guessing"
         within("dialog[open]") do
@@ -267,6 +278,9 @@ module LoadedQuestions
         assert_text "Red"
         assert_text "Alice"
         assert_text "Zoe"
+
+        # Mia (guesser) should see Complete Matching button
+        assert_button "Complete Matching"
 
         # Test drag and drop swapping
         swap_items = all(".swap-item")
@@ -313,6 +327,9 @@ module LoadedQuestions
           "Alice should see swapped order - first position"
         assert_equal answer1_original, guessed_answers[1].text,
           "Alice should see swapped order - second position"
+
+        # Alice should NOT see Complete Matching button (not the guesser)
+        assert_no_button "Complete Matching"
       end
 
       # Complete the matching round
@@ -517,55 +534,232 @@ module LoadedQuestions
       end
     end
 
-    test "complete matching modal interactions" do
-      # Create a new game
+    test "validation errors and edge cases" do
+      # Try to create a game with invalid inputs (too short)
       visit new_loaded_questions_game_path
 
-      fill_in "Player name", with: "Alice"
-      fill_in "Question", with: "What is your favorite color?"
+      fill_in "Player name", with: "A"
+      fill_in "Question", with: "Q"
       click_on "Create New Game"
 
-      # Alice should see polling view as the guesser
-      assert_text "What is your favorite color?"
+      # Should see validation errors under the inputs
+      assert_text "is too short", count: 2
+      assert_selector ".invalid-feedback", count: 2
+
+      # Create game successfully with valid inputs
+      fill_in "Player name", with: "Alice"
+      fill_in "Question", with: "What is your favorite movie?"
+      click_on "Create New Game"
+
+      # Should see the game view
+      assert_text "What is your favorite movie?"
       assert_text "Alice"
 
-      # Get the game slug from URL for joining as other players
       game_slug = current_path.split("/").last
 
-      # Open another session as Bob
+      # Try to join with a name that's the same but with emoji
       using_session("bob") do
         visit new_loaded_questions_game_player_path(game_slug)
+        fill_in "Name", with: "Alice 😀"
+        click_on "Create New Player"
+
+        # Should see validation error about duplicate name
+        assert_text "has already been taken"
+        assert_selector ".invalid-feedback", count: 1
+
+        # Join with a valid unique name
         fill_in "Name", with: "Bob"
         click_on "Create New Player"
 
-        # Bob submits answer
-        fill_in "player[answer]", with: "Blue"
+        # Should see the answer form
+        assert_text "What is your favorite movie?"
+        assert_field "player[answer]"
+
+        # Submit an answer
+        fill_in "player[answer]", with: "The Matrix"
         click_on "Submit Answer"
+
+        # Wait for answer form to be hidden
+        assert_selector "[data-reveal-target='item'].d-none", visible: :hidden,
+          wait: 5
       end
 
-      # Open another session as Charlie
+      # Back to Alice - try to begin matching with only 1 answer
+      using_session("default") do
+        # Should see Begin Guessing button
+        assert_button "Begin Guessing"
+
+        # Open the modal
+        click_on "Begin Guessing"
+        assert_selector "dialog[open]", visible: true
+
+        # Try to submit with insufficient answers
+        within("dialog[open]") do
+          click_on "Yes, I am ready"
+        end
+
+        # Should see error message about needing more answers
+        assert_selector ".alert-danger", wait: 5
+        assert_text "Not enough players have answered (need at least 2)"
+
+        # Modal should be closed
+        assert_no_selector "dialog[open]"
+
+        # Should still be on polling view with Begin Guessing button
+        assert_button "Begin Guessing"
+      end
+
+      # Have Charlie join and answer
       using_session("charlie") do
         visit new_loaded_questions_game_player_path(game_slug)
         fill_in "Name", with: "Charlie"
         click_on "Create New Player"
 
-        # Charlie submits answer
-        fill_in "player[answer]", with: "Red"
+        # Should see the answer form
+        assert_text "What is your favorite movie?"
+        assert_field "player[answer]"
+
+        # Verify Charlie sees empty box next to his own name
+        within("#players") do
+          # Find Charlie's player div (alphabetically: Alice, Bob, Charlie)
+          player_divs = all("div[id^='player_']")
+          within(player_divs[2]) do
+            assert_selector "i.bi-square", count: 1 # Empty box
+            assert_selector "span.fw-bold", text: "Charlie" # Current player
+          end
+        end
+
+        # Try to submit 1-letter answer
+        fill_in "player[answer]", with: "I"
         click_on "Submit Answer"
+
+        # Should see validation error
+        assert_text "is too short"
+        assert_selector ".invalid-feedback", count: 1
+
+        # Answer form should still be visible
+        assert_field "player[answer]"
+
+        # Charlie should still have empty box
+        within("#players") do
+          player_divs = all("div[id^='player_']")
+          within(player_divs[2]) do
+            assert_selector "i.bi-square", count: 1
+          end
+        end
       end
 
-      # Back to Alice - start matching phase
+      # Verify Alice sees Charlie with empty box
       using_session("default") do
-        # Start the guessing round
+        within("#players") do
+          player_divs = all("div[id^='player_']", wait: 5)
+          # Charlie should be third: Alice (box), Bob (check), Charlie (box)
+          within(player_divs[2]) do
+            assert_selector "i.bi-square", count: 1
+            assert_selector "span:not(.fw-bold)", text: "Charlie"
+          end
+        end
+      end
+
+      # Verify Bob sees Charlie with empty box
+      using_session("bob") do
+        within("#players") do
+          player_divs = all("div[id^='player_']", wait: 5)
+          within(player_divs[2]) do
+            assert_selector "i.bi-square", count: 1
+            assert_selector "span:not(.fw-bold)", text: "Charlie"
+          end
+        end
+      end
+
+      # Charlie submits a proper answer
+      using_session("charlie") do
+        fill_in "player[answer]", with: "Inception"
+        click_on "Submit Answer"
+
+        # Wait for answer to be submitted
+        assert_selector "[data-reveal-target='item'].d-none", visible: :hidden,
+          wait: 5
+
+        # Charlie should now have checkmark
+        within("#players") do
+          player_divs = all("div[id^='player_']")
+          within(player_divs[2]) do
+            assert_selector "i.bi-check-square", count: 1
+            assert_selector "span.fw-bold", text: "Charlie"
+          end
+        end
+      end
+
+      # Verify Alice sees Charlie with checkmark
+      using_session("default") do
+        within("#players") do
+          player_divs = all("div[id^='player_']", wait: 5)
+          within(player_divs[2]) do
+            assert_selector "i.bi-check-square", count: 1
+            assert_selector "span:not(.fw-bold)", text: "Charlie"
+          end
+        end
+      end
+
+      # Verify Bob sees Charlie with checkmark
+      using_session("bob") do
+        within("#players") do
+          player_divs = all("div[id^='player_']", wait: 5)
+          within(player_divs[2]) do
+            assert_selector "i.bi-check-square", count: 1
+            assert_selector "span:not(.fw-bold)", text: "Charlie"
+          end
+        end
+      end
+
+      # Back to Alice - test modal cancel behaviors
+      using_session("default") do
+        # Wait for Charlie's answer to be broadcast
+        within("#players") do
+          assert_selector "i.bi-check-square", count: 2, wait: 5
+        end
+
+        # Open the Begin Guessing modal
+        click_on "Begin Guessing"
+
+        # Modal should be visible
+        assert_selector "dialog[open]", visible: true
+        assert_text "Are you ready to begin guessing?"
+
+        # Click the X button to close
+        find("button.btn-close").click # rubocop:disable Capybara/SpecificActions
+        assert_no_selector "dialog[open]", wait: 2
+
+        # Should still be on polling view
+        assert_button "Begin Guessing"
+
+        # Open modal again
+        click_on "Begin Guessing"
+        assert_selector "dialog[open]", visible: true
+
+        # Click the Close button
+        within("dialog[open]") do
+          click_on "Close"
+        end
+        assert_no_selector "dialog[open]", wait: 2
+
+        # Should still be on polling view
+        assert_button "Begin Guessing"
+
+        # Open modal again and confirm this time
         click_on "Begin Guessing"
         within("dialog[open]") do
           click_on "Yes, I am ready"
         end
 
-        # Should see the Complete Matching button
+        # Should transition to guessing view
+        assert_no_selector "dialog[open]", wait: 2
+        assert_text "The Matrix", wait: 5
+        assert_text "Inception"
         assert_button "Complete Matching"
 
-        # Click the Complete Matching button to open modal
+        # Test Complete Matching modal cancel behaviors
         click_on "Complete Matching"
 
         # Modal should be visible
@@ -573,195 +767,92 @@ module LoadedQuestions
         assert_text "Are you sure you would like to finalize your matched " \
           "answers?"
 
-        # Test clicking the X button closes the modal
+        # Click the X button to close
         find("button.btn-close").click # rubocop:disable Capybara/SpecificActions
         assert_no_selector "dialog[open]", wait: 2
-        assert_button "Complete Matching" # Button still visible, page unchanged
 
-        # Open modal again
-        click_on "Complete Matching"
-        assert_selector "dialog[open]", visible: true
-
-        # Test clicking Close button closes the modal
-        within("dialog[open]") do
-          click_on "Close"
-        end
-        assert_no_selector "dialog[open]", wait: 2
-        assert_button "Complete Matching" # Button still visible, page unchanged
-
-        # Open modal again and confirm
-        click_on "Complete Matching"
-        assert_selector "dialog[open]", visible: true
-
-        # Test clicking "Yes, I am sure" makes a request
-        within("dialog[open]") do
-          click_on "Yes, I am sure"
-        end
-
-        # Should redirect to completed view
-        assert_no_selector "dialog[open]", wait: 2
-        assert_text "Score =", wait: 5
-      end
-    end
-
-    test "begin guessing modal interactions" do
-      # Create a new game
-      visit new_loaded_questions_game_path
-
-      fill_in "Player name", with: "Alice"
-      fill_in "Question", with: "What is your favorite color?"
-      click_on "Create New Game"
-
-      # Alice should see polling view as the guesser
-      assert_text "What is your favorite color?"
-      assert_text "Alice"
-
-      # Get the game slug from URL for joining as other players
-      game_slug = current_path.split("/").last
-
-      # Open another session as Bob
-      using_session("bob") do
-        visit new_loaded_questions_game_player_path(game_slug)
-        fill_in "Name", with: "Bob"
-        click_on "Create New Player"
-
-        # Bob submits answer
-        fill_in "player[answer]", with: "Blue"
-        click_on "Submit Answer"
-      end
-
-      # Open another session as Charlie
-      using_session("charlie") do
-        visit new_loaded_questions_game_player_path(game_slug)
-        fill_in "Name", with: "Charlie"
-        click_on "Create New Player"
-
-        # Charlie submits answer
-        fill_in "player[answer]", with: "Red"
-        click_on "Submit Answer"
-      end
-
-      # Back to Alice - test Begin Guessing modal
-      using_session("default") do
-        # Should see the Begin Guessing button
-        assert_button "Begin Guessing"
-
-        # Click the Begin Guessing button to open modal
-        click_on "Begin Guessing"
-
-        # Modal should be visible
-        assert_selector "dialog[open]", visible: true
-        assert_text "Are you ready to begin guessing? All answers have been " \
-          "submitted."
-
-        # Test clicking the X button closes the modal
-        find("button.btn-close").click # rubocop:disable Capybara/SpecificActions
-        assert_no_selector "dialog[open]", wait: 2
-        assert_button "Begin Guessing" # Button still visible, page unchanged
-
-        # Open modal again
-        click_on "Begin Guessing"
-        assert_selector "dialog[open]", visible: true
-
-        # Test clicking Close button closes the modal
-        within("dialog[open]") do
-          click_on "Close"
-        end
-        assert_no_selector "dialog[open]", wait: 2
-        assert_button "Begin Guessing" # Button still visible, page unchanged
-
-        # Open modal again and confirm
-        click_on "Begin Guessing"
-        assert_selector "dialog[open]", visible: true
-
-        # Test clicking "Yes, I am ready" transitions to guessing phase
-        within("dialog[open]") do
-          click_on "Yes, I am ready"
-        end
-
-        # Should transition to guessing view
-        assert_no_selector "dialog[open]", wait: 2
-        assert_text "Blue", wait: 5
-        assert_text "Red"
+        # Should still be on guessing view
         assert_button "Complete Matching"
-      end
-    end
 
-    test "create next turn hides previous question and shows players" do
-      # Create a new game
-      visit new_loaded_questions_game_path
+        # Open modal again
+        click_on "Complete Matching"
+        assert_selector "dialog[open]", visible: true
 
-      fill_in "Player name", with: "Alice"
-      fill_in "Question", with: "What is your favorite color?"
-      click_on "Create New Game"
-
-      # Alice should see the question
-      assert_text "What is your favorite color?"
-
-      # Get the game slug from URL for joining as other players
-      game_slug = current_path.split("/").last
-
-      # Open another session as Bob
-      using_session("bob") do
-        visit new_loaded_questions_game_player_path(game_slug)
-        fill_in "Name", with: "Bob"
-        click_on "Create New Player"
-
-        # Bob submits answer
-        fill_in "player[answer]", with: "Blue"
-        click_on "Submit Answer"
-      end
-
-      # Open another session as Charlie
-      using_session("charlie") do
-        visit new_loaded_questions_game_player_path(game_slug)
-        fill_in "Name", with: "Charlie"
-        click_on "Create New Player"
-
-        # Charlie submits answer
-        fill_in "player[answer]", with: "Red"
-        click_on "Submit Answer"
-      end
-
-      # Back to Alice - complete the round
-      using_session("default") do
-        click_on "Begin Guessing"
+        # Click the Close button
         within("dialog[open]") do
-          click_on "Yes, I am ready"
+          click_on "Close"
         end
+        assert_no_selector "dialog[open]", wait: 2
 
-        # Wait for page transition to complete after modal
-        sleep 0.5
+        # Should still be on guessing view
+        assert_button "Complete Matching"
 
+        # Open modal again and confirm this time
         click_on "Complete Matching"
         within("dialog[open]") do
           click_on "Yes, I am sure"
         end
 
-        # Wait for page to load after full reload (turbo: false)
-        assert_text "Score =", wait: 10
+        # Should transition to completed view
+        assert_no_selector "dialog[open]", wait: 2
+        assert_text "Alice's Score =", wait: 5
+
+        # Alice should NOT see Create Next Turn button (guesser)
+        assert_no_link "Create Next Turn"
       end
 
-      # Bob should see the completed page with Create Next Turn link via
-      # live updates
+      # Bob tries to create a new turn with invalid question
       using_session("bob") do
-        # Wait for live update to show completed view
-        assert_text "Score =", wait: 5
+        # Wait for broadcast to show completed view
+        assert_text "Alice's Score =", wait: 5
+
+        # Bob should see Create Next Turn button (non-guesser)
         assert_link "Create Next Turn"
 
-        # Click Create Next Turn
+        # Click to create new turn
         click_on "Create Next Turn"
 
-        # Should NOT see the previous question
-        assert_no_text "What is your favorite color?"
-
-        # Should still see the players
-        assert_text "Alice"
-        assert_text "Bob"
-        assert_text "Charlie"
-
-        # Should see the question field for new round
+        # Should see the new round form
         assert_field "Question"
+
+        # Try to submit with 1-letter question
+        fill_in "Question", with: "Q"
+        click_on "Create Next Turn"
+
+        # Should see validation error
+        assert_text "is too short"
+        assert_selector ".invalid-feedback", count: 1
+
+        # Fill in valid question
+        fill_in "Question", with: "What is your favorite book?"
+        click_on "Create Next Turn"
+
+        # Should see the new question
+        assert_text "What is your favorite book?", wait: 5
+
+        # Bob should now be the guesser
+        assert_button "Begin Guessing"
+        assert_no_field "player[answer]"
+      end
+
+      # Verify Alice sees the new round via broadcast
+      using_session("default") do
+        # Should see new question
+        assert_text "What is your favorite book?", wait: 5
+
+        # Alice should now see the answer form (no longer guesser)
+        assert_field "player[answer]"
+        assert_no_button "Begin Guessing"
+      end
+
+      # Verify Charlie sees the new round via broadcast
+      using_session("charlie") do
+        # Should see new question
+        assert_text "What is your favorite book?", wait: 5
+
+        # Charlie should see the answer form
+        assert_field "player[answer]"
+        assert_no_button "Begin Guessing"
       end
     end
   end

@@ -804,7 +804,18 @@ test/
 ├── system/                    # System tests (Capybara)
 │   └── loaded_questions/
 │       └── games_test.rb
-├── controllers/               # Controller tests
+├── games/                     # Game-specific tests
+│   └── loaded_questions/
+│       ├── games_controller_test.rb
+│       ├── players_controller_test.rb
+│       ├── game_test.rb
+│       └── game/
+│           └── guesses_test.rb
+├── controllers/               # Base controller tests
+├── factories/                 # FactoryBot factories
+│   ├── lq_games.rb
+│   ├── lq_players.rb
+│   └── users.rb
 └── lib/                       # Lib tests
 ```
 
@@ -854,6 +865,81 @@ end
 - System tests use descriptive names: `"complete game flow with answer swapping"`
 - Use `wait: 5` for assertions that depend on async updates
 - Add `sleep 0.5` when waiting for DOM transitions
+- Controller tests are organized alphabetically by method name (e.g., all `#completed_round` tests grouped together)
+
+### Factories
+
+Factories are defined using FactoryBot in `test/factories/`:
+
+**Factory files:**
+- `lq_games.rb` - LoadedQuestions::Game factory
+- `lq_players.rb` - LoadedQuestions::Player factory
+- `users.rb` - User factory
+- `games.rb` - Base Game model factory
+- `players.rb` - Base Player model factory
+
+**Key factory: `lq_game`**
+
+The `lq_game` factory uses a flexible structure for creating games with players and answers:
+
+```ruby
+# Basic game (guesser only, no additional players)
+game = create(:lq_game)
+
+# Game with specific player names
+game = create(:lq_game, player_names: %w[Bob Charlie])
+
+# Game with players using trait
+game = create(:lq_game, :with_players)  # Generates 2 random names
+
+# Game with players and answers
+game = create(:lq_game, :with_players, :with_answers)
+
+# Game with custom players and answers
+game = create(:lq_game,
+  players: [
+    { name: "Bob", answer: "Blue" },
+    { name: "Charlie", answer: "Red" }
+  ])
+```
+
+**Transients:**
+- `player_names` - Array of player name strings (default: `[]`)
+- `players` - Array of hashes with `name:` and `answer:` keys (default: maps `player_names` to `{ name:, answer: nil }`)
+- `guesser` - Name of the guesser (padded to 3 chars minimum)
+- `user` - User association for the guesser
+- `question` - Question for the game
+
+**Traits:**
+- `:with_players` - Adds 2 players with Faker-generated names (3+ characters)
+- `:with_answers` - Populates answers for all players (requires `player_names` to be set)
+
+**Nested factories:**
+- `lq_matching_game` - Game in guessing status with 2 players and answers
+- `lq_completed_game` - Game in completed status with 2 players and answers
+
+**Important notes:**
+- All Faker-generated names are padded to minimum 3 characters using `.ljust(3, "a")` to satisfy validation
+- The `players` transient allows coupling player names with their answers
+- Use `player_names:` when you only need to specify names
+- Use `players:` when you need to specify both names and answers
+- Nested factories are useful for setting up games in specific states for testing
+
+**Example usage in tests:**
+```ruby
+# Test that needs a game in guessing phase
+game = create(:lq_matching_game, player_names: %w[Bob Charlie])
+
+# Test that needs a completed game
+game = create(:lq_completed_game)
+
+# Test that needs specific answers for testing
+game = create(:lq_matching_game,
+  players: [
+    { name: "Bob", answer: "Red" },
+    { name: "Charlie", answer: "red" }  # Testing case-insensitive matching
+  ])
+```
 
 ## Coding Conventions
 

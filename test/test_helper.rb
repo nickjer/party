@@ -1,5 +1,10 @@
 # frozen_string_literal: true
 
+require "simplecov"
+SimpleCov.start "rails" do
+  add_group "Loaded Questions", "app/games/loaded_questions"
+end
+
 ENV["RAILS_ENV"] ||= "test"
 require_relative "../config/environment"
 require "rails/test_help"
@@ -17,10 +22,22 @@ module ActiveSupport
     # Add more helper methods to be used by all tests here...
     include FactoryBot::Syntax::Methods
 
+    parallelize_setup do |worker|
+      SimpleCov.command_name "#{SimpleCov.command_name}-#{worker}"
+    end
+
+    parallelize_teardown do
+      SimpleCov.result
+    end
+
     def sign_in(user)
       test_request = ActionDispatch::TestRequest.create
       test_request.cookie_jar.encrypted[:current_user_id] = user.id
       cookies[:current_user_id] = test_request.cookie_jar[:current_user_id]
+    end
+
+    def reload(game:)
+      game.class.from_id(game.id)
     end
   end
 end

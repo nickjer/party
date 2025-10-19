@@ -4,6 +4,108 @@ require "test_helper"
 
 module LoadedQuestions
   class GamesControllerTest < ActionDispatch::IntegrationTest
+    test "#new renders new game form" do
+      user = create(:user)
+      sign_in(user)
+
+      get new_loaded_questions_game_path
+
+      assert_response :success
+      assert_dom "input[name='game[player_name]']"
+      assert_dom "textarea[name='game[question]']"
+    end
+
+    test "#show redirects to new player when user not in game" do
+      game = create(:lq_game)
+      user = create(:user)
+      sign_in(user)
+
+      get loaded_questions_game_path(game.slug)
+
+      assert_response :redirect
+      assert_redirected_to new_loaded_questions_game_player_path(game.slug)
+    end
+
+    test "#show renders polling_guesser when polling and guesser" do
+      game = create(:lq_game)
+      guesser = game.players.find(&:guesser?)
+      sign_in(guesser.user)
+
+      assert_predicate game.status, :polling?
+      assert_predicate guesser, :guesser?
+
+      get loaded_questions_game_path(game.slug)
+
+      assert_response :success
+      assert_dom "button", text: "Begin Guessing"
+      assert_not_dom "textarea[name='player[answer]']"
+      assert_not_dom "button", text: "Complete Matching"
+    end
+
+    test "#show renders polling_player when polling and not guesser" do
+      game = create(:lq_game, player_names: %w[Bob])
+      non_guesser = game.players.reject(&:guesser?).first
+      sign_in(non_guesser.user)
+
+      assert_predicate game.status, :polling?
+      assert_not_predicate non_guesser, :guesser?
+
+      get loaded_questions_game_path(game.slug)
+
+      assert_response :success
+      assert_dom "textarea[name='player[answer]']"
+      assert_not_dom "button", text: "Begin Guessing"
+      assert_not_dom "button", text: "Complete Matching"
+    end
+
+    test "#show renders guessing_guesser when guessing and guesser" do
+      game = create(:lq_matching_game)
+      guesser = game.players.find(&:guesser?)
+      sign_in(guesser.user)
+
+      assert_predicate game.status, :guessing?
+      assert_predicate guesser, :guesser?
+
+      get loaded_questions_game_path(game.slug)
+
+      assert_response :success
+      assert_dom "button", text: "Complete Matching"
+      assert_not_dom "textarea[name='player[answer]']"
+      assert_not_dom "button", text: "Begin Guessing"
+    end
+
+    test "#show renders guessing_player when guessing and not guesser" do
+      game = create(:lq_matching_game)
+      non_guesser = game.players.reject(&:guesser?).first
+      sign_in(non_guesser.user)
+
+      assert_predicate game.status, :guessing?
+      assert_not_predicate non_guesser, :guesser?
+
+      get loaded_questions_game_path(game.slug)
+
+      assert_response :success
+      assert_not_dom "textarea[name='player[answer]']"
+      assert_not_dom "button", text: "Begin Guessing"
+      assert_not_dom "button", text: "Complete Matching"
+    end
+
+    test "#show renders completed when game completed" do
+      game = create(:lq_completed_game)
+      player = game.players.first
+      sign_in(player.user)
+
+      assert_predicate game.status, :completed?
+
+      get loaded_questions_game_path(game.slug)
+
+      assert_response :success
+      assert_match(/Score =/, response.body)
+      assert_not_dom "textarea[name='player[answer]']"
+      assert_not_dom "button", text: "Begin Guessing"
+      assert_not_dom "button", text: "Complete Matching"
+    end
+
     test "#completed_round changes game status from guessing to completed" do
       # Create game in guessing status with players and answers
       game = create(:lq_matching_game, player_names: %w[Bob Charlie])
@@ -22,7 +124,7 @@ module LoadedQuestions
       assert_response :success
 
       # Reload and verify game status changed to completed
-      game = LoadedQuestions::Game.from_slug(game.slug)
+      game = reload(game:)
       assert_predicate game.status, :completed?
     end
 
@@ -44,7 +146,7 @@ module LoadedQuestions
       assert_response :unprocessable_content
 
       # Reload and verify game status has not changed
-      game = LoadedQuestions::Game.from_slug(game.slug)
+      game = reload(game:)
       assert_predicate game.status, :polling?
     end
 
@@ -61,6 +163,86 @@ module LoadedQuestions
 
       # Verify forbidden response
       assert_response :forbidden
+    end
+
+    test "#create creates game and player in database" do
+      user = create(:user)
+      sign_in(user)
+
+      assert_difference ["::Game.count", "::Player.count"], 1 do
+        post loaded_questions_games_path, params: {
+          game: {
+            player_name: "Alice",
+            question: "What is your favorite color?"
+          }
+        }
+      end
+
+      assert_response :redirect
+    end
+
+    test "#create redirects to game show page with valid params" do
+      user = create(:user)
+      sign_in(user)
+
+      post loaded_questions_games_path, params: {
+        game: {
+          player_name: "Alice",
+          question: "What is your favorite color?"
+        }
+      }
+
+      assert_response :redirect
+      follow_redirect!
+      assert_response :success
+    end
+
+    test "#create renders form with validation errors" do
+      user = create(:user)
+      sign_in(user)
+
+      post loaded_questions_games_path, params: {
+        game: {
+          player_name: "ab",
+          question: "What is your favorite color?"
+        }
+      }
+
+      assert_response :unprocessable_content
+      assert_dom "input[name='game[player_name]']"
+      assert_match(/is too short/, response.body)
+    end
+
+    test "#create_round creates new round and changes guesser" do
+      game = create(:lq_completed_game)
+      non_guesser = game.players.reject(&:guesser?).first
+      sign_in(non_guesser.user)
+
+      post create_round_loaded_questions_game_path(game.slug), params: {
+        round: {
+          question: "What is your favorite food?"
+        }
+      }
+
+      assert_response :success
+      game = reload(game:)
+      assert_predicate game.status, :polling?
+      assert_predicate game.player_for(non_guesser.user), :guesser?
+    end
+
+    test "#create_round renders form with validation errors" do
+      game = create(:lq_completed_game)
+      non_guesser = game.players.reject(&:guesser?).first
+      sign_in(non_guesser.user)
+
+      post create_round_loaded_questions_game_path(game.slug), params: {
+        round: {
+          question: "ab"
+        }
+      }
+
+      assert_response :unprocessable_content
+      assert_match(/is too short/, response.body)
     end
 
     test "#create_round returns forbidden when guesser tries to create" do
@@ -100,6 +282,33 @@ module LoadedQuestions
       assert_response :forbidden
     end
 
+    test "#guessing_round transitions from polling to guessing" do
+      game = create(:lq_game, :with_players, :with_answers)
+      guesser = game.players.find(&:guesser?)
+      sign_in(guesser.user)
+
+      assert_predicate game.status, :polling?
+
+      patch guessing_round_loaded_questions_game_path(game.slug)
+
+      assert_response :success
+      game = reload(game:)
+      assert_predicate game.status, :guessing?
+    end
+
+    test "#guessing_round renders form with validation errors when not enough answers" do
+      game = create(:lq_game, player_names: %w[Bob Charlie])
+      guesser = game.players.find(&:guesser?)
+      sign_in(guesser.user)
+
+      assert_predicate game.status, :polling?
+
+      patch guessing_round_loaded_questions_game_path(game.slug)
+
+      assert_response :unprocessable_content
+      assert_match(/Not enough players have answered/, response.body)
+    end
+
     test "#new_round returns forbidden when guesser tries to access" do
       # Create completed game
       game = create(:lq_completed_game)
@@ -115,28 +324,39 @@ module LoadedQuestions
       assert_response :forbidden
     end
 
-    test "#swap_guesses persists answer swap to database" do
-      # Create game in guessing status with players and answers
-      game = create(:lq_matching_game, player_names: %w[Bob Charlie])
+    test "#new_round renders form for non-guesser" do
+      game = create(:lq_completed_game)
+      non_guesser = game.players.reject(&:guesser?).first
+      sign_in(non_guesser.user)
 
-      # Get current answer assignments
+      get new_round_loaded_questions_game_path(game.slug)
+
+      assert_response :success
+      assert_dom "textarea[name='round[question]']"
+    end
+
+    test "#swap_guesses swaps answers and returns ok" do
+      game = create(:lq_matching_game, player_names: %w[Bob Charlie])
+      guesser = game.players.find(&:guesser?)
+      sign_in(guesser.user)
+
       guess1, guess2 = game.guesses.to_a
       guess1_guessed_answer_before = guess1.guessed_answer
       guess2_guessed_answer_before = guess2.guessed_answer
 
-      # Swap the answers
-      game.swap_guesses(player_id1: guess1.player.id,
-        player_id2: guess2.player.id)
+      patch swap_guesses_loaded_questions_game_path(game.slug), params: {
+        guess_swapper: {
+          guess_id: guess1.player.id,
+          swap_guess_id: guess2.player.id
+        }
+      }
 
-      # Reload from database to verify persistence
-      game_after = Game.from_slug(game.slug)
-      guess1_after, guess2_after = game_after.guesses.to_a
+      assert_response :ok
+      game = reload(game:)
+      guess1_after, guess2_after = game.guesses.to_a
 
-      # Verify answers were swapped and persisted
-      assert_equal guess2_guessed_answer_before, guess1_after.guessed_answer,
-        "First guess should have second guessed answer after swap"
-      assert_equal guess1_guessed_answer_before, guess2_after.guessed_answer,
-        "Second guess should have first guessed answer after swap"
+      assert_equal guess2_guessed_answer_before, guess1_after.guessed_answer
+      assert_equal guess1_guessed_answer_before, guess2_after.guessed_answer
     end
 
     test "#swap_guesses returns forbidden when non-guesser tries" do

@@ -39,3 +39,4 @@
 /node_modules
 
 /.gem_rbs_collection
+/coverage

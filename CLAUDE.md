@@ -64,6 +64,8 @@ bin/rails test test/system                         # Run system tests
 bin/rails test test/system/loaded_questions/games_test.rb  # Run specific system test
 ```
 
+**Code Coverage**: The project uses SimpleCov for test coverage reporting. Coverage reports are generated automatically when running tests and can be viewed in `coverage/index.html`.
+
 ### Type Checking (RBS + Steep)
 ```bash
 bin/steep check         # Type check the entire application
@@ -876,26 +878,109 @@ end
 - Use `assert_predicate obj, :method?` for predicate methods (NOT `assert obj.method?`)
 - Use `assert_not_predicate obj, :method?` for negative predicate assertions (NOT `refute obj.method?` or `assert_not obj.method?`)
 - Use `assert_not` instead of `refute` for non-predicate assertions
+- Use `assert_dom` for DOM/HTML assertions (NOT `assert_select`)
+- Use `assert_not_dom` for negative DOM assertions (NOT `assert_select ..., count: 0` or `assert_no_select`)
 - Examples:
   ```ruby
-  # Good
+  # Good - Predicate assertions
   assert_predicate form, :valid?
   assert_not_predicate form, :valid?
   assert_not form.errors.empty?
+
+  # Good - DOM assertions
+  assert_dom "button", text: "Submit"
+  assert_not_dom "button", text: "Delete"
+  assert_dom "input[name='user[email]']"
+  assert_not_dom "textarea[name='user[bio]']"
 
   # Avoid
   assert form.valid?
   refute form.valid?
   assert_not form.valid?  # Only if not a predicate method
+  assert_select "button", text: "Submit"
+  assert_select "button", text: "Delete", count: 0
   ```
 
 **System tests:**
 - Use `wait: 5` for assertions that depend on async updates
 - Add `sleep 0.5` when waiting for DOM transitions
 
+**Test helper methods:**
+- `sign_in(user)` - Signs in a user for controller/integration tests
+- `reload(game:)` - Reloads a game wrapper from database: `game = reload(game:)`
+
 **Organization:**
 - Controller tests are organized alphabetically by method name (e.g., all `#completed_round` tests grouped together)
 - Form object tests in `test/games/{game_name}/*_form_test.rb`
+
+**Controller test coverage:**
+
+When testing controllers, include tests for:
+- Success paths with valid params
+- Validation error paths with invalid params
+- Authorization checks (forbidden responses)
+- Redirects when appropriate
+- Database changes (using `assert_difference`)
+- State transitions (e.g., game status changes)
+- View rendering with `assert_dom` for key UI elements
+- Negative assertions to ensure views don't show inappropriate elements
+
+Example controller test structure:
+```ruby
+test "#create creates record and redirects with valid params" do
+  user = create(:user)
+  sign_in(user)
+
+  assert_difference "::Game.count", 1 do
+    post games_path, params: { game: { name: "Test" } }
+  end
+
+  assert_response :redirect
+end
+
+test "#create renders form with validation errors" do
+  user = create(:user)
+  sign_in(user)
+
+  post games_path, params: { game: { name: "ab" } }
+
+  assert_response :unprocessable_content
+  assert_dom "input[name='game[name]']"
+  assert_match(/is too short/, response.body)
+end
+
+test "#show renders correct view with positive and negative assertions" do
+  game = create(:lq_game)
+  guesser = game.players.find(&:guesser?)
+  sign_in(guesser.user)
+
+  assert_predicate game.status, :polling?
+  assert_predicate guesser, :guesser?
+
+  get game_path(game.slug)
+
+  assert_response :success
+  # Assert elements that SHOULD appear
+  assert_dom "button", text: "Begin Guessing"
+  # Assert elements that should NOT appear
+  assert_not_dom "textarea[name='player[answer]']"
+  assert_not_dom "button", text: "Complete Matching"
+end
+
+test "#update changes state and verifies persistence" do
+  game = create(:lq_matching_game)
+  guesser = game.players.find(&:guesser?)
+  sign_in(guesser.user)
+
+  assert_predicate game.status, :guessing?
+
+  patch complete_game_path(game.slug)
+
+  assert_response :success
+  game = reload(game:)
+  assert_predicate game.status, :completed?
+end
+```
 
 **Form object test coverage:**
 
@@ -1005,7 +1090,22 @@ game = create(:lq_matching_game,
     { name: "Bob", answer: "Red" },
     { name: "Charlie", answer: "red" }  # Testing case-insensitive matching
   ])
+
+# Create additional player for existing game
+bob = create(:lq_player, game:)
+sign_in(bob.user)
+
+# Access player after reload
+game = reload(game:)
+bob = game.player_for(bob.user)
 ```
+
+**Factory best practices:**
+- Use `create(:lq_player, game:)` to create additional players for a game
+- Use `game.player_for(user)` to find a player by user after reloading
+- Use `game.players.find(&:guesser?)` to find the guesser
+- Use `game.players.reject(&:guesser?)` to find non-guessers
+- Prefer `.first` or `.find { }` over array indexing when accessing single elements
 
 ## Coding Conventions
 
@@ -1013,6 +1113,7 @@ game = create(:lq_matching_game,
 
 - Follow Rails Omakase (enforced by RuboCop)
 - If it can fit in one line, write definitions in a single line
+- **Never use single-letter variable names** - use descriptive names
 - Use Ruby shorthand when setting keyword arguments with variables that have matching names:
   ```ruby
   # Good
@@ -1024,6 +1125,17 @@ game = create(:lq_matching_game,
   def foo(name:, age:)
     Person.new(name: name, age: age)
   end
+  ```
+- Use block argument shorthand with `&:` for simple method calls:
+  ```ruby
+  # Good
+  game.players.find(&:guesser?)
+  game.players.reject(&:guesser?)
+  game.players.count(&:answered?)
+
+  # Avoid
+  game.players.find { |p| p.guesser? }
+  game.players.reject { |player| !player.guesser? }
   ```
 
 ### View Conventions

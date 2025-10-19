@@ -18,7 +18,7 @@ module LoadedQuestions
         player_id2: guess2.player.id)
 
       # Reload from database to verify persistence
-      game_after = Game.from_slug(game.slug)
+      game_after = reload(game:)
       guess1_after, guess2_after = game_after.guesses.to_a
 
       # Verify answers were swapped and persisted

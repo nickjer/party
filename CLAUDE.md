@@ -809,6 +809,12 @@ test/
 │       ├── games_controller_test.rb
 │       ├── players_controller_test.rb
 │       ├── game_test.rb
+│       ├── answer_form_test.rb
+│       ├── completed_round_form_test.rb
+│       ├── guessing_round_form_test.rb
+│       ├── new_game_form_test.rb
+│       ├── new_player_form_test.rb
+│       ├── new_round_form_test.rb
 │       └── game/
 │           └── guesses_test.rb
 ├── controllers/               # Base controller tests
@@ -861,11 +867,71 @@ end
 
 ### Test Conventions
 
-- Test descriptions follow the pattern: `"#instance_method returns ..."` or `".class_method returns ..."`
+**Test descriptions:**
+- Follow the pattern: `"#instance_method returns ..."` or `".class_method returns ..."`
 - System tests use descriptive names: `"complete game flow with answer swapping"`
+- When a test description says "when X", assert that X is true in the test body
+
+**Assertion style:**
+- Use `assert_predicate obj, :method?` for predicate methods (NOT `assert obj.method?`)
+- Use `assert_not_predicate obj, :method?` for negative predicate assertions (NOT `refute obj.method?` or `assert_not obj.method?`)
+- Use `assert_not` instead of `refute` for non-predicate assertions
+- Examples:
+  ```ruby
+  # Good
+  assert_predicate form, :valid?
+  assert_not_predicate form, :valid?
+  assert_not form.errors.empty?
+
+  # Avoid
+  assert form.valid?
+  refute form.valid?
+  assert_not form.valid?  # Only if not a predicate method
+  ```
+
+**System tests:**
 - Use `wait: 5` for assertions that depend on async updates
 - Add `sleep 0.5` when waiting for DOM transitions
+
+**Organization:**
 - Controller tests are organized alphabetically by method name (e.g., all `#completed_round` tests grouped together)
+- Form object tests in `test/games/{game_name}/*_form_test.rb`
+
+**Form object test coverage:**
+
+When testing form objects, include tests for:
+- Valid inputs with boundary conditions (minimum/maximum lengths)
+- Invalid inputs (too short, too long, blank, nil)
+- NormalizedString behavior (whitespace normalization)
+- Business logic validation (game status, uniqueness, associations)
+- Multiple error conditions simultaneously
+- Type checking for return values (e.g., `assert_instance_of NormalizedString, form.field`)
+
+Example form test structure:
+```ruby
+test "#valid? returns true with valid input" do
+  form = SomeForm.new(field: "valid value")
+
+  assert_predicate form, :valid?
+  assert_predicate form.errors, :empty?
+end
+
+test "#valid? returns false when field is too short" do
+  form = SomeForm.new(field: "ab")
+
+  assert_not_predicate form, :valid?
+  assert form.errors.added?(:field, message: "is too short (minimum is 3 characters)")
+end
+
+test "#valid? returns false when game is not in expected phase" do
+  game = create(:lq_game)
+  form = SomeForm.new(game:)
+
+  assert_predicate game.status, :polling?  # Assert the "when" condition
+  assert_not_predicate form, :valid?
+  assert form.errors.added?(:base, message: "Game is not in guessing phase")
+end
+```
 
 ### Factories
 

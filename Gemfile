@@ -75,6 +75,7 @@ group :test do
   # [https://guides.rubyonrails.org/testing.html#system-testing]
   gem "capybara"
   gem "faker", require: false
+  gem "mocha", require: false
   gem "selenium-webdriver"
   gem "simplecov", require: false
 end

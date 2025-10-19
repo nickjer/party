@@ -39,6 +39,20 @@ module LoadedQuestions
       assert_match(/is too short/, response.body)
     end
 
+    test "#answer redirects to new player when current player is nil" do
+      game = create(:lq_game)
+      user = create(:user)
+      sign_in(user)
+
+      patch answer_loaded_questions_game_player_path(game.slug), params: {
+        player: {
+          answer: "My answer"
+        }
+      }
+
+      assert_redirected_to new_loaded_questions_game_player_path(game.slug)
+    end
+
     test "#create creates player and redirects to game" do
       game = create(:lq_game)
       user = create(:user)

@@ -38,6 +38,7 @@ See `MIGRATION_REVIEW.md` for a comprehensive analysis of the migration status.
 - **Tailwind CSS** for styling
 - **esbuild** for JavaScript bundling
 - **Kamal** for deployment
+- **Mocha** for test stubbing (require: false)
 
 ## Development Commands
 
@@ -65,6 +66,10 @@ bin/rails test test/system/loaded_questions/games_test.rb  # Run specific system
 ```
 
 **Code Coverage**: The project uses SimpleCov for test coverage reporting. Coverage reports are generated automatically when running tests and can be viewed in `coverage/index.html`.
+
+**Current Coverage Status**:
+- **Loaded Questions**: 100% coverage (548/548 lines)
+- **Overall**: 93.77% coverage (707/754 lines)
 
 ### Type Checking (RBS + Steep)
 ```bash
@@ -303,10 +308,19 @@ end
 **Available broadcasters** (`app/games/loaded_questions/broadcast/`):
 
 **Player-specific** (initialize with `player_id:`):
-- **PlayerConnected**: Updates player online status when they connect
-- **PlayerCreated**: Adds new player to all players' lists
-- **PlayerDisconnected**: Updates player offline status when they disconnect
+- **PlayerConnected**: Updates player online status when they connect (skips broadcasting to the connected player)
+- **PlayerCreated**: Adds new player to all players' lists (skips broadcasting to the created player)
+- **PlayerDisconnected**: Updates player offline status when they disconnect (skips broadcasting to the disconnected player)
 - **AnswerUpdated**: Shows checkmark when player submits an answer
+
+**Important**: Player connection/disconnection broadcasters skip broadcasting to the affected player to avoid redundant updates. The pattern is:
+```ruby
+PlayerChannel.broadcast_to(game.players) do |current_player|
+  next if current_player.id == player.id  # Skip the affected player
+
+  ApplicationController.render(...)
+end
+```
 
 **Game-wide** (initialize with `game_id:`, typically skip guesser):
 - **RoundCreated**: Notifies non-guessers that a new round has started
@@ -817,6 +831,15 @@ test/
 │       ├── new_game_form_test.rb
 │       ├── new_player_form_test.rb
 │       ├── new_round_form_test.rb
+│       ├── broadcast/         # Broadcast service object tests
+│       │   ├── answer_updated_test.rb
+│       │   ├── answers_swapped_test.rb
+│       │   ├── guessing_round_started_test.rb
+│       │   ├── player_connected_test.rb
+│       │   ├── player_created_test.rb
+│       │   ├── player_disconnected_test.rb
+│       │   ├── round_completed_test.rb
+│       │   └── round_created_test.rb
 │       └── game/
 │           └── guesses_test.rb
 ├── controllers/               # Base controller tests
@@ -826,6 +849,21 @@ test/
 │   └── users.rb
 └── lib/                       # Lib tests
 ```
+
+### Test Setup
+
+**Global PlayerConnections stubbing** (`test/test_helper.rb`):
+```ruby
+require "mocha/minitest"
+
+setup do
+  # Reset PlayerConnections to a fresh instance for each test
+  @player_connections = ::PlayerConnections.send(:new)
+  ::PlayerConnections.stubs(:instance).returns(@player_connections)
+end
+```
+
+This ensures test isolation by providing each test with a fresh `PlayerConnections` instance, preventing state leakage between tests.
 
 ### Running Tests
 
@@ -867,12 +905,81 @@ test "complete game flow" do
 end
 ```
 
+### Testing Broadcast Service Objects
+
+Broadcast service objects use `Turbo::Broadcastable::TestHelper` for testing real-time updates:
+
+```ruby
+require "test_helper"
+require "turbo/broadcastable/test_helper"
+
+module LoadedQuestions
+  module Broadcast
+    class SomeEventTest < ActiveSupport::TestCase
+      include Turbo::Broadcastable::TestHelper
+
+      test "#call broadcasts to online players" do
+        game = create(:lq_game, player_names: %w[Alice Bob])
+        alice = game.players.find { |p| p.name.to_s == "Alice" }
+        bob = game.players.find { |p| p.name.to_s == "Bob" }
+
+        # Mark players as online
+        ::PlayerConnections.instance.increment(alice.id)
+        ::PlayerConnections.instance.increment(bob.id)
+
+        # Assert broadcast count
+        assert_turbo_stream_broadcasts bob.to_model, count: 1 do
+          SomeEvent.new(player_id: alice.id).call
+        end
+      end
+
+      test "#call broadcasts correct turbo stream action" do
+        game = create(:lq_game, player_names: %w[Alice Bob])
+        alice = game.players.find { |p| p.name.to_s == "Alice" }
+        bob = game.players.find { |p| p.name.to_s == "Bob" }
+
+        ::PlayerConnections.instance.increment(bob.id)
+
+        # Capture and validate turbo stream actions
+        turbo_streams = capture_turbo_stream_broadcasts bob.to_model do
+          SomeEvent.new(player_id: alice.id).call
+        end
+
+        assert_equal 1, turbo_streams.size
+        assert_equal "replace", turbo_streams[0]["action"]
+        assert_equal "player_#{alice.id}", turbo_streams[0]["target"]
+      end
+    end
+  end
+end
+```
+
+**Key patterns for broadcast tests**:
+1. **Include the helper per-test**: `include Turbo::Broadcastable::TestHelper` in each test class
+2. **Manage online status**: Use `::PlayerConnections.instance.increment(player_id)` to mark players online
+3. **Count broadcasts**: Use `assert_turbo_stream_broadcasts player.to_model, count: N` for broadcast count assertions
+4. **Validate actions**: Use `capture_turbo_stream_broadcasts player.to_model` to capture and assert specific turbo stream actions and targets
+5. **Each broadcaster needs action validation**: At least one test per broadcast service object should validate the turbo stream action and target
+
+**Common turbo stream actions**:
+- `"replace"` - Replaces an element (used for player status updates)
+- `"update"` - Updates element content (used for phase transitions, lists)
+
+**Note**: Some templates contain multiple turbo-stream actions (e.g., `round_created.turbo_stream.erb` has 2 actions), so set the count accordingly.
+
 ### Test Conventions
 
 **Test descriptions:**
 - Follow the pattern: `"#instance_method returns ..."` or `".class_method returns ..."`
 - System tests use descriptive names: `"complete game flow with answer swapping"`
 - When a test description says "when X", assert that X is true in the test body
+- For long test names (>80 chars), use backslash continuation:
+  ```ruby
+  test "#call broadcasts to multiple online players except connected " \
+    "player" do
+    # test body
+  end
+  ```
 
 **Assertion style:**
 - Use `assert_predicate obj, :method?` for predicate methods (NOT `assert obj.method?`)

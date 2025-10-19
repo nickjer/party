@@ -16,7 +16,9 @@ FactoryBot.define do
     initialize_with do
       form = LoadedQuestions::NewPlayerForm.new(game:, user:, name:)
 
-      raise "Invalid player form: #{form.errors}" unless form.valid?
+      unless form.valid?
+        raise "Invalid player form: #{form.errors.full_messages.join(', ')}"
+      end
 
       player_record =
         LoadedQuestions::NewPlayer.new(user:, name: form.name, guesser:).build

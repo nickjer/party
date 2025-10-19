@@ -29,28 +29,32 @@ module LoadedQuestions
       form = AnswerForm.new(answer: "ab")
 
       assert_not_predicate form, :valid?
-      assert form.errors.added?(:answer, message: "is too short (minimum is 3 characters)")
+      assert form.errors.added?(:answer,
+        message: "is too short (minimum is 3 characters)")
     end
 
     test "#valid? returns false with blank answer" do
       form = AnswerForm.new(answer: "")
 
       assert_not_predicate form, :valid?
-      assert form.errors.added?(:answer, message: "is too short (minimum is 3 characters)")
+      assert form.errors.added?(:answer,
+        message: "is too short (minimum is 3 characters)")
     end
 
     test "#valid? returns false with nil answer" do
       form = AnswerForm.new(answer: nil)
 
       assert_not_predicate form, :valid?
-      assert form.errors.added?(:answer, message: "is too short (minimum is 3 characters)")
+      assert form.errors.added?(:answer,
+        message: "is too short (minimum is 3 characters)")
     end
 
     test "#valid? returns false with answer too long" do
       form = AnswerForm.new(answer: "a" * 81)
 
       assert_not_predicate form, :valid?
-      assert form.errors.added?(:answer, message: "is too long (maximum is 80 characters)")
+      assert form.errors.added?(:answer,
+        message: "is too long (maximum is 80 characters)")
     end
 
     test "#valid? normalizes answer with NormalizedString" do

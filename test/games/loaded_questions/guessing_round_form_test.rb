@@ -4,7 +4,8 @@ require "test_helper"
 
 module LoadedQuestions
   class GuessingRoundFormTest < ActiveSupport::TestCase
-    test "#valid? returns true when game is polling and enough players answered" do
+    test "#valid? returns true when game is polling and enough players " \
+      "answered" do
       game = create(:lq_game, :with_players, :with_answers)
 
       form = GuessingRoundForm.new(game:)
@@ -25,7 +26,8 @@ module LoadedQuestions
       form = GuessingRoundForm.new(game:)
 
       assert_predicate game.status, :polling?
-      assert_equal GuessingRoundForm::MIN_ANSWERED, game.players.count(&:answered?)
+      assert_equal GuessingRoundForm::MIN_ANSWERED,
+        game.players.count(&:answered?)
       assert_predicate form, :valid?
       assert_predicate form.errors, :empty?
     end

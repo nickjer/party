@@ -13,6 +13,8 @@ module LoadedQuestions
         player = game.find_player(disconnected_player.id)
 
         PlayerChannel.broadcast_to(game.players) do |current_player|
+          next if current_player.id == player.id
+
           ApplicationController.render(
             "loaded_questions/players/disconnected",
             formats: [:turbo_stream],

@@ -296,7 +296,8 @@ module LoadedQuestions
       assert_predicate game.status, :guessing?
     end
 
-    test "#guessing_round renders form with validation errors when not enough answers" do
+    test "#guessing_round renders form with validation errors when not " \
+      "enough answers" do
       game = create(:lq_game, player_names: %w[Bob Charlie])
       guesser = game.players.find(&:guesser?)
       sign_in(guesser.user)

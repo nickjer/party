@@ -61,7 +61,8 @@ module LoadedQuestions
 
       assert_predicate game.status, :completed?
       assert_not_predicate form, :valid?
-      assert form.errors.added?(:question, message: "is too short (minimum is 3 characters)")
+      assert form.errors.added?(:question,
+        message: "is too short (minimum is 3 characters)")
     end
 
     test "#valid? returns false with blank question" do
@@ -71,7 +72,8 @@ module LoadedQuestions
 
       assert_predicate game.status, :completed?
       assert_not_predicate form, :valid?
-      assert form.errors.added?(:question, message: "is too short (minimum is 3 characters)")
+      assert form.errors.added?(:question,
+        message: "is too short (minimum is 3 characters)")
     end
 
     test "#valid? returns false with nil question" do
@@ -81,7 +83,8 @@ module LoadedQuestions
 
       assert_predicate game.status, :completed?
       assert_not_predicate form, :valid?
-      assert form.errors.added?(:question, message: "is too short (minimum is 3 characters)")
+      assert form.errors.added?(:question,
+        message: "is too short (minimum is 3 characters)")
     end
 
     test "#valid? returns false with question too long" do
@@ -91,7 +94,8 @@ module LoadedQuestions
 
       assert_predicate game.status, :completed?
       assert_not_predicate form, :valid?
-      assert form.errors.added?(:question, message: "is too long (maximum is 160 characters)")
+      assert form.errors.added?(:question,
+        message: "is too long (maximum is 160 characters)")
     end
 
     test "#valid? returns false when game is polling and question is invalid" do
@@ -102,7 +106,8 @@ module LoadedQuestions
       assert_predicate game.status, :polling?
       assert_not_predicate form, :valid?
       assert form.errors.added?(:game, message: "Game is not completed")
-      assert form.errors.added?(:question, message: "is too short (minimum is 3 characters)")
+      assert form.errors.added?(:question,
+        message: "is too short (minimum is 3 characters)")
     end
 
     test "#valid? normalizes question with NormalizedString" do

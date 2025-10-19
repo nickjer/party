@@ -9,6 +9,7 @@ ENV["RAILS_ENV"] ||= "test"
 require_relative "../config/environment"
 require "rails/test_help"
 require "faker"
+require "mocha/minitest"
 
 module ActiveSupport
   class TestCase
@@ -28,6 +29,12 @@ module ActiveSupport
 
     parallelize_teardown do
       SimpleCov.result
+    end
+
+    setup do
+      # Reset PlayerConnections to a fresh instance for each test
+      @player_connections = ::PlayerConnections.send(:new)
+      ::PlayerConnections.stubs(:instance).returns(@player_connections)
     end
 
     def sign_in(user)

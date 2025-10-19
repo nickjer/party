@@ -187,6 +187,8 @@ GEM
     matrix (0.4.3)
     mini_mime (1.1.5)
     minitest (5.26.0)
+    mocha (2.7.1)
+      ruby2_keywords (>= 0.0.5)
     msgpack (1.8.0)
     mutex_m (0.3.0)
     net-imap (0.5.12)
@@ -317,6 +319,7 @@ GEM
       rubocop (>= 1.75.0, < 2.0)
       rubocop-ast (>= 1.44.0, < 2.0)
     ruby-progressbar (1.13.0)
+    ruby2_keywords (0.0.5)
     rubyzip (3.2.0)
     securerandom (0.4.1)
     selenium-webdriver (4.36.0)
@@ -439,6 +442,7 @@ DEPENDENCIES
   jbuilder
   jsbundling-rails
   kamal
+  mocha
   propshaft
   puma (>= 5.0)
   rails (~> 8.0.1)

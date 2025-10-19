@@ -41,7 +41,8 @@ module LoadedQuestions
       form = NewPlayerForm.new(game:, user:, name: "ab")
 
       assert_not_predicate form, :valid?
-      assert form.errors.added?(:name, message: "is too short (minimum is 3 characters)")
+      assert form.errors.added?(:name,
+        message: "is too short (minimum is 3 characters)")
     end
 
     test "#valid? returns false with blank name" do
@@ -51,7 +52,8 @@ module LoadedQuestions
       form = NewPlayerForm.new(game:, user:, name: "")
 
       assert_not_predicate form, :valid?
-      assert form.errors.added?(:name, message: "is too short (minimum is 3 characters)")
+      assert form.errors.added?(:name,
+        message: "is too short (minimum is 3 characters)")
     end
 
     test "#valid? returns false with nil name" do
@@ -61,7 +63,8 @@ module LoadedQuestions
       form = NewPlayerForm.new(game:, user:, name: nil)
 
       assert_not_predicate form, :valid?
-      assert form.errors.added?(:name, message: "is too short (minimum is 3 characters)")
+      assert form.errors.added?(:name,
+        message: "is too short (minimum is 3 characters)")
     end
 
     test "#valid? returns false with name too long" do
@@ -71,7 +74,8 @@ module LoadedQuestions
       form = NewPlayerForm.new(game:, user:, name: "a" * 26)
 
       assert_not_predicate form, :valid?
-      assert form.errors.added?(:name, message: "is too long (maximum is 25 characters)")
+      assert form.errors.added?(:name,
+        message: "is too long (maximum is 25 characters)")
     end
 
     test "#valid? returns false when name already taken" do
@@ -80,18 +84,19 @@ module LoadedQuestions
 
       form = NewPlayerForm.new(game:, user:, name: "Bob")
 
-      assert game.players.any? { |player| player.name == form.name }
+      assert(game.players.any? { |player| player.name == form.name })
       assert_not_predicate form, :valid?
       assert form.errors.added?(:name, message: "has already been taken")
     end
 
-    test "#valid? returns false when name already taken with different casing" do
+    test "#valid? returns false when name already taken with different " \
+      "casing" do
       game = create(:lq_game, player_names: %w[Bob])
       user = create(:user)
 
       form = NewPlayerForm.new(game:, user:, name: "bob")
 
-      assert game.players.any? { |player| player.name == form.name }
+      assert(game.players.any? { |player| player.name == form.name })
       assert_not_predicate form, :valid?
       assert form.errors.added?(:name, message: "has already been taken")
     end
@@ -104,20 +109,23 @@ module LoadedQuestions
 
       assert game.player_for(existing_user)
       assert_not_predicate form, :valid?
-      assert form.errors.added?(:base, message: "You have already joined this game")
+      assert form.errors.added?(:base,
+        message: "You have already joined this game")
     end
 
     test "#valid? returns false with name taken and user already joined" do
       existing_user = create(:user)
       game = create(:lq_game, user: existing_user)
 
-      form = NewPlayerForm.new(game:, user: existing_user, name: game.guesser.name)
+      form = NewPlayerForm.new(game:, user: existing_user,
+        name: game.guesser.name)
 
-      assert game.players.any? { |player| player.name == form.name }
+      assert(game.players.any? { |player| player.name == form.name })
       assert game.player_for(existing_user)
       assert_not_predicate form, :valid?
       assert form.errors.added?(:name, message: "has already been taken")
-      assert form.errors.added?(:base, message: "You have already joined this game")
+      assert form.errors.added?(:base,
+        message: "You have already joined this game")
     end
 
     test "#valid? normalizes name with NormalizedString" do

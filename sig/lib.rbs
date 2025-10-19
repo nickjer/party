@@ -67,6 +67,7 @@ class Errors
   def add: (Symbol | String, message: _ToS) -> void
   def added?: (Symbol | String, message: _ToS) -> bool
   def empty?: () -> bool
+  def full_messages: () -> Array[String]
   def []: (Symbol | String) -> Array[Error]
 
   private

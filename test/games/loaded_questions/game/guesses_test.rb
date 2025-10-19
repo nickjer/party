@@ -6,21 +6,14 @@ module LoadedQuestions
   class Game
     class GuessesTest < ActiveSupport::TestCase
       test "#correct? returns true with case-insensitive match" do
-        # Create game with guesser and players
-        game = create(:loaded_questions_game, players: %w[Bob Charlie])
-        bob = game.players.find { |p| p.name.to_s == "Bob" }
-        charlie = game.players.find { |p| p.name.to_s == "Charlie" }
+        # Create game with custom answers for case-insensitive test
+        game = create(:lq_matching_game,
+          players: [
+            { name: "Bob", answer: "Red" },
+            { name: "Charlie", answer: "red" }
+          ])
 
-        # Submit answers that are the same but different case
-        bob.update_answer(NormalizedString.new("Red"))
-        charlie.update_answer(NormalizedString.new("red"))
-
-        # Transition to guessing phase (shuffles guesses)
-        game = LoadedQuestions::Game.from_slug(game.slug)
-        game.update_status(LoadedQuestions::Game::Status.guessing)
-
-        # Reload and get guesses
-        game = LoadedQuestions::Game.from_slug(game.slug)
+        # Get guesses
         guess1, guess2 = game.guesses.to_a
 
         # If guesses are not mismatched, swap them to ensure mismatch

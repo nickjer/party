@@ -5,22 +5,10 @@ require "test_helper"
 module LoadedQuestions
   class GameTest < ActiveSupport::TestCase
     test "swap_guesses persists answer swap to database" do
-      # Create a game with guesser and two players
-      game = create(:loaded_questions_game, players: %w[Bob Charlie])
+      # Create game in guessing status with players and answers
+      game = create(:lq_matching_game, player_names: %w[Bob Charlie])
 
-      # Get players and submit answers
-      bob = game.players.find { |p| p.name.to_s == "Bob" }
-      charlie = game.players.find { |p| p.name.to_s == "Charlie" }
-
-      bob.update_answer(NormalizedString.new("Blue"))
-      charlie.update_answer(NormalizedString.new("Red"))
-
-      # Start guessing round to shuffle answers
-      game = Game.from_slug(game.slug)
-      game.update_status(Game::Status.guessing)
-
-      # Reload and get current answer assignments
-      game = Game.from_slug(game.slug)
+      # Get current answer assignments
       guess1, guess2 = game.guesses.to_a
       guess1_guessed_answer_before = guess1.guessed_answer
       guess2_guessed_answer_before = guess2.guessed_answer

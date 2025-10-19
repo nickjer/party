@@ -6,7 +6,7 @@ module LoadedQuestions
   class PlayersControllerTest < ActionDispatch::IntegrationTest
     test "#answer returns validation error for single letter answer" do
       # Create game with guesser and one additional player
-      game = create(:loaded_questions_game, players: ["Bob"])
+      game = create(:lq_game, player_names: ["Bob"])
       bob = game.players.find { |p| p.name.to_s == "Bob" }
 
       # Sign in as Bob

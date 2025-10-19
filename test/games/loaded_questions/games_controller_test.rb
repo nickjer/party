@@ -5,54 +5,21 @@ require "test_helper"
 module LoadedQuestions
   class GamesControllerTest < ActionDispatch::IntegrationTest
     test "#swap_guesses persists answer swap to database" do
-      # Create a game with guesser
-      user1 = User.create!(last_seen_at: Time.current)
-      game = CreateNewGame.new(
-        user: user1,
-        player_name: NormalizedString.new("Alice"),
-        question: NormalizedString.new("What is your favorite color?")
-      ).call
+      # Create game in guessing status with players and answers
+      game = create(:lq_matching_game, player_names: %w[Bob Charlie])
 
-      Game.from_slug(game.slug)
-
-      # Add two players with answers
-      user2 = User.create!(last_seen_at: Time.current)
-      player2 = NewPlayer.new(user: user2, name: NormalizedString.new("Bob"),
-        guesser: false).build
-      player2.game_id = game.id
-      player2.save!
-
-      user3 = User.create!(last_seen_at: Time.current)
-      player3 = NewPlayer.new(user: user3,
-        name: NormalizedString.new("Charlie"), guesser: false).build
-      player3.game_id = game.id
-      player3.save!
-
-      # Submit answers
-      loaded_game = Game.from_slug(game.slug)
-      bob = loaded_game.players.find { |p| p.name.to_s == "Bob" }
-      charlie = loaded_game.players.find { |p| p.name.to_s == "Charlie" }
-
-      bob.update_answer(NormalizedString.new("Blue"))
-      charlie.update_answer(NormalizedString.new("Red"))
-
-      # Start guessing round to shuffle answers
-      loaded_game = Game.from_slug(game.slug)
-      loaded_game.update_status(LoadedQuestions::Game::Status.guessing)
-
-      # Reload and get current answer assignments
-      loaded_game = Game.from_slug(game.slug)
-      guess1, guess2 = loaded_game.guesses.to_a
+      # Get current answer assignments
+      guess1, guess2 = game.guesses.to_a
       guess1_guessed_answer_before = guess1.guessed_answer
       guess2_guessed_answer_before = guess2.guessed_answer
 
       # Swap the answers
-      loaded_game.swap_guesses(player_id1: guess1.player.id,
+      game.swap_guesses(player_id1: guess1.player.id,
         player_id2: guess2.player.id)
 
       # Reload from database to verify persistence
-      loaded_game_after = Game.from_slug(game.slug)
-      guess1_after, guess2_after = loaded_game_after.guesses.to_a
+      game_after = Game.from_slug(game.slug)
+      guess1_after, guess2_after = game_after.guesses.to_a
 
       # Verify answers were swapped and persisted
       assert_equal guess2_guessed_answer_before, guess1_after.guessed_answer,
@@ -62,21 +29,10 @@ module LoadedQuestions
     end
 
     test "#completed_round changes game status from guessing to completed" do
-      # Create game with guesser and players
-      game = create(:loaded_questions_game, players: %w[Bob Charlie])
-      bob = game.players.find { |p| p.name.to_s == "Bob" }
-      charlie = game.players.find { |p| p.name.to_s == "Charlie" }
-
-      # Submit answers
-      bob.update_answer(NormalizedString.new("Blue"))
-      charlie.update_answer(NormalizedString.new("Red"))
-
-      # Transition to guessing phase
-      game = LoadedQuestions::Game.from_slug(game.slug)
-      game.update_status(LoadedQuestions::Game::Status.guessing)
+      # Create game in guessing status with players and answers
+      game = create(:lq_matching_game, player_names: %w[Bob Charlie])
 
       # Verify game is in guessing status
-      game = LoadedQuestions::Game.from_slug(game.slug)
       assert_predicate game.status, :guessing?
 
       # Sign in as guesser
@@ -96,7 +52,7 @@ module LoadedQuestions
 
     test "#completed_round returns error when not in guessing phase" do
       # Create game with guesser and players in polling phase
-      game = create(:loaded_questions_game, players: %w[Bob Charlie])
+      game = create(:lq_game, player_names: %w[Bob Charlie])
 
       # Verify game is in polling status
       assert_predicate game.status, :polling?
@@ -114,6 +70,118 @@ module LoadedQuestions
       # Reload and verify game status has not changed
       game = LoadedQuestions::Game.from_slug(game.slug)
       assert_predicate game.status, :polling?
+    end
+
+    test "#new_round returns forbidden when guesser tries to access" do
+      # Create completed game
+      game = create(:lq_completed_game)
+
+      # Sign in as guesser
+      guesser = game.players.find(&:guesser?)
+      sign_in(guesser.user)
+
+      # Try to access new_round as guesser
+      get new_round_loaded_questions_game_path(game.slug)
+
+      # Verify forbidden response
+      assert_response :forbidden
+    end
+
+    test "#create_round returns forbidden when guesser tries to create" do
+      # Create completed game
+      game = create(:lq_completed_game)
+
+      # Sign in as guesser
+      guesser = game.players.find(&:guesser?)
+      sign_in(guesser.user)
+
+      # Try to create new round as guesser
+      post create_round_loaded_questions_game_path(game.slug), params: {
+        round: {
+          question: "New question?"
+        }
+      }
+
+      # Verify forbidden response
+      assert_response :forbidden
+    end
+
+    test "#completed_round returns forbidden when non-guesser tries" do
+      # Create game in guessing status
+      game = create(:lq_matching_game)
+
+      # Sign in as non-guesser
+      non_guesser = game.players.find { |p| !p.guesser? }
+      sign_in(non_guesser.user)
+
+      # Try to complete round as non-guesser
+      patch completed_round_loaded_questions_game_path(game.slug)
+
+      # Verify forbidden response
+      assert_response :forbidden
+    end
+
+    test "#guessing_round returns forbidden when non-guesser tries" do
+      # Create game with players and answers in polling status
+      game = create(:lq_game, :with_players, :with_answers)
+
+      # Verify game is in polling status
+      assert_predicate game.status, :polling?
+
+      # Sign in as non-guesser
+      non_guesser = game.players.find { |p| !p.guesser? }
+      sign_in(non_guesser.user)
+
+      # Try to start guessing round as non-guesser
+      patch guessing_round_loaded_questions_game_path(game.slug)
+
+      # Verify forbidden response
+      assert_response :forbidden
+    end
+
+    test "#swap_guesses returns forbidden when non-guesser tries" do
+      # Create game in guessing status
+      game = create(:lq_matching_game)
+
+      # Sign in as non-guesser
+      non_guesser = game.players.find { |p| !p.guesser? }
+      sign_in(non_guesser.user)
+
+      # Try to swap guesses as non-guesser
+      guess1, guess2 = game.guesses.to_a
+      patch swap_guesses_loaded_questions_game_path(game.slug), params: {
+        guess_swapper: {
+          guess_id: guess1.player.id,
+          swap_guess_id: guess2.player.id
+        }
+      }
+
+      # Verify forbidden response
+      assert_response :forbidden
+    end
+
+    test "#swap_guesses returns forbidden when not in guessing phase" do
+      # Create game with players and answers in polling status
+      game = create(:lq_game, :with_players, :with_answers)
+
+      # Verify game is in polling status
+      assert_predicate game.status, :polling?
+
+      # Sign in as guesser
+      guesser = game.players.find(&:guesser?)
+      sign_in(guesser.user)
+
+      # Try to swap guesses while still in polling phase
+      non_guessers = game.players.reject(&:guesser?)
+      patch swap_guesses_loaded_questions_game_path(game.slug), params: {
+        guess_swapper: {
+          guess_id: non_guessers[0].id,
+          swap_guess_id: non_guessers[1].id
+        }
+      }
+
+      # Verify forbidden response
+      assert_response :forbidden
     end
   end
 end

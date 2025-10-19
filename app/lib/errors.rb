@@ -57,6 +57,12 @@ class Errors
     errors.empty? || errors.values.all?(&:empty?)
   end
 
+  def full_messages
+    errors.values.flat_map do |error_set|
+      error_set.map(&:full_message)
+    end
+  end
+
   def [](attribute)
     error_set = errors[attribute.to_sym]
     return [] unless error_set

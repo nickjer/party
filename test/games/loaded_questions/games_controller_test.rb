@@ -4,30 +4,6 @@ require "test_helper"
 
 module LoadedQuestions
   class GamesControllerTest < ActionDispatch::IntegrationTest
-    test "#swap_guesses persists answer swap to database" do
-      # Create game in guessing status with players and answers
-      game = create(:lq_matching_game, player_names: %w[Bob Charlie])
-
-      # Get current answer assignments
-      guess1, guess2 = game.guesses.to_a
-      guess1_guessed_answer_before = guess1.guessed_answer
-      guess2_guessed_answer_before = guess2.guessed_answer
-
-      # Swap the answers
-      game.swap_guesses(player_id1: guess1.player.id,
-        player_id2: guess2.player.id)
-
-      # Reload from database to verify persistence
-      game_after = Game.from_slug(game.slug)
-      guess1_after, guess2_after = game_after.guesses.to_a
-
-      # Verify answers were swapped and persisted
-      assert_equal guess2_guessed_answer_before, guess1_after.guessed_answer,
-        "First guess should have second guessed answer after swap"
-      assert_equal guess1_guessed_answer_before, guess2_after.guessed_answer,
-        "Second guess should have first guessed answer after swap"
-    end
-
     test "#completed_round changes game status from guessing to completed" do
       # Create game in guessing status with players and answers
       game = create(:lq_matching_game, player_names: %w[Bob Charlie])
@@ -72,16 +48,16 @@ module LoadedQuestions
       assert_predicate game.status, :polling?
     end
 
-    test "#new_round returns forbidden when guesser tries to access" do
-      # Create completed game
-      game = create(:lq_completed_game)
+    test "#completed_round returns forbidden when non-guesser tries" do
+      # Create game in guessing status
+      game = create(:lq_matching_game)
 
-      # Sign in as guesser
-      guesser = game.players.find(&:guesser?)
-      sign_in(guesser.user)
+      # Sign in as non-guesser
+      non_guesser = game.players.find { |p| !p.guesser? }
+      sign_in(non_guesser.user)
 
-      # Try to access new_round as guesser
-      get new_round_loaded_questions_game_path(game.slug)
+      # Try to complete round as non-guesser
+      patch completed_round_loaded_questions_game_path(game.slug)
 
       # Verify forbidden response
       assert_response :forbidden
@@ -106,21 +82,6 @@ module LoadedQuestions
       assert_response :forbidden
     end
 
-    test "#completed_round returns forbidden when non-guesser tries" do
-      # Create game in guessing status
-      game = create(:lq_matching_game)
-
-      # Sign in as non-guesser
-      non_guesser = game.players.find { |p| !p.guesser? }
-      sign_in(non_guesser.user)
-
-      # Try to complete round as non-guesser
-      patch completed_round_loaded_questions_game_path(game.slug)
-
-      # Verify forbidden response
-      assert_response :forbidden
-    end
-
     test "#guessing_round returns forbidden when non-guesser tries" do
       # Create game with players and answers in polling status
       game = create(:lq_game, :with_players, :with_answers)
@@ -137,6 +98,45 @@ module LoadedQuestions
 
       # Verify forbidden response
       assert_response :forbidden
+    end
+
+    test "#new_round returns forbidden when guesser tries to access" do
+      # Create completed game
+      game = create(:lq_completed_game)
+
+      # Sign in as guesser
+      guesser = game.players.find(&:guesser?)
+      sign_in(guesser.user)
+
+      # Try to access new_round as guesser
+      get new_round_loaded_questions_game_path(game.slug)
+
+      # Verify forbidden response
+      assert_response :forbidden
+    end
+
+    test "#swap_guesses persists answer swap to database" do
+      # Create game in guessing status with players and answers
+      game = create(:lq_matching_game, player_names: %w[Bob Charlie])
+
+      # Get current answer assignments
+      guess1, guess2 = game.guesses.to_a
+      guess1_guessed_answer_before = guess1.guessed_answer
+      guess2_guessed_answer_before = guess2.guessed_answer
+
+      # Swap the answers
+      game.swap_guesses(player_id1: guess1.player.id,
+        player_id2: guess2.player.id)
+
+      # Reload from database to verify persistence
+      game_after = Game.from_slug(game.slug)
+      guess1_after, guess2_after = game_after.guesses.to_a
+
+      # Verify answers were swapped and persisted
+      assert_equal guess2_guessed_answer_before, guess1_after.guessed_answer,
+        "First guess should have second guessed answer after swap"
+      assert_equal guess1_guessed_answer_before, guess2_after.guessed_answer,
+        "Second guess should have first guessed answer after swap"
     end
 
     test "#swap_guesses returns forbidden when non-guesser tries" do

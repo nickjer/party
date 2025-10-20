@@ -1,23 +1,14 @@
 <%# locals: (completed_answer:) %>
 <div class="list-group-item list-group-item-<%= completed_answer.correct? ? "success" : "danger" %> py-2">
-  <div class="d-flex align-items-center gap-2 mb-2">
-    <% if completed_answer.correct? %>
-      <i class="bi bi-check-circle-fill text-success fs-5"></i>
-    <% else %>
-      <i class="bi bi-x-circle-fill text-danger fs-5"></i>
+  <div class="mb-2">
+    <strong><%= completed_answer.player.name %></strong>
+    <% unless completed_answer.correct? %>
+      <span class="text-danger small ms-1">
+        (guessed: <%= completed_answer.guessed_player.name %>)
+      </span>
     <% end %>
-    <div class="flex-grow-1">
-      <strong><%= completed_answer.player.name %></strong>
-      <% unless completed_answer.correct? %>
-        <span class="text-danger small ms-1">
-          (guessed: <%= completed_answer.guessed_player.name %>)
-        </span>
-      <% end %>
-    </div>
   </div>
-  <div class="ms-4">
-    <div class="p-2 bg-light border rounded small">
-      <%= completed_answer.answer %>
-    </div>
+  <div class="p-2 bg-light border rounded small">
+    <%= completed_answer.answer %>
   </div>
 </div>

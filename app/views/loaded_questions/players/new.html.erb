@@ -1,11 +1,41 @@
 <%# locals: (new_player:) %>
-<h1 class="mb-3">Loaded Questions</h1>
+<div class="row justify-content-center py-4">
+  <div class="col-md-8 col-lg-6">
+    <%= link_to root_path, class: "btn btn-link ps-0 mb-3" do %>
+      <i class="bi bi-arrow-left me-1"></i> Back to Games
+    <% end %>
 
-<%= form_with(model: new_player, scope: :player, url: loaded_questions_game_player_path(new_player.game_slug)) do |form| %>
-  <div class="mb-3">
-    <%= form.label :name %>
-    <%= form.text_field :name, class: "w-100", maxlength: Player::MAX_NAME_LENGTH %>
+    <div class="card shadow">
+      <div class="card-body p-4">
+        <div class="text-center mb-4">
+          <h1 class="h2 text-primary mb-2">
+            <i class="bi bi-chat-quote-fill me-2"></i>Loaded Questions
+          </h1>
+          <p class="text-muted mb-0">Join the game and start playing!</p>
+        </div>
+
+        <%= form_with(model: new_player, scope: :player, url: loaded_questions_game_player_path(new_player.game_slug)) do |form| %>
+          <div class="mb-4">
+            <%= form.label :name, "Your Name" %>
+            <%= form.text_field :name,
+                maxlength: Player::MAX_NAME_LENGTH,
+                placeholder: "Enter your name",
+                autofocus: true %>
+            <div class="form-text">
+              <%= Player::MIN_NAME_LENGTH %>-<%= Player::MAX_NAME_LENGTH %> characters
+            </div>
+          </div>
+
+          <%= form.submit "Join Game", class: "btn-lg w-100" %>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="text-center mt-3">
+      <small class="text-muted">
+        <i class="bi bi-info-circle me-1"></i>
+        You'll answer questions and try to outsmart the guesser
+      </small>
+    </div>
   </div>
-
-  <%= form.submit "Create New Player", class: "w-100" %>
-<% end %>
+</div>

@@ -8,7 +8,8 @@ class NormalizedStringTest < ActiveSupport::TestCase
   test "#initialize normalizes string with NFKC" do
     # Using composed vs decomposed Unicode characters
     composed = NormalizedString.new("café")
-    decomposed = NormalizedString.new("cafe\u0301") # e with combining acute accent
+    # e with combining acute accent
+    decomposed = NormalizedString.new("cafe\u0301")
 
     assert_equal composed.to_s, decomposed.to_s
   end

@@ -8,8 +8,8 @@ module LoadedQuestions
       # Create a new game with Mia as guesser (middle alphabetically)
       visit new_loaded_questions_game_path
 
-      fill_in "Player name", with: "Mia"
-      fill_in "Question", with: "What is your favorite color?"
+      fill_in "Your Name", with: "Mia"
+      fill_in "First Question", with: "What is your favorite color?"
       click_on "Create New Game"
 
       # Mia should see polling view as the guesser
@@ -37,7 +37,7 @@ module LoadedQuestions
       using_session("zoe") do
         visit new_loaded_questions_game_player_path(game_slug)
         fill_in "Name", with: "Zoe"
-        click_on "Create New Player"
+        click_on "Join Game"
 
         # Zoe should see the answer form
         assert_text "What is your favorite color?"
@@ -90,7 +90,7 @@ module LoadedQuestions
       using_session("alice") do
         visit new_loaded_questions_game_player_path(game_slug)
         fill_in "Name", with: "Alice"
-        click_on "Create New Player"
+        click_on "Join Game"
 
         # Alice should see the answer form
         assert_text "What is your favorite color?"
@@ -184,7 +184,7 @@ module LoadedQuestions
         within("#players") do
           player_divs = all("div[id^='player_']")
           within(player_divs[0]) do
-            assert_selector "i.bi-check-square", count: 1 # Checkmark
+            assert_selector "i.bi-check-square-fill", count: 1 # Checkmark
             assert_selector "span.fw-bold", text: "Alice"
           end
         end
@@ -195,7 +195,7 @@ module LoadedQuestions
         within("#players") do
           player_divs = all("div[id^='player_']", wait: 5)
           within(player_divs[0]) do
-            assert_selector "i.bi-check-square", count: 1
+            assert_selector "i.bi-check-square-fill", count: 1
             assert_selector "span:not(.fw-bold)", text: "Alice"
           end
         end
@@ -205,7 +205,7 @@ module LoadedQuestions
         within("#players") do
           player_divs = all("div[id^='player_']", wait: 5)
           within(player_divs[0]) do
-            assert_selector "i.bi-check-square", count: 1
+            assert_selector "i.bi-check-square-fill", count: 1
             assert_selector "span:not(.fw-bold)", text: "Alice"
           end
         end
@@ -229,7 +229,7 @@ module LoadedQuestions
         within("#players") do
           player_divs = all("div[id^='player_']")
           within(player_divs[2]) do
-            assert_selector "i.bi-check-square", count: 1
+            assert_selector "i.bi-check-square-fill", count: 1
             assert_selector "span.fw-bold", text: "Zoe"
           end
         end
@@ -240,11 +240,11 @@ module LoadedQuestions
         within("#players") do
           player_divs = all("div[id^='player_']", wait: 5)
           within(player_divs[0]) do
-            assert_selector "i.bi-check-square", count: 1
+            assert_selector "i.bi-check-square-fill", count: 1
             assert_selector "span:not(.fw-bold)", text: "Alice"
           end
           within(player_divs[2]) do
-            assert_selector "i.bi-check-square", count: 1
+            assert_selector "i.bi-check-square-fill", count: 1
             assert_selector "span:not(.fw-bold)", text: "Zoe"
           end
         end
@@ -254,7 +254,7 @@ module LoadedQuestions
         within("#players") do
           player_divs = all("div[id^='player_']", wait: 5)
           within(player_divs[2]) do
-            assert_selector "i.bi-check-square", count: 1
+            assert_selector "i.bi-check-square-fill", count: 1
             assert_selector "span:not(.fw-bold)", text: "Zoe"
           end
         end
@@ -340,7 +340,7 @@ module LoadedQuestions
         end
 
         # Wait for completed view to load
-        assert_text "Score =", wait: 10
+        assert_text "Score:", wait: 10
 
         # Mia (guesser) should NOT see "Create Next Turn" button
         assert_no_link "Create Next Turn"
@@ -349,7 +349,7 @@ module LoadedQuestions
       # Verify all three sessions see the completed view with same results
       using_session("default") do
         # Wait for page to fully load
-        assert_text "Mia's Score =", wait: 5
+        assert_text "Mia's Score:", wait: 5
 
         # Store Mia's view for comparison
         assert_text "Alice"
@@ -358,13 +358,13 @@ module LoadedQuestions
         assert_text "Red"
 
         # Extract the score from the card
-        mia_score_text = find(".card-text", text: /Score =/).text
-        assert_match(/Mia's Score = \d+/, mia_score_text)
+        mia_score_text = find(".card-footer", text: /Score:/).text
+        assert_match(%r{Mia's Score:\s+\d+ / \d+}, mia_score_text)
       end
 
       using_session("alice") do
         # Wait for broadcast to show completed view
-        assert_text "Mia's Score =", wait: 5
+        assert_text "Mia's Score:", wait: 5
 
         # Alice should see the same content
         assert_text "Alice"
@@ -376,11 +376,11 @@ module LoadedQuestions
         assert_link "Create Next Turn"
 
         # Extract Alice's score text
-        alice_score_text = find(".card-text", text: /Score =/).text
+        alice_score_text = find(".card-footer", text: /Score:/).text
 
         # Score should match what Mia saw
         using_session("default") do
-          mia_score_text = find(".card-text", text: /Score =/).text
+          mia_score_text = find(".card-footer", text: /Score:/).text
           assert_equal mia_score_text, alice_score_text,
             "Alice should see same score as Mia"
         end
@@ -388,7 +388,7 @@ module LoadedQuestions
 
       using_session("zoe") do
         # Wait for broadcast to show completed view
-        assert_text "Mia's Score =", wait: 5
+        assert_text "Mia's Score:", wait: 5
 
         # Zoe should see the same content
         assert_text "Alice"
@@ -400,11 +400,11 @@ module LoadedQuestions
         assert_link "Create Next Turn"
 
         # Extract Zoe's score text
-        zoe_score_text = find(".card-text", text: /Score =/).text
+        zoe_score_text = find(".card-footer", text: /Score:/).text
 
         # Score should match what Mia saw
         using_session("default") do
-          mia_score_text = find(".card-text", text: /Score =/).text
+          mia_score_text = find(".card-footer", text: /Score:/).text
           assert_equal mia_score_text, zoe_score_text,
             "Zoe should see same score as Mia"
         end
@@ -415,10 +415,10 @@ module LoadedQuestions
         click_on "Create Next Turn"
 
         # Should see the new round form
-        assert_field "Question"
+        assert_field "Your Question"
 
         # Fill in new question
-        fill_in "Question", with: "What is your dream vacation?"
+        fill_in "Your Question", with: "What is your dream vacation?"
         click_on "Create Next Turn"
 
         # Wait for new round to start
@@ -538,8 +538,8 @@ module LoadedQuestions
       # Try to create a game with invalid inputs (too short)
       visit new_loaded_questions_game_path
 
-      fill_in "Player name", with: "A"
-      fill_in "Question", with: "Q"
+      fill_in "Your Name", with: "A"
+      fill_in "First Question", with: "Q"
       click_on "Create New Game"
 
       # Should see validation errors under the inputs
@@ -547,8 +547,8 @@ module LoadedQuestions
       assert_selector ".invalid-feedback", count: 2
 
       # Create game successfully with valid inputs
-      fill_in "Player name", with: "Alice"
-      fill_in "Question", with: "What is your favorite movie?"
+      fill_in "Your Name", with: "Alice"
+      fill_in "First Question", with: "What is your favorite movie?"
       click_on "Create New Game"
 
       # Should see the game view
@@ -561,7 +561,7 @@ module LoadedQuestions
       using_session("bob") do
         visit new_loaded_questions_game_player_path(game_slug)
         fill_in "Name", with: "Alice 😀"
-        click_on "Create New Player"
+        click_on "Join Game"
 
         # Should see validation error about duplicate name
         assert_text "has already been taken"
@@ -569,7 +569,7 @@ module LoadedQuestions
 
         # Join with a valid unique name
         fill_in "Name", with: "Bob"
-        click_on "Create New Player"
+        click_on "Join Game"
 
         # Should see the answer form
         assert_text "What is your favorite movie?"
@@ -613,7 +613,7 @@ module LoadedQuestions
       using_session("charlie") do
         visit new_loaded_questions_game_player_path(game_slug)
         fill_in "Name", with: "Charlie"
-        click_on "Create New Player"
+        click_on "Join Game"
 
         # Should see the answer form
         assert_text "What is your favorite movie?"
@@ -685,7 +685,7 @@ module LoadedQuestions
         within("#players") do
           player_divs = all("div[id^='player_']")
           within(player_divs[2]) do
-            assert_selector "i.bi-check-square", count: 1
+            assert_selector "i.bi-check-square-fill", count: 1
             assert_selector "span.fw-bold", text: "Charlie"
           end
         end
@@ -696,7 +696,7 @@ module LoadedQuestions
         within("#players") do
           player_divs = all("div[id^='player_']", wait: 5)
           within(player_divs[2]) do
-            assert_selector "i.bi-check-square", count: 1
+            assert_selector "i.bi-check-square-fill", count: 1
             assert_selector "span:not(.fw-bold)", text: "Charlie"
           end
         end
@@ -707,7 +707,7 @@ module LoadedQuestions
         within("#players") do
           player_divs = all("div[id^='player_']", wait: 5)
           within(player_divs[2]) do
-            assert_selector "i.bi-check-square", count: 1
+            assert_selector "i.bi-check-square-fill", count: 1
             assert_selector "span:not(.fw-bold)", text: "Charlie"
           end
         end
@@ -717,7 +717,7 @@ module LoadedQuestions
       using_session("default") do
         # Wait for Charlie's answer to be broadcast
         within("#players") do
-          assert_selector "i.bi-check-square", count: 2, wait: 5
+          assert_selector "i.bi-check-square-fill", count: 2, wait: 5
         end
 
         # Open the Begin Guessing modal
@@ -795,7 +795,7 @@ module LoadedQuestions
 
         # Should transition to completed view
         assert_no_selector "dialog[open]", wait: 2
-        assert_text "Alice's Score =", wait: 5
+        assert_text "Alice's Score:", wait: 5
 
         # Alice should NOT see Create Next Turn button (guesser)
         assert_no_link "Create Next Turn"
@@ -804,7 +804,7 @@ module LoadedQuestions
       # Bob tries to create a new turn with invalid question
       using_session("bob") do
         # Wait for broadcast to show completed view
-        assert_text "Alice's Score =", wait: 5
+        assert_text "Alice's Score:", wait: 5
 
         # Bob should see Create Next Turn button (non-guesser)
         assert_link "Create Next Turn"
@@ -813,10 +813,10 @@ module LoadedQuestions
         click_on "Create Next Turn"
 
         # Should see the new round form
-        assert_field "Question"
+        assert_field "Your Question"
 
         # Try to submit with 1-letter question
-        fill_in "Question", with: "Q"
+        fill_in "Your Question", with: "Q"
         click_on "Create Next Turn"
 
         # Should see validation error
@@ -824,7 +824,7 @@ module LoadedQuestions
         assert_selector ".invalid-feedback", count: 1
 
         # Fill in valid question
-        fill_in "Question", with: "What is your favorite book?"
+        fill_in "Your Question", with: "What is your favorite book?"
         click_on "Create Next Turn"
 
         # Should see the new question

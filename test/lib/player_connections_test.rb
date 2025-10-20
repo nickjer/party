@@ -25,15 +25,15 @@ class PlayerConnectionsTest < ActiveSupport::TestCase
   end
 
   test "#count works with different player IDs" do
-    player_id_1 = 123
-    player_id_2 = 456
+    player_id1 = 123
+    player_id2 = 456
 
-    @connections.increment(player_id_1)
-    @connections.increment(player_id_2)
-    @connections.increment(player_id_2)
+    @connections.increment(player_id1)
+    @connections.increment(player_id2)
+    @connections.increment(player_id2)
 
-    assert_equal 1, @connections.count(player_id_1)
-    assert_equal 2, @connections.count(player_id_2)
+    assert_equal 1, @connections.count(player_id1)
+    assert_equal 2, @connections.count(player_id2)
   end
 
   # Increment tests
@@ -80,15 +80,15 @@ class PlayerConnectionsTest < ActiveSupport::TestCase
   end
 
   test "#increment works independently for different players" do
-    player_id_1 = 123
-    player_id_2 = 456
+    player_id1 = 123
+    player_id2 = 456
 
-    @connections.increment(player_id_1)
-    @connections.increment(player_id_1)
-    @connections.increment(player_id_2)
+    @connections.increment(player_id1)
+    @connections.increment(player_id1)
+    @connections.increment(player_id2)
 
-    assert_equal 2, @connections.count(player_id_1)
-    assert_equal 1, @connections.count(player_id_2)
+    assert_equal 2, @connections.count(player_id1)
+    assert_equal 1, @connections.count(player_id2)
   end
 
   # Decrement tests
@@ -157,21 +157,21 @@ class PlayerConnectionsTest < ActiveSupport::TestCase
   end
 
   test "#decrement works independently for different players" do
-    player_id_1 = 123
-    player_id_2 = 456
+    player_id1 = 123
+    player_id2 = 456
 
-    @connections.increment(player_id_1)
-    @connections.increment(player_id_1)
-    @connections.increment(player_id_2)
-    @connections.increment(player_id_2)
-    @connections.increment(player_id_2)
+    @connections.increment(player_id1)
+    @connections.increment(player_id1)
+    @connections.increment(player_id2)
+    @connections.increment(player_id2)
+    @connections.increment(player_id2)
 
-    @connections.decrement(player_id_1)
-    @connections.decrement(player_id_2)
-    @connections.decrement(player_id_2)
+    @connections.decrement(player_id1)
+    @connections.decrement(player_id2)
+    @connections.decrement(player_id2)
 
-    assert_equal 1, @connections.count(player_id_1)
-    assert_equal 1, @connections.count(player_id_2)
+    assert_equal 1, @connections.count(player_id1)
+    assert_equal 1, @connections.count(player_id2)
   end
 
   # Singleton tests

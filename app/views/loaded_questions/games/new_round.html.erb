@@ -2,22 +2,35 @@
 <%= render "loaded_questions/games/player_stream", current_player: %>
 
 <%= turbo_frame_tag "game_frame" do %>
-  <div class="d-flex flex-wrap align-items-start gap-2 mt-2">
+  <div class="d-flex flex-wrap flex-md-nowrap align-items-start gap-2 mt-2">
     <div class="flex-grow-1">
       <%= turbo_frame_tag "round_frame" do %>
-        <%= form_with(
-          model: new_round,
-          scope: :round,
-          url: create_round_loaded_questions_game_path(game.slug),
-          data: { turbo_frame: "game_frame" }
-        ) do |form| %>
-          <div class="mb-3">
-            <%= form.label :question %>
-            <%= form.text_area :question, class: "w-100", maxlength: Game::MAX_QUESTION_LENGTH %>
-          </div>
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <h2 class="h5 text-primary mb-3">
+              <i class="bi bi-plus-circle me-2"></i>Start a New Round
+            </h2>
+            <%= form_with(
+              model: new_round,
+              scope: :round,
+              url: create_round_loaded_questions_game_path(game.slug),
+              data: { turbo_frame: "game_frame" }
+            ) do |form| %>
+              <div class="mb-3">
+                <%= form.label :question, "Your Question" %>
+                <%= form.text_area :question,
+                    maxlength: Game::MAX_QUESTION_LENGTH,
+                    rows: 3,
+                    placeholder: "Ask a question that will get interesting answers..." %>
+                <div class="form-text">
+                  <%= Game::MIN_QUESTION_LENGTH %>-<%= Game::MAX_QUESTION_LENGTH %> characters
+                </div>
+              </div>
 
-          <%= form.submit "Create Next Turn", class: "w-100" %>
-        <% end %>
+              <%= form.submit "Create Next Turn", class: "w-100" %>
+            <% end %>
+          </div>
+        </div>
       <% end %>
     </div>
 

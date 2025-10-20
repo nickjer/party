@@ -2,7 +2,7 @@
 <%= render "loaded_questions/games/player_stream", current_player: %>
 
 <%= turbo_frame_tag "game_frame" do %>
-  <div class="d-flex flex-wrap align-items-start gap-2 mt-2">
+  <div class="d-flex flex-wrap flex-md-nowrap align-items-start gap-2 mt-2">
     <div class="flex-grow-1">
       <%= turbo_frame_tag "round_frame" do %>
         <%= render "loaded_questions/games/polling_guesser_frame", game:, guessing_round_form: %>

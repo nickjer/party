@@ -100,7 +100,7 @@ module LoadedQuestions
       get loaded_questions_game_path(game.slug)
 
       assert_response :success
-      assert_match(/Score =/, response.body)
+      assert_match(/Score:/, response.body)
       assert_not_dom "textarea[name='player[answer]']"
       assert_not_dom "button", text: "Begin Guessing"
       assert_not_dom "button", text: "Complete Matching"

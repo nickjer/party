@@ -1,17 +1,22 @@
 <%# locals: (guessed_answer:, gripper:) %>
-<div class="pt-2" data-swap-target="group">
-  <div class="fw-bold">
+<div class="mb-3" data-swap-target="group">
+  <div class="fw-bold text-secondary mb-1">
     <%= guessed_answer.player.name %>
   </div>
-  <div class="swap-item d-flex align-items-center gap-2 p-2 border border-secondary bg-light rounded"
-    data-id="<%= guessed_answer.player.id %>">
-    <% if gripper %>
-      <div>
-        <i class="bi bi-grip-vertical"></i>
+  <div class="card swap-item <%= "shadow-sm border-primary" if gripper %> <%= "bg-white" if gripper %> <%= "bg-light" unless gripper %>"
+    data-id="<%= guessed_answer.player.id %>"
+    <%= 'style="cursor: grab;"' if gripper %>>
+    <div class="card-body p-2">
+      <div class="d-flex align-items-center gap-2">
+        <% if gripper %>
+          <div class="text-primary">
+            <i class="bi bi-grip-vertical fs-4"></i>
+          </div>
+        <% end %>
+        <div class="flex-grow-1">
+          <%= guessed_answer.guessed_answer %>
+        </div>
       </div>
-    <% end %>
-    <span class="d-block small">
-      <%= guessed_answer.guessed_answer %>
-    </span>
+    </div>
   </div>
 </div>

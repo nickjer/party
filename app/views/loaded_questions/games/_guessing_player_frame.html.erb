@@ -1,7 +1,17 @@
 <%# locals: (game:) %>
 <%= render "loaded_questions/games/question_card", question: game.question %>
 
-<div id="answers" class="mt-2 px-2 pb-2 border rounded">
-  <%= render(partial: "loaded_questions/games/guessed_answer",
-    collection: game.guesses, as: :guessed_answer, locals: { gripper: false }) %>
+<div class="card shadow-sm">
+  <div class="card-body">
+    <h5 class="card-title text-info mb-3">
+      <i class="bi bi-hourglass-split me-2"></i>Guessing in Progress
+    </h5>
+    <p class="card-text text-muted mb-3">
+      <%= game.guesser.name %> is currently matching answers to players. Sit tight!
+    </p>
+    <div id="answers" class="border rounded p-2 bg-light">
+      <%= render(partial: "loaded_questions/games/guessed_answer",
+        collection: game.guesses, as: :guessed_answer, locals: { gripper: false }) %>
+    </div>
+  </div>
 </div>

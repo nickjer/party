@@ -14,6 +14,7 @@ module LoadedQuestions
 
     def initialize(player_name: nil, question: nil)
       @player_name = ::NormalizedString.new(player_name)
+      question ||= Questions.instance.question
       @question = ::NormalizedString.new(question)
       @errors = Errors.new
     end

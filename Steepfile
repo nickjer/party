@@ -10,6 +10,7 @@ target :app do
   check "app/lib"
 
   library "json"
+  library "yaml"
 
   configure_code_diagnostics(D::Ruby.all_error)
 

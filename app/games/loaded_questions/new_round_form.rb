@@ -8,6 +8,7 @@ module LoadedQuestions
 
     def initialize(game:, question: nil)
       @game = game
+      question ||= Questions.instance.question
       @question = ::NormalizedString.new(question)
       @errors = Errors.new
     end

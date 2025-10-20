@@ -1,0 +1,7 @@
+<%# locals: (game:, current_player:) %>
+<%= turbo_stream.update "players" do %>
+  <%= render(partial: "loaded_questions/players/player",
+    collection: game.players,
+    as: :player,
+    locals: { current_player: }) %>
+<% end %>

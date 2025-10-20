@@ -41,6 +41,11 @@ module LoadedQuestions
       player.save!
     end
 
+    def update_name(name)
+      player.name = name.to_s
+      player.save!
+    end
+
     def user = player.user
 
     private

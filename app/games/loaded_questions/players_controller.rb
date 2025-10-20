@@ -47,7 +47,22 @@ module LoadedQuestions
     end
 
     # PATCH/PUT /games/:game_id/player
-    def update; end
+    def update
+      game = Game.from_slug(params[:game_id])
+      current_player = game.player_for(current_user)
+      return redirect_to_new_player(game) if current_player.nil?
+
+      edit_player = EditPlayerForm.new(game:, current_player:,
+        name: update_player_params[:name])
+      if edit_player.valid?
+        current_player.update_name(edit_player.name)
+        Broadcast::PlayerNameUpdated.new(player_id: current_player.id).call
+        redirect_to_game(game)
+      else
+        render :edit, locals: { game:, current_player:, edit_player: },
+          status: :unprocessable_content
+      end
+    end
 
     # PATCH /games/:game_id/player/answer
     def answer
@@ -70,6 +85,10 @@ module LoadedQuestions
     private
 
     def new_player_params
+      params.expect(player: %w[name])
+    end
+
+    def update_player_params
       params.expect(player: %w[name])
     end
 

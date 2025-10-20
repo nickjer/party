@@ -140,5 +140,68 @@ module LoadedQuestions
 
       assert_redirected_to new_loaded_questions_game_player_path(game.slug)
     end
+
+    test "#update updates player name and redirects to game" do
+      game = create(:lq_game, player_names: %w[Alice Bob])
+      alice = game.players.find { |p| p.name.to_s == "Alice" }
+      sign_in(alice.user)
+
+      patch loaded_questions_game_player_path(game.slug), params: {
+        player: {
+          name: "Alicia"
+        }
+      }
+
+      assert_redirected_to loaded_questions_game_path(game.slug)
+      game = reload(game:)
+      updated_player = game.player_for(alice.user)
+      assert_equal "Alicia", updated_player.name.to_s
+    end
+
+    test "#update returns validation error for short name" do
+      game = create(:lq_game, player_names: %w[Alice Bob])
+      alice = game.players.find { |p| p.name.to_s == "Alice" }
+      sign_in(alice.user)
+
+      patch loaded_questions_game_player_path(game.slug), params: {
+        player: {
+          name: "Al"
+        }
+      }
+
+      assert_response :unprocessable_content
+      assert_dom "input[name='player[name]']"
+      assert_match(/is too short/, response.body)
+    end
+
+    test "#update returns validation error for duplicate name" do
+      game = create(:lq_game, player_names: %w[Alice Bob])
+      alice = game.players.find { |p| p.name.to_s == "Alice" }
+      sign_in(alice.user)
+
+      patch loaded_questions_game_player_path(game.slug), params: {
+        player: {
+          name: "bob"
+        }
+      }
+
+      assert_response :unprocessable_content
+      assert_dom "input[name='player[name]']"
+      assert_match(/has already been taken/, response.body)
+    end
+
+    test "#update redirects to new player when current player is nil" do
+      game = create(:lq_game)
+      user = create(:user)
+      sign_in(user)
+
+      patch loaded_questions_game_player_path(game.slug), params: {
+        player: {
+          name: "Charlie"
+        }
+      }
+
+      assert_redirected_to new_loaded_questions_game_player_path(game.slug)
+    end
   end
 end

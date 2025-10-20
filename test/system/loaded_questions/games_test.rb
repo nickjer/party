@@ -855,5 +855,205 @@ module LoadedQuestions
         assert_no_button "Begin Guessing"
       end
     end
+
+    test "players can edit their names with validation and broadcasts" do
+      # Create a new game with Bob as guesser
+      visit new_loaded_questions_game_path
+
+      fill_in "Your Name", with: "Bob"
+      fill_in "First Question", with: "What is your favorite color?"
+      click_on "Create New Game"
+
+      assert_text "Bob"
+      game_slug = current_path.split("/").last
+
+      # Charlie joins the game
+      using_session("charlie") do
+        visit new_loaded_questions_game_player_path(game_slug)
+        fill_in "Name", with: "Charlie"
+        click_on "Join Game"
+        assert_text "Charlie"
+      end
+
+      # Zoe joins the game
+      using_session("zoe") do
+        visit new_loaded_questions_game_player_path(game_slug)
+        fill_in "Name", with: "Zoe"
+        click_on "Join Game"
+        assert_text "Zoe"
+      end
+
+      # Charlie clicks the edit button
+      using_session("charlie") do
+        within("#players") do
+          # Find Charlie's player div and click the edit button
+          charlie_div = find("div[id^='player_']", text: "Charlie")
+          within(charlie_div) do
+            find("a[title='Edit name']").click
+          end
+        end
+
+        # Should see the edit form
+        assert_text "Edit Your Name", wait: 5
+        assert_field "Your Name", with: "Charlie"
+
+        # Try to change name to something too short
+        fill_in "Your Name", with: "Ch"
+        click_on "Update Name"
+
+        # Should see validation error
+        assert_text "is too short", wait: 5
+        assert_field "Your Name", with: "Ch"
+
+        # Try to change name to match Bob (case insensitive with emoji)
+        fill_in "Your Name", with: "bob 🎉"
+        click_on "Update Name"
+
+        # Should see validation error
+        assert_text "has already been taken", wait: 5
+        assert_field "Your Name", with: "bob 🎉"
+
+        # Change name successfully to Alice (sorts to beginning)
+        fill_in "Your Name", with: "Alice"
+        click_on "Update Name"
+
+        # Should be redirected back to game
+        assert_text "What is your favorite color?", wait: 5
+        assert_no_text "Edit Your Name"
+
+        # Verify player list is updated and sorted: Alice, Bob, Zoe
+        within("#players") do
+          player_divs = all("div[id^='player_']")
+          assert_equal 3, player_divs.length
+
+          within(player_divs[0]) do
+            assert_selector "span.fw-bold", text: "Alice"
+          end
+
+          within(player_divs[1]) do
+            assert_selector "span:not(.fw-bold)", text: "Bob"
+          end
+
+          within(player_divs[2]) do
+            assert_selector "span:not(.fw-bold)", text: "Zoe"
+          end
+        end
+      end
+
+      # Verify Bob sees the updated player list via broadcast
+      using_session("default") do
+        within("#players", wait: 5) do
+          player_divs = all("div[id^='player_']")
+          assert_equal 3, player_divs.length
+
+          within(player_divs[0]) do
+            assert_selector "span:not(.fw-bold)", text: "Alice"
+          end
+
+          within(player_divs[1]) do
+            assert_selector "span.fw-bold", text: "Bob"
+          end
+
+          within(player_divs[2]) do
+            assert_selector "span:not(.fw-bold)", text: "Zoe"
+          end
+        end
+      end
+
+      # Verify Zoe sees the updated player list via broadcast
+      using_session("zoe") do
+        within("#players", wait: 5) do
+          player_divs = all("div[id^='player_']")
+          assert_equal 3, player_divs.length
+
+          within(player_divs[0]) do
+            assert_selector "span:not(.fw-bold)", text: "Alice"
+          end
+
+          within(player_divs[1]) do
+            assert_selector "span:not(.fw-bold)", text: "Bob"
+          end
+
+          within(player_divs[2]) do
+            assert_selector "span.fw-bold", text: "Zoe"
+          end
+        end
+      end
+
+      # Now Zoe changes her name to Mia (sorts to middle)
+      using_session("zoe") do
+        within("#players") do
+          zoe_div = find("div[id^='player_']", text: "Zoe")
+          within(zoe_div) do
+            find("a[title='Edit name']").click
+          end
+        end
+
+        assert_text "Edit Your Name", wait: 5
+        fill_in "Your Name", with: "Mia"
+        click_on "Update Name"
+
+        # Should be redirected back to game
+        assert_text "What is your favorite color?", wait: 5
+
+        # Verify player list is updated and sorted: Alice, Bob, Mia
+        within("#players") do
+          player_divs = all("div[id^='player_']")
+          assert_equal 3, player_divs.length
+
+          within(player_divs[0]) do
+            assert_selector "span:not(.fw-bold)", text: "Alice"
+          end
+
+          within(player_divs[1]) do
+            assert_selector "span:not(.fw-bold)", text: "Bob"
+          end
+
+          within(player_divs[2]) do
+            assert_selector "span.fw-bold", text: "Mia"
+          end
+        end
+      end
+
+      # Verify Bob sees Mia's name change via broadcast
+      using_session("default") do
+        within("#players", wait: 5) do
+          player_divs = all("div[id^='player_']")
+          assert_equal 3, player_divs.length
+
+          within(player_divs[0]) do
+            assert_selector "span:not(.fw-bold)", text: "Alice"
+          end
+
+          within(player_divs[1]) do
+            assert_selector "span.fw-bold", text: "Bob"
+          end
+
+          within(player_divs[2]) do
+            assert_selector "span:not(.fw-bold)", text: "Mia"
+          end
+        end
+      end
+
+      # Verify Alice sees Mia's name change via broadcast
+      using_session("charlie") do
+        within("#players", wait: 5) do
+          player_divs = all("div[id^='player_']")
+          assert_equal 3, player_divs.length
+
+          within(player_divs[0]) do
+            assert_selector "span.fw-bold", text: "Alice"
+          end
+
+          within(player_divs[1]) do
+            assert_selector "span:not(.fw-bold)", text: "Bob"
+          end
+
+          within(player_divs[2]) do
+            assert_selector "span:not(.fw-bold)", text: "Mia"
+          end
+        end
+      end
+    end
   end
 end

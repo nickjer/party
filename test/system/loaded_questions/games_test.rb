@@ -286,12 +286,11 @@ module LoadedQuestions
         swap_items = all(".swap-item")
         assert_equal 2, swap_items.length
 
-        # Remember the original answer assignments (player names stay in
-        # same position)
+        # Remember the original answer assignments
         answer1_original = swap_items[0].text
         answer2_original = swap_items[1].text
 
-        # Drag the first swap item and drop it on the second to swap answers
+        # Always swap at least once to test the swap functionality
         swap_items[0].drag_to(swap_items[1])
 
         # Wait for swap to complete and persist
@@ -299,20 +298,16 @@ module LoadedQuestions
 
         # Verify the answers are now swapped visually
         swap_items_after = all(".swap-item")
-        assert_equal answer2_original, swap_items_after[0].text,
-          "First position should now have second answer"
-        assert_equal answer1_original, swap_items_after[1].text,
-          "Second position should now have first answer"
+        assert_equal answer2_original, swap_items_after[0].text
+        assert_equal answer1_original, swap_items_after[1].text
 
         # Refresh the page to verify swap persisted
         visit current_path
 
         # Verify the swapped order is maintained after refresh
         swap_items_refreshed = all(".swap-item")
-        assert_equal answer2_original, swap_items_refreshed[0].text,
-          "First position should still have second answer after refresh"
-        assert_equal answer1_original, swap_items_refreshed[1].text,
-          "Second position should still have first answer after refresh"
+        assert_equal answer2_original, swap_items_refreshed[0].text
+        assert_equal answer1_original, swap_items_refreshed[1].text
       end
 
       # Verify Alice (non-guesser) sees the swapped order via broadcast
@@ -323,13 +318,47 @@ module LoadedQuestions
         # Alice should see the same swapped order that Mia sees
         guessed_answers = all(".swap-item")
         assert_equal 2, guessed_answers.length
-        assert_equal answer2_original, guessed_answers[0].text,
-          "Alice should see swapped order - first position"
-        assert_equal answer1_original, guessed_answers[1].text,
-          "Alice should see swapped order - second position"
+        assert_equal answer2_original, guessed_answers[0].text
+        assert_equal answer1_original, guessed_answers[1].text
 
         # Alice should NOT see Complete Matching button (not the guesser)
         assert_no_button "Complete Matching"
+      end
+
+      # Verify Zoe (non-guesser) sees the swapped order via broadcast
+      using_session("zoe") do
+        # Wait for the broadcast to update Zoe's view
+        sleep 0.5
+
+        # Zoe should see the same swapped order
+        guessed_answers = all(".swap-item")
+        assert_equal 2, guessed_answers.length
+        assert_equal answer2_original, guessed_answers[0].text
+        assert_equal answer1_original, guessed_answers[1].text
+
+        # Zoe should NOT see Complete Matching button (not the guesser)
+        assert_no_button "Complete Matching"
+      end
+
+      # Back to Mia - swap again if needed to get correct matches
+      using_session("default") do
+        swap_items_current = all(".swap-item")
+
+        # Players are alphabetically sorted: Alice (index 0), Zoe (index 1)
+        # Alice should match with Blue, Zoe should match with Red
+        answer1 = swap_items_current[0].text
+        needs_second_swap = answer1 != "Blue"
+
+        if needs_second_swap
+          # Swap again to get correct matches
+          swap_items_current[0].drag_to(swap_items_current[1])
+          sleep 0.5
+        end
+
+        # Verify correct matches (Alice->Blue, Zoe->Red)
+        swap_items_final = all(".swap-item")
+        assert_equal "Blue", swap_items_final[0].text
+        assert_equal "Red", swap_items_final[1].text
       end
 
       # Complete the matching round
@@ -359,7 +388,18 @@ module LoadedQuestions
 
         # Extract the score from the card
         mia_score_text = find(".card-footer", text: /Score:/).text
-        assert_match(%r{Mia's Score:\s+\d+ / \d+}, mia_score_text)
+        assert_match(%r{Mia's Score:\s+2 / 2}, mia_score_text)
+
+        # Verify Mia's score badge in player list shows 2
+        within("#players") do
+          mia_div = find("div[id^='player_']", text: "Mia")
+          within(mia_div) do
+            assert_selector ".badge", text: "2"
+          end
+        end
+
+        # Mia (guesser) should NOT see "Create Next Turn" button
+        assert_no_link "Create Next Turn"
       end
 
       using_session("alice") do
@@ -377,12 +417,14 @@ module LoadedQuestions
 
         # Extract Alice's score text
         alice_score_text = find(".card-footer", text: /Score:/).text
+        assert_match(%r{Mia's Score:\s+2 / 2}, alice_score_text)
 
-        # Score should match what Mia saw
-        using_session("default") do
-          mia_score_text = find(".card-footer", text: /Score:/).text
-          assert_equal mia_score_text, alice_score_text,
-            "Alice should see same score as Mia"
+        # Verify Alice sees Mia's score badge as 2 in player list
+        within("#players") do
+          mia_div = find("div[id^='player_']", text: "Mia")
+          within(mia_div) do
+            assert_selector ".badge", text: "2"
+          end
         end
       end
 
@@ -401,12 +443,14 @@ module LoadedQuestions
 
         # Extract Zoe's score text
         zoe_score_text = find(".card-footer", text: /Score:/).text
+        assert_match(%r{Mia's Score:\s+2 / 2}, zoe_score_text)
 
-        # Score should match what Mia saw
-        using_session("default") do
-          mia_score_text = find(".card-footer", text: /Score:/).text
-          assert_equal mia_score_text, zoe_score_text,
-            "Zoe should see same score as Mia"
+        # Verify Zoe sees Mia's score badge as 2 in player list
+        within("#players") do
+          mia_div = find("div[id^='player_']", text: "Mia")
+          within(mia_div) do
+            assert_selector ".badge", text: "2"
+          end
         end
       end
 

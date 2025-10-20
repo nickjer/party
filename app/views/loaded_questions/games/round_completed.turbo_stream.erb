@@ -2,3 +2,7 @@
 <%= turbo_stream.update "round_frame" do %>
   <%= render "loaded_questions/games/completed_frame", game:, current_player: %>
 <% end %>
+
+<%= turbo_stream.replace dom_id(game.guesser) do %>
+  <%= render "loaded_questions/players/player", player: game.guesser, current_player: %>
+<% end %>

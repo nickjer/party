@@ -41,7 +41,8 @@
       <%= button_to("Yes, I am sure",
         completed_round_loaded_questions_game_path(game.slug),
         method: :patch,
-        class: "btn btn-primary") %>
+        class: "btn btn-primary",
+        data: { turbo_frame: "game_frame" }) %>
     </div>
   </dialog>
 </div>

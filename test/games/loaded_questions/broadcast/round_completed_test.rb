@@ -16,8 +16,8 @@ module LoadedQuestions
         # Mark non-guesser as online
         ::PlayerConnections.instance.increment(non_guesser.id)
 
-        # Should broadcast to non-guesser
-        assert_turbo_stream_broadcasts non_guesser.to_model, count: 1 do
+        # Should broadcast to non-guesser (round_frame + guesser player div)
+        assert_turbo_stream_broadcasts non_guesser.to_model, count: 2 do
           RoundCompleted.new(game_id: game.id).call
         end
       end
@@ -55,10 +55,10 @@ module LoadedQuestions
         # Mark non-guessers as online
         non_guessers.each { |p| ::PlayerConnections.instance.increment(p.id) }
 
-        # Should broadcast to all non-guessers
-        assert_turbo_stream_broadcasts non_guessers.first.to_model, count: 1 do
+        # Should broadcast to all non-guessers (round_frame + guesser player div)
+        assert_turbo_stream_broadcasts non_guessers.first.to_model, count: 2 do
           assert_turbo_stream_broadcasts non_guessers.second.to_model,
-            count: 1 do
+            count: 2 do
             RoundCompleted.new(game_id: game.id).call
           end
         end
@@ -67,6 +67,7 @@ module LoadedQuestions
       test "#call broadcasts update turbo stream action" do
         game = create(:lq_completed_game, player_names: %w[Alice Bob])
         non_guesser = game.players.reject(&:guesser?).first
+        guesser = game.players.find(&:guesser?)
 
         ::PlayerConnections.instance.increment(non_guesser.id)
 
@@ -74,9 +75,11 @@ module LoadedQuestions
           RoundCompleted.new(game_id: game.id).call
         end
 
-        assert_equal 1, turbo_streams.size
+        assert_equal 2, turbo_streams.size
         assert_equal "update", turbo_streams[0]["action"]
         assert_equal "round_frame", turbo_streams[0]["target"]
+        assert_equal "replace", turbo_streams[1]["action"]
+        assert_equal "player_#{guesser.id}", turbo_streams[1]["target"]
       end
     end
   end

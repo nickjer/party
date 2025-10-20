@@ -5,7 +5,8 @@ module LoadedQuestions
   # player and question.
   class CreateNewGame
     def initialize(user:, player_name:, question:)
-      @player = NewPlayer.new(user:, name: player_name, guesser: true)
+      @user = user
+      @player_name = player_name
       @question = question
     end
 
@@ -13,16 +14,29 @@ module LoadedQuestions
       game = ::Game.new
       game.kind = :loaded_questions
       game.document = document.to_json
-      game.players = [player.build]
       game.slug = ::SecureRandom.alphanumeric(6)
-      game.save!
+
+      ::Game.transaction do
+        game.save!
+
+        CreateNewPlayer.new(
+          game_id: game.id,
+          user:,
+          name: player_name,
+          guesser: true
+        ).call
+      end
+
       game
     end
 
     private
 
-    # @dynamic player
-    attr_reader :player
+    # @dynamic user
+    attr_reader :user
+
+    # @dynamic player_name
+    attr_reader :player_name
 
     # @dynamic question
     attr_reader :question

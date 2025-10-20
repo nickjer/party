@@ -33,6 +33,8 @@ module LoadedQuestions
 
     def game_slug = game.slug
 
+    def score = document.fetch(:score)
+
     def to_model = player
 
     def update_answer(answer)

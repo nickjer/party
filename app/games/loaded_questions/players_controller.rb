@@ -24,9 +24,11 @@ module LoadedQuestions
         name: new_player_params[:name])
 
       if new_player.valid?
-        player = NewPlayer.from(new_player).build
-        player.game_id = game.id
-        player.save!
+        player = CreateNewPlayer.new(
+          game_id: game.id,
+          user: current_user,
+          name: new_player.name
+        ).call
 
         Broadcast::PlayerCreated.new(player_id: player.id).call
 

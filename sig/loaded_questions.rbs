@@ -247,7 +247,8 @@ module LoadedQuestions
 
     private
 
-    attr_reader player: NewPlayer
+    attr_reader user: ::User
+    attr_reader player_name: ::NormalizedString
     attr_reader question: ::NormalizedString
 
     def document: () -> Game::document
@@ -269,7 +270,7 @@ module LoadedQuestions
     attr_reader question: ::NormalizedString
 
     def game_document: () -> Game::document
-    def player_document: (::Player player_model) -> Player::document
+    def player_document: (Player player) -> Player::document
   end
 
   class NewGameForm
@@ -304,15 +305,14 @@ module LoadedQuestions
     def validate_length: (::NormalizedString value, min: Integer, max: Integer) -> String?
   end
 
-  class NewPlayer
-    def self.from: (NewPlayerForm form, ?guesser: bool) -> NewPlayer
+  class CreateNewPlayer
+    def initialize: (game_id: Integer, user: ::User, name: ::NormalizedString, ?guesser: bool) -> void
 
-    def initialize: (user: ::User, name: ::NormalizedString, guesser: bool) -> void
-
-    def build: () -> ::Player
+    def call: () -> ::Player
 
     private
 
+    attr_reader game_id: Integer
     attr_reader guesser: bool
     attr_reader name: ::NormalizedString
     attr_reader user: ::User
@@ -356,6 +356,7 @@ module LoadedQuestions
       active: bool,
       answer: String,
       guesser: bool,
+      score: Integer
     }
     type document = json_document
 
@@ -373,6 +374,7 @@ module LoadedQuestions
     def name: () -> ::NormalizedString
     def online?: () -> bool
     def game_slug: () -> String
+    def score: () -> Integer
     def to_model: () -> ::Player
     def update_answer: (::NormalizedString answer) -> void
     def update_name: (::NormalizedString name) -> void

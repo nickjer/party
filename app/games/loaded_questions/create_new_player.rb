@@ -1,33 +1,29 @@
 # frozen_string_literal: true
 
 module LoadedQuestions
-  # Builder object for constructing new players joining a Loaded Questions game.
-  class NewPlayer
-    class << self
-      def from(new_player_form, guesser: false)
-        new(
-          user: new_player_form.user,
-          name: new_player_form.name,
-          guesser:
-        )
-      end
-    end
-
-    def initialize(user:, name:, guesser:)
+  # Builder object for creating new players joining a Loaded Questions game.
+  class CreateNewPlayer
+    def initialize(game_id:, user:, name:, guesser: false)
+      @game_id = game_id
       @user = user
       @name = name
       @guesser = guesser
     end
 
-    def build
+    def call
       player = ::Player.new
+      player.game_id = game_id
       player.user = user
       player.name = name
       player.document = document.to_json
+      player.save!
       player
     end
 
     private
+
+    # @dynamic game_id
+    attr_reader :game_id
 
     # @dynamic guesser
     attr_reader :guesser
@@ -42,7 +38,8 @@ module LoadedQuestions
       {
         active: true,
         answer: "",
-        guesser:
+        guesser:,
+        score: 0
       }
     end
   end

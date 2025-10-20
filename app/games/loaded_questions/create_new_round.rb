@@ -14,14 +14,17 @@ module LoadedQuestions
       game_model.document = game_document.to_json
 
       # Update all player documents
-      game_model.players.each do |player_model|
-        player_model.document = player_document(player_model).to_json
-      end
+      player_models =
+        game.players.map do |player|
+          player_model = player.to_model
+          player_model.document = player_document(player).to_json
+          player_model
+        end
 
       # Save all changes in a transaction
       ::ActiveRecord::Base.transaction do
         game_model.save!
-        game_model.players.each(&:save!)
+        player_models.each(&:save!)
       end
 
       game
@@ -40,11 +43,12 @@ module LoadedQuestions
       }
     end
 
-    def player_document(player_model)
+    def player_document(player)
       {
         active: true,
         answer: "",
-        guesser: (player_model.id == guesser.id)
+        guesser: (player.id == guesser.id),
+        score: player.score
       }
     end
   end

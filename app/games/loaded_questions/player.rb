@@ -48,6 +48,12 @@ module LoadedQuestions
       player.save!
     end
 
+    def update_score(new_score)
+      document[:score] = new_score
+      player.document = document.to_json
+      player.save!
+    end
+
     def user = player.user
 
     private

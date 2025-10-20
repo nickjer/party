@@ -378,6 +378,7 @@ module LoadedQuestions
     def to_model: () -> ::Player
     def update_answer: (::NormalizedString answer) -> void
     def update_name: (::NormalizedString name) -> void
+    def update_score: (Integer new_score) -> void
     def user: () -> ::User
 
     private

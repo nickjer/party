@@ -64,8 +64,8 @@ module LoadedQuestions
       if status.polling? && new_status.guessing?
         participants = players.select(&:answered?)
         shuffled_participants = participants.shuffle
-        # @type var guesses: Array[json_guessed_answer]
-        guesses =
+        # @type var guess_pairs: Array[json_guessed_answer]
+        guess_pairs =
           participants.zip(shuffled_participants)
             .map do |participant, guessed_participant|
               raise "Guessed participant is missing" unless guessed_participant
@@ -73,7 +73,12 @@ module LoadedQuestions
               { player_id: participant.id,
                 guessed_player_id: guessed_participant.id }
             end
-        document[:guesses] = guesses
+        document[:guesses] = guess_pairs
+      elsif status.guessing? && new_status.completed?
+        round_score = guesses.score
+        current_guesser = guesser
+        new_total_score = current_guesser.score + round_score
+        current_guesser.update_score(new_total_score)
       end
 
       document[:status] = new_status.to_s

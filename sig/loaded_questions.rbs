@@ -327,6 +327,21 @@ module LoadedQuestions
     def validate_length: (::NormalizedString value, min: Integer, max: Integer) -> String?
   end
 
+  class EditPlayerForm
+    attr_reader errors: ::Errors
+    attr_reader game: Game
+    attr_reader current_player: Player
+    attr_reader name: ::NormalizedString
+
+    def initialize: (game: Game, current_player: Player, ?name: _ToS?) -> void
+
+    def valid?: () -> bool
+
+    private
+
+    def validate_length: (::NormalizedString value, min: Integer, max: Integer) -> String?
+  end
+
   class Player
     type json_document = {
       active: bool,
@@ -348,6 +363,7 @@ module LoadedQuestions
     def id: () -> Integer
     def name: () -> ::NormalizedString
     def online?: () -> bool
+    def game_slug: () -> String
     def to_model: () -> ::Player
     def update_answer: (::NormalizedString answer) -> void
     def user: () -> ::User

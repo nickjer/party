@@ -31,6 +31,8 @@ module LoadedQuestions
 
     def online? = player.online?
 
+    def game_slug = game.slug
+
     def to_model = player
 
     def update_answer(answer)

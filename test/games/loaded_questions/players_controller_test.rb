@@ -107,5 +107,38 @@ module LoadedQuestions
       assert_response :redirect
       assert_redirected_to loaded_questions_game_path(game.slug)
     end
+
+    test "#edit renders edit player form for current player" do
+      game = create(:lq_game)
+      guesser = game.players.find(&:guesser?)
+      sign_in(guesser.user)
+
+      get edit_loaded_questions_game_player_path(game.slug)
+
+      assert_response :success
+      assert_dom "input[name='player[name]']"
+      assert_dom "input[type='submit'][value='Update Name']"
+    end
+
+    test "#edit populates form with current player name" do
+      game = create(:lq_game, player_names: %w[Alice Bob])
+      alice = game.players.find { |p| p.name.to_s == "Alice" }
+      sign_in(alice.user)
+
+      get edit_loaded_questions_game_player_path(game.slug)
+
+      assert_response :success
+      assert_dom "input[name='player[name]'][value='Alice']"
+    end
+
+    test "#edit redirects to new player when current player is nil" do
+      game = create(:lq_game)
+      user = create(:user)
+      sign_in(user)
+
+      get edit_loaded_questions_game_player_path(game.slug)
+
+      assert_redirected_to new_loaded_questions_game_player_path(game.slug)
+    end
   end
 end

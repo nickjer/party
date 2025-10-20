@@ -1,3 +1,40 @@
-<%# locals: () %>
-<h1>LoadedQuestions::Players#edit</h1>
-<p>Find me in app/views/loaded_questions/players/edit.html.erb</p>
+<%# locals: (game:, current_player:, edit_player:) %>
+<%= render "loaded_questions/games/player_stream", current_player: %>
+
+<%= turbo_frame_tag "game_frame" do %>
+  <div class="d-flex flex-wrap flex-md-nowrap align-items-start gap-2 mt-2">
+    <div class="flex-grow-1">
+      <%= turbo_frame_tag "round_frame" do %>
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <h2 class="h5 text-primary mb-3">
+              <i class="bi bi-pencil me-2"></i>Edit Your Name
+            </h2>
+            <%= form_with(
+              model: edit_player,
+              scope: :player,
+              url: loaded_questions_game_player_path(game.slug),
+              method: :patch,
+              data: { turbo_frame: "round_frame" }
+            ) do |form| %>
+              <div class="mb-3">
+                <%= form.label :name, "Your Name" %>
+                <%= form.text_field :name,
+                    maxlength: Player::MAX_NAME_LENGTH,
+                    placeholder: "Enter your name",
+                    autofocus: true %>
+                <div class="form-text">
+                  <%= Player::MIN_NAME_LENGTH %>-<%= Player::MAX_NAME_LENGTH %> characters
+                </div>
+              </div>
+
+              <%= form.submit "Update Name", class: "w-100" %>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+
+    <%= render "loaded_questions/games/players_list", players: game.players, current_player: %>
+  </div>
+<% end %>

@@ -37,7 +37,14 @@ module LoadedQuestions
     end
 
     # GET /games/:game_id/player/edit
-    def edit; end
+    def edit
+      game = Game.from_slug(params[:game_id])
+      current_player = game.player_for(current_user)
+      return redirect_to_new_player(game) if current_player.nil?
+
+      edit_player = EditPlayerForm.new(game:, current_player:)
+      render :edit, locals: { game:, current_player:, edit_player: }
+    end
 
     # PATCH/PUT /games/:game_id/player
     def update; end

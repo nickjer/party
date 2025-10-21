@@ -45,6 +45,38 @@ module LoadedQuestions
 
         assert_match(/Player 999999 not found/, error.message)
       end
+
+      test "#initialize raises error when duplicate player found" do
+        game = create(:lq_matching_game, player_names: %w[Alice Bob])
+        player1, player2 = game.players.reject(&:guesser?)
+
+        guesses = [
+          Game::GuessedAnswer.new(player: player1, guessed_player: player1),
+          Game::GuessedAnswer.new(player: player1, guessed_player: player2)
+        ]
+
+        error = assert_raises(RuntimeError) do
+          Game::Guesses.new(guesses:)
+        end
+
+        assert_equal "Duplicate player found in guesses", error.message
+      end
+
+      test "#initialize raises error when duplicate guessed player found" do
+        game = create(:lq_matching_game, player_names: %w[Alice Bob])
+        player1, player2 = game.players.reject(&:guesser?)
+
+        guesses = [
+          Game::GuessedAnswer.new(player: player1, guessed_player: player1),
+          Game::GuessedAnswer.new(player: player2, guessed_player: player1)
+        ]
+
+        error = assert_raises(RuntimeError) do
+          Game::Guesses.new(guesses:)
+        end
+
+        assert_equal "Duplicate guessed player found in guesses", error.message
+      end
     end
   end
 end

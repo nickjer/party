@@ -70,7 +70,10 @@ module LoadedQuestions
     end
 
     def save!
-      model.save! if model.changed?
+      ::Game.transaction do
+        model.save! if model.changed?
+        players.each(&:save!)
+      end
     end
 
     def status
@@ -87,33 +90,6 @@ module LoadedQuestions
     def swap_guesses(player_id1:, player_id2:)
       guesses.swap(player_id1:, player_id2:)
       model.document = document.to_json
-    end
-
-    def update_status(new_status)
-      if status.polling? && new_status.guessing?
-        participants = players.select(&:answered?)
-        shuffled_participants = participants.shuffle
-        # @type var guess_pairs: Array[json_guessed_answer]
-        guess_pairs =
-          participants.zip(shuffled_participants)
-            .map do |participant, guessed_participant|
-              raise "Guessed participant is missing" unless guessed_participant
-
-              { player_id: participant.id,
-                guessed_player_id: guessed_participant.id }
-            end
-        json_document[:guesses] = guess_pairs
-      elsif status.guessing? && new_status.completed?
-        round_score = guesses.score
-        current_guesser = guesser
-        new_total_score = current_guesser.score + round_score
-        current_guesser.score = new_total_score
-        current_guesser.save!
-      end
-
-      json_document[:status] = new_status.to_s
-      model.document = json_document.to_json
-      model.save!
     end
 
     private

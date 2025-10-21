@@ -52,7 +52,6 @@ module LoadedQuestions
     def status=: (Status new_status) -> void
     def swap_guesses: (player_id1: Integer, player_id2: Integer) -> void
     def to_model: () -> ::Game
-    def update_status: (Status status) -> void
 
     private
 
@@ -83,6 +82,9 @@ module LoadedQuestions
 
       # @dynamic guesses
       attr_reader guesses: Array[GuessedAnswer]
+
+      def validate_unique_players!: () -> void
+      def validate_unique_guessed_players!: () -> void
     end
 
     class GuessedAnswer
@@ -259,6 +261,26 @@ module LoadedQuestions
     attr_reader question: ::NormalizedString
 
     def document: () -> Game::document
+  end
+
+  class BeginGuessingRound
+    def initialize: (game: Game) -> void
+
+    def call: () -> Game
+
+    private
+
+    attr_reader game: Game
+  end
+
+  class CompleteRound
+    def initialize: (game: Game) -> void
+
+    def call: () -> Game
+
+    private
+
+    attr_reader game: Game
   end
 
   class CreateNewRound

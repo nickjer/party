@@ -22,7 +22,11 @@ module LoadedQuestions
 
       include Enumerable
 
-      def initialize(guesses:) = @guesses = guesses
+      def initialize(guesses:)
+        @guesses = guesses
+        validate_unique_players!
+        validate_unique_guessed_players!
+      end
 
       def each(&)
         guesses.each(&)
@@ -72,6 +76,20 @@ module LoadedQuestions
 
       # @dynamic guesses
       attr_reader :guesses
+
+      def validate_unique_players!
+        players = guesses.map(&:player)
+        return if players.uniq.size == players.size
+
+        raise "Duplicate player found in guesses"
+      end
+
+      def validate_unique_guessed_players!
+        guessed_players = guesses.map(&:guessed_player)
+        return if guessed_players.uniq.size == guessed_players.size
+
+        raise "Duplicate guessed player found in guesses"
+      end
     end
   end
 end

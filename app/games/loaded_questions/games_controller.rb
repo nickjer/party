@@ -108,7 +108,8 @@ module LoadedQuestions
 
       completed_round_form = CompletedRoundForm.new(game:)
       if completed_round_form.valid?
-        game.update_status(Game::Status.completed)
+        CompleteRound.new(game:).call
+        game.save!
         Broadcast::RoundCompleted.new(game_id: game.id).call
         render :completed, locals: { game:, current_player: }
       else
@@ -125,7 +126,8 @@ module LoadedQuestions
 
       guessing_round_form = GuessingRoundForm.new(game:)
       if guessing_round_form.valid?
-        game.update_status(Game::Status.guessing)
+        BeginGuessingRound.new(game:).call
+        game.save!
         Broadcast::GuessingRoundStarted.new(game_id: game.id).call
         render :guessing_guesser, locals: { game:, current_player: }
       else

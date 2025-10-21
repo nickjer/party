@@ -69,7 +69,8 @@ FactoryBot.define do
 
         # Transition to guessing status
         game = LoadedQuestions::Game.find(game.id)
-        game.update_status(LoadedQuestions::Game::Status.guessing)
+        LoadedQuestions::BeginGuessingRound.new(game:).call
+        game.save!
 
         LoadedQuestions::Game.find(game.id)
       end
@@ -83,7 +84,8 @@ FactoryBot.define do
 
         # Transition to completed status
         game = LoadedQuestions::Game.find(game.id)
-        game.update_status(LoadedQuestions::Game::Status.completed)
+        LoadedQuestions::CompleteRound.new(game:).call
+        game.save!
 
         LoadedQuestions::Game.find(game.id)
       end

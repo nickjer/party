@@ -20,10 +20,10 @@ module LoadedQuestions
       user = create(:user)
       sign_in(user)
 
-      get loaded_questions_game_path(game.slug)
+      get loaded_questions_game_path(game.id)
 
       assert_response :redirect
-      assert_redirected_to new_loaded_questions_game_player_path(game.slug)
+      assert_redirected_to new_loaded_questions_game_player_path(game.id)
     end
 
     test "#show renders polling_guesser when polling and guesser" do
@@ -34,7 +34,7 @@ module LoadedQuestions
       assert_predicate game.status, :polling?
       assert_predicate guesser, :guesser?
 
-      get loaded_questions_game_path(game.slug)
+      get loaded_questions_game_path(game.id)
 
       assert_response :success
       assert_dom "button", text: "Begin Guessing"
@@ -50,7 +50,7 @@ module LoadedQuestions
       assert_predicate game.status, :polling?
       assert_not_predicate non_guesser, :guesser?
 
-      get loaded_questions_game_path(game.slug)
+      get loaded_questions_game_path(game.id)
 
       assert_response :success
       assert_dom "textarea[name='player[answer]']"
@@ -66,7 +66,7 @@ module LoadedQuestions
       assert_predicate game.status, :guessing?
       assert_predicate guesser, :guesser?
 
-      get loaded_questions_game_path(game.slug)
+      get loaded_questions_game_path(game.id)
 
       assert_response :success
       assert_dom "button", text: "Complete Matching"
@@ -82,7 +82,7 @@ module LoadedQuestions
       assert_predicate game.status, :guessing?
       assert_not_predicate non_guesser, :guesser?
 
-      get loaded_questions_game_path(game.slug)
+      get loaded_questions_game_path(game.id)
 
       assert_response :success
       assert_not_dom "textarea[name='player[answer]']"
@@ -97,7 +97,7 @@ module LoadedQuestions
 
       assert_predicate game.status, :completed?
 
-      get loaded_questions_game_path(game.slug)
+      get loaded_questions_game_path(game.id)
 
       assert_response :success
       assert_match(/Score:/, response.body)
@@ -118,7 +118,7 @@ module LoadedQuestions
       sign_in(guesser.user)
 
       # Make request to complete round
-      patch completed_round_loaded_questions_game_path(game.slug)
+      patch completed_round_loaded_questions_game_path(game.id)
 
       # Verify successful response
       assert_response :success
@@ -140,7 +140,7 @@ module LoadedQuestions
       sign_in(guesser.user)
 
       # Try to complete round while still in polling phase
-      patch completed_round_loaded_questions_game_path(game.slug)
+      patch completed_round_loaded_questions_game_path(game.id)
 
       # Verify unprocessable_content response
       assert_response :unprocessable_content
@@ -159,7 +159,7 @@ module LoadedQuestions
       sign_in(non_guesser.user)
 
       # Try to complete round as non-guesser
-      patch completed_round_loaded_questions_game_path(game.slug)
+      patch completed_round_loaded_questions_game_path(game.id)
 
       # Verify forbidden response
       assert_response :forbidden
@@ -218,7 +218,7 @@ module LoadedQuestions
       non_guesser = game.players.reject(&:guesser?).first
       sign_in(non_guesser.user)
 
-      post create_round_loaded_questions_game_path(game.slug), params: {
+      post create_round_loaded_questions_game_path(game.id), params: {
         round: {
           question: "What is your favorite food?"
         }
@@ -235,7 +235,7 @@ module LoadedQuestions
       non_guesser = game.players.reject(&:guesser?).first
       sign_in(non_guesser.user)
 
-      post create_round_loaded_questions_game_path(game.slug), params: {
+      post create_round_loaded_questions_game_path(game.id), params: {
         round: {
           question: "ab"
         }
@@ -254,7 +254,7 @@ module LoadedQuestions
       sign_in(guesser.user)
 
       # Try to create new round as guesser
-      post create_round_loaded_questions_game_path(game.slug), params: {
+      post create_round_loaded_questions_game_path(game.id), params: {
         round: {
           question: "New question?"
         }
@@ -276,7 +276,7 @@ module LoadedQuestions
       sign_in(non_guesser.user)
 
       # Try to start guessing round as non-guesser
-      patch guessing_round_loaded_questions_game_path(game.slug)
+      patch guessing_round_loaded_questions_game_path(game.id)
 
       # Verify forbidden response
       assert_response :forbidden
@@ -289,7 +289,7 @@ module LoadedQuestions
 
       assert_predicate game.status, :polling?
 
-      patch guessing_round_loaded_questions_game_path(game.slug)
+      patch guessing_round_loaded_questions_game_path(game.id)
 
       assert_response :success
       game = reload(game:)
@@ -304,7 +304,7 @@ module LoadedQuestions
 
       assert_predicate game.status, :polling?
 
-      patch guessing_round_loaded_questions_game_path(game.slug)
+      patch guessing_round_loaded_questions_game_path(game.id)
 
       assert_response :unprocessable_content
       assert_match(/Not enough players have answered/, response.body)
@@ -319,7 +319,7 @@ module LoadedQuestions
       sign_in(guesser.user)
 
       # Try to access new_round as guesser
-      get new_round_loaded_questions_game_path(game.slug)
+      get new_round_loaded_questions_game_path(game.id)
 
       # Verify forbidden response
       assert_response :forbidden
@@ -330,7 +330,7 @@ module LoadedQuestions
       non_guesser = game.players.reject(&:guesser?).first
       sign_in(non_guesser.user)
 
-      get new_round_loaded_questions_game_path(game.slug)
+      get new_round_loaded_questions_game_path(game.id)
 
       assert_response :success
       assert_dom "textarea[name='round[question]']"
@@ -345,7 +345,7 @@ module LoadedQuestions
       guess1_guessed_answer_before = guess1.guessed_answer
       guess2_guessed_answer_before = guess2.guessed_answer
 
-      patch swap_guesses_loaded_questions_game_path(game.slug), params: {
+      patch swap_guesses_loaded_questions_game_path(game.id), params: {
         guess_swapper: {
           guess_id: guess1.player.id,
           swap_guess_id: guess2.player.id
@@ -370,7 +370,7 @@ module LoadedQuestions
 
       # Try to swap guesses as non-guesser
       guess1, guess2 = game.guesses.to_a
-      patch swap_guesses_loaded_questions_game_path(game.slug), params: {
+      patch swap_guesses_loaded_questions_game_path(game.id), params: {
         guess_swapper: {
           guess_id: guess1.player.id,
           swap_guess_id: guess2.player.id
@@ -394,7 +394,7 @@ module LoadedQuestions
 
       # Try to swap guesses while still in polling phase
       non_guessers = game.players.reject(&:guesser?)
-      patch swap_guesses_loaded_questions_game_path(game.slug), params: {
+      patch swap_guesses_loaded_questions_game_path(game.id), params: {
         guess_swapper: {
           guess_id: non_guessers[0].id,
           swap_guess_id: non_guessers[1].id

@@ -9,7 +9,7 @@ module LoadedQuestions
       end
 
       def call
-        game = Game.from_id(game_id)
+        game = Game.find(game_id)
 
         PlayerChannel.broadcast_to(game.players) do |current_player|
           next if current_player.guesser?

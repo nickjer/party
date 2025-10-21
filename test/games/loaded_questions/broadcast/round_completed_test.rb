@@ -55,7 +55,7 @@ module LoadedQuestions
         # Mark non-guessers as online
         non_guessers.each { |p| ::PlayerConnections.instance.increment(p.id) }
 
-        # Should broadcast to all non-guessers (round_frame + guesser player div)
+        # Should broadcast to all non-guessers (round_frame + guesser player)
         assert_turbo_stream_broadcasts non_guessers.first.to_model, count: 2 do
           assert_turbo_stream_broadcasts non_guessers.second.to_model,
             count: 2 do

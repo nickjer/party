@@ -38,7 +38,7 @@
         <button type="button" class="btn btn-secondary" data-action="dialog#close">
           Close
         </button>
-        <%= form_with(model: guessing_round_form, scope: :game, url: guessing_round_loaded_questions_game_path(game.slug), method: :patch) do |form| %>
+        <%= form_with(model: guessing_round_form, scope: :game, url: guessing_round_loaded_questions_game_path(game.id), method: :patch) do |form| %>
           <%= form.submit "Yes, I am ready", class: "btn btn-primary" %>
         <% end %>
       </div>

@@ -22,8 +22,6 @@ module LoadedQuestions
       @errors = Errors.new
     end
 
-    def game_slug = game.slug
-
     def valid?
       min = ::Player::MIN_NAME_LENGTH
       max = ::Player::MAX_NAME_LENGTH

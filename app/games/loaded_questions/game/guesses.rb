@@ -6,7 +6,7 @@ module LoadedQuestions
     class Guesses
       class << self
         def parse(guesses, players:)
-          player_map = players.index_by(&:id) #: Hash[Integer, Player]
+          player_map = players.index_by(&:id) #: Hash[String, Player]
           guesses = guesses
             .map do |guessed_answer|
               GuessedAnswer.new(

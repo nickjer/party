@@ -44,7 +44,7 @@ module ActiveSupport
     end
 
     def reload(game:)
-      game.class.from_id(game.id)
+      game.class.find(game.id)
     end
   end
 end

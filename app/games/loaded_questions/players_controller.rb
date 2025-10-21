@@ -6,7 +6,7 @@ module LoadedQuestions
   class PlayersController < ApplicationController
     # GET /games/:game_id/player/new
     def new
-      game = Game.from_slug(params[:game_id])
+      game = Game.find(params[:game_id])
       current_player = game.player_for(current_user)
 
       if current_player
@@ -19,7 +19,7 @@ module LoadedQuestions
 
     # POST /games/:game_id/player
     def create
-      game = Game.from_slug(params[:game_id])
+      game = Game.find(params[:game_id])
       new_player = NewPlayerForm.new(game:, user: current_user,
         name: new_player_params[:name])
 
@@ -40,7 +40,7 @@ module LoadedQuestions
 
     # GET /games/:game_id/player/edit
     def edit
-      game = Game.from_slug(params[:game_id])
+      game = Game.find(params[:game_id])
       current_player = game.player_for(current_user)
       return redirect_to_new_player(game) if current_player.nil?
 
@@ -50,7 +50,7 @@ module LoadedQuestions
 
     # PATCH/PUT /games/:game_id/player
     def update
-      game = Game.from_slug(params[:game_id])
+      game = Game.find(params[:game_id])
       current_player = game.player_for(current_user)
       return redirect_to_new_player(game) if current_player.nil?
 
@@ -68,7 +68,7 @@ module LoadedQuestions
 
     # PATCH /games/:game_id/player/answer
     def answer
-      game = Game.from_slug(params[:game_id])
+      game = Game.find(params[:game_id])
       current_player = game.player_for(current_user)
       return redirect_to_new_player(game) if current_player.nil?
 
@@ -99,11 +99,11 @@ module LoadedQuestions
     end
 
     def redirect_to_game(game)
-      redirect_to(loaded_questions_game_path(game.slug))
+      redirect_to(loaded_questions_game_path(game.id))
     end
 
     def redirect_to_new_player(game)
-      redirect_to(new_loaded_questions_game_player_path(game.slug))
+      redirect_to(new_loaded_questions_game_player_path(game.id))
     end
   end
 end

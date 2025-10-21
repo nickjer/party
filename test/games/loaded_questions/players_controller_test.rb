@@ -11,7 +11,7 @@ module LoadedQuestions
 
       assert_predicate bob.answer, :blank?
 
-      patch answer_loaded_questions_game_player_path(game.slug), params: {
+      patch answer_loaded_questions_game_player_path(game.id), params: {
         player: {
           answer: "My answer"
         }
@@ -28,7 +28,7 @@ module LoadedQuestions
       bob = create(:lq_player, game:)
       sign_in(bob.user)
 
-      patch answer_loaded_questions_game_player_path(game.slug), params: {
+      patch answer_loaded_questions_game_player_path(game.id), params: {
         player: {
           answer: "A"
         }
@@ -44,13 +44,13 @@ module LoadedQuestions
       user = create(:user)
       sign_in(user)
 
-      patch answer_loaded_questions_game_player_path(game.slug), params: {
+      patch answer_loaded_questions_game_player_path(game.id), params: {
         player: {
           answer: "My answer"
         }
       }
 
-      assert_redirected_to new_loaded_questions_game_player_path(game.slug)
+      assert_redirected_to new_loaded_questions_game_player_path(game.id)
     end
 
     test "#create creates player and redirects to game" do
@@ -59,7 +59,7 @@ module LoadedQuestions
       sign_in(user)
 
       assert_difference "::Player.count", 1 do
-        post loaded_questions_game_player_path(game.slug), params: {
+        post loaded_questions_game_player_path(game.id), params: {
           player: {
             name: "Charlie"
           }
@@ -67,7 +67,7 @@ module LoadedQuestions
       end
 
       assert_response :redirect
-      assert_redirected_to loaded_questions_game_path(game.slug)
+      assert_redirected_to loaded_questions_game_path(game.id)
     end
 
     test "#create renders form with validation errors" do
@@ -75,7 +75,7 @@ module LoadedQuestions
       user = create(:user)
       sign_in(user)
 
-      post loaded_questions_game_player_path(game.slug), params: {
+      post loaded_questions_game_player_path(game.id), params: {
         player: {
           name: "ab"
         }
@@ -91,7 +91,7 @@ module LoadedQuestions
       user = create(:user)
       sign_in(user)
 
-      get new_loaded_questions_game_player_path(game.slug)
+      get new_loaded_questions_game_player_path(game.id)
 
       assert_response :success
       assert_dom "input[name='player[name]']"
@@ -102,10 +102,10 @@ module LoadedQuestions
       guesser = game.players.find(&:guesser?)
       sign_in(guesser.user)
 
-      get new_loaded_questions_game_player_path(game.slug)
+      get new_loaded_questions_game_player_path(game.id)
 
       assert_response :redirect
-      assert_redirected_to loaded_questions_game_path(game.slug)
+      assert_redirected_to loaded_questions_game_path(game.id)
     end
 
     test "#edit renders edit player form for current player" do
@@ -113,7 +113,7 @@ module LoadedQuestions
       guesser = game.players.find(&:guesser?)
       sign_in(guesser.user)
 
-      get edit_loaded_questions_game_player_path(game.slug)
+      get edit_loaded_questions_game_player_path(game.id)
 
       assert_response :success
       assert_dom "input[name='player[name]']"
@@ -125,7 +125,7 @@ module LoadedQuestions
       alice = game.players.find { |p| p.name.to_s == "Alice" }
       sign_in(alice.user)
 
-      get edit_loaded_questions_game_player_path(game.slug)
+      get edit_loaded_questions_game_player_path(game.id)
 
       assert_response :success
       assert_dom "input[name='player[name]'][value='Alice']"
@@ -136,9 +136,9 @@ module LoadedQuestions
       user = create(:user)
       sign_in(user)
 
-      get edit_loaded_questions_game_player_path(game.slug)
+      get edit_loaded_questions_game_player_path(game.id)
 
-      assert_redirected_to new_loaded_questions_game_player_path(game.slug)
+      assert_redirected_to new_loaded_questions_game_player_path(game.id)
     end
 
     test "#update updates player name and redirects to game" do
@@ -146,13 +146,13 @@ module LoadedQuestions
       alice = game.players.find { |p| p.name.to_s == "Alice" }
       sign_in(alice.user)
 
-      patch loaded_questions_game_player_path(game.slug), params: {
+      patch loaded_questions_game_player_path(game.id), params: {
         player: {
           name: "Alicia"
         }
       }
 
-      assert_redirected_to loaded_questions_game_path(game.slug)
+      assert_redirected_to loaded_questions_game_path(game.id)
       game = reload(game:)
       updated_player = game.player_for(alice.user)
       assert_equal "Alicia", updated_player.name.to_s
@@ -163,7 +163,7 @@ module LoadedQuestions
       alice = game.players.find { |p| p.name.to_s == "Alice" }
       sign_in(alice.user)
 
-      patch loaded_questions_game_player_path(game.slug), params: {
+      patch loaded_questions_game_player_path(game.id), params: {
         player: {
           name: "Al"
         }
@@ -179,7 +179,7 @@ module LoadedQuestions
       alice = game.players.find { |p| p.name.to_s == "Alice" }
       sign_in(alice.user)
 
-      patch loaded_questions_game_player_path(game.slug), params: {
+      patch loaded_questions_game_player_path(game.id), params: {
         player: {
           name: "bob"
         }
@@ -195,13 +195,13 @@ module LoadedQuestions
       user = create(:user)
       sign_in(user)
 
-      patch loaded_questions_game_player_path(game.slug), params: {
+      patch loaded_questions_game_player_path(game.id), params: {
         player: {
           name: "Charlie"
         }
       }
 
-      assert_redirected_to new_loaded_questions_game_player_path(game.slug)
+      assert_redirected_to new_loaded_questions_game_player_path(game.id)
     end
   end
 end

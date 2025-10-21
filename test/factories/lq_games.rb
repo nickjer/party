@@ -25,7 +25,7 @@ FactoryBot.define do
         question: form.question
       ).call
 
-      game = LoadedQuestions::Game.from_slug(game_record.slug)
+      game = LoadedQuestions::Game.find(game_record.id)
       players.each do |player_data|
         player = create(:lq_player, game:, name: player_data.fetch(:name))
 
@@ -41,7 +41,7 @@ FactoryBot.define do
         player.update_answer(answer_form.answer)
       end
 
-      LoadedQuestions::Game.from_slug(game.slug)
+      LoadedQuestions::Game.find(game.id)
     end
 
     trait :with_players do
@@ -67,10 +67,10 @@ FactoryBot.define do
           players:)
 
         # Transition to guessing status
-        game = LoadedQuestions::Game.from_slug(game.slug)
+        game = LoadedQuestions::Game.find(game.id)
         game.update_status(LoadedQuestions::Game::Status.guessing)
 
-        LoadedQuestions::Game.from_slug(game.slug)
+        LoadedQuestions::Game.find(game.id)
       end
     end
 
@@ -81,10 +81,10 @@ FactoryBot.define do
           player_names:, players:)
 
         # Transition to completed status
-        game = LoadedQuestions::Game.from_slug(game.slug)
+        game = LoadedQuestions::Game.find(game.id)
         game.update_status(LoadedQuestions::Game::Status.completed)
 
-        LoadedQuestions::Game.from_slug(game.slug)
+        LoadedQuestions::Game.find(game.id)
       end
     end
   end

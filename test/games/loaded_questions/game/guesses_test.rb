@@ -20,7 +20,7 @@ module LoadedQuestions
         if guess1.player.id == guess1.guessed_player.id
           game.swap_guesses(player_id1: guess1.player.id,
             player_id2: guess2.player.id)
-          game = LoadedQuestions::Game.from_slug(game.slug)
+          game = LoadedQuestions::Game.find(game.id)
           guess1, guess2 = game.guesses.to_a
         end
 

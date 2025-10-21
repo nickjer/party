@@ -16,8 +16,8 @@ module LoadedQuestions
       assert_text "What is your favorite color?"
       assert_text "Mia"
 
-      # Get the game slug from URL for joining as other players
-      game_slug = current_path.split("/").last
+      # Get the game id from URL for joining as other players
+      game_id = current_path.split("/").last
 
       # Verify initial player list for Mia (only she exists at this point)
       using_session("default") do
@@ -35,7 +35,7 @@ module LoadedQuestions
 
       # Zoe joins second (higher alphabetically - will display last)
       using_session("zoe") do
-        visit new_loaded_questions_game_player_path(game_slug)
+        visit new_loaded_questions_game_player_path(game_id)
         fill_in "Name", with: "Zoe"
         click_on "Join Game"
 
@@ -88,7 +88,7 @@ module LoadedQuestions
 
       # Alice joins third (lower alphabetically - will display first)
       using_session("alice") do
-        visit new_loaded_questions_game_player_path(game_slug)
+        visit new_loaded_questions_game_player_path(game_id)
         fill_in "Name", with: "Alice"
         click_on "Join Game"
 
@@ -599,11 +599,11 @@ module LoadedQuestions
       assert_text "What is your favorite movie?"
       assert_text "Alice"
 
-      game_slug = current_path.split("/").last
+      game_id = current_path.split("/").last
 
       # Try to join with a name that's the same but with emoji
       using_session("bob") do
-        visit new_loaded_questions_game_player_path(game_slug)
+        visit new_loaded_questions_game_player_path(game_id)
         fill_in "Name", with: "Alice 😀"
         click_on "Join Game"
 
@@ -655,7 +655,7 @@ module LoadedQuestions
 
       # Have Charlie join and answer
       using_session("charlie") do
-        visit new_loaded_questions_game_player_path(game_slug)
+        visit new_loaded_questions_game_player_path(game_id)
         fill_in "Name", with: "Charlie"
         click_on "Join Game"
 
@@ -909,11 +909,11 @@ module LoadedQuestions
       click_on "Create New Game"
 
       assert_text "Bob"
-      game_slug = current_path.split("/").last
+      game_id = current_path.split("/").last
 
       # Charlie joins the game
       using_session("charlie") do
-        visit new_loaded_questions_game_player_path(game_slug)
+        visit new_loaded_questions_game_player_path(game_id)
         fill_in "Name", with: "Charlie"
         click_on "Join Game"
         assert_text "Charlie"
@@ -921,7 +921,7 @@ module LoadedQuestions
 
       # Zoe joins the game
       using_session("zoe") do
-        visit new_loaded_questions_game_player_path(game_slug)
+        visit new_loaded_questions_game_player_path(game_id)
         fill_in "Name", with: "Zoe"
         click_on "Join Game"
         assert_text "Zoe"

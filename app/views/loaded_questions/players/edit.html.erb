@@ -13,7 +13,7 @@
             <%= form_with(
               model: edit_player,
               scope: :player,
-              url: loaded_questions_game_player_path(game.slug),
+              url: loaded_questions_game_player_path(game.id),
               method: :patch,
               data: { turbo_frame: "round_frame" }
             ) do |form| %>

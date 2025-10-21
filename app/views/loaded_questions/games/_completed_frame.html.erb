@@ -20,7 +20,7 @@
 </div>
 
 <% unless current_player.guesser? %>
-  <%= link_to new_round_loaded_questions_game_path(game.slug), class: "btn btn-primary btn-lg w-100" do %>
+  <%= link_to new_round_loaded_questions_game_path(game.id), class: "btn btn-primary btn-lg w-100" do %>
     <i class="bi bi-plus-circle-fill me-2"></i>Create Next Turn
   <% end %>
 <% end %>

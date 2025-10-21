@@ -138,14 +138,6 @@ module LoadedQuestions
       assert_equal "Bob", form.name.to_s
     end
 
-    test "#game_slug returns game slug" do
-      game = create(:lq_game)
-      user = create(:user)
-      form = NewPlayerForm.new(game:, user:, name: "Bob")
-
-      assert_equal game.slug, form.game_slug
-    end
-
     test "#name returns NormalizedString instance" do
       game = create(:lq_game)
       user = create(:user)

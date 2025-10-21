@@ -9,7 +9,7 @@ module LoadedQuestions
       end
 
       def call
-        game = Game.from_id(updated_player.game_id)
+        game = Game.find(updated_player.game_id)
         player = game.find_player(updated_player.id)
 
         PlayerChannel.broadcast_to(game.players) do |current_player|

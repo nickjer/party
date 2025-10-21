@@ -13,7 +13,7 @@
             <%= form_with(
               model: new_round,
               scope: :round,
-              url: create_round_loaded_questions_game_path(game.slug),
+              url: create_round_loaded_questions_game_path(game.id),
               data: { turbo_frame: "game_frame" }
             ) do |form| %>
               <div class="mb-3">

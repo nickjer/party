@@ -14,7 +14,7 @@
           <p class="text-muted mb-0">Join the game and start playing!</p>
         </div>
 
-        <%= form_with(model: new_player, scope: :player, url: loaded_questions_game_player_path(new_player.game_slug)) do |form| %>
+        <%= form_with(model: new_player, scope: :player, url: loaded_questions_game_player_path(new_player.game.id)) do |form| %>
           <div class="mb-4">
             <%= form.label :name, "Your Name" %>
             <%= form.text_field :name,

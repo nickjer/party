@@ -12,7 +12,7 @@
     <div id="answers"
       data-controller="swap"
       data-swap-name-value="guess"
-      data-swap-url-value="<%= swap_guesses_loaded_questions_game_path(game.slug) %>">
+      data-swap-url-value="<%= swap_guesses_loaded_questions_game_path(game.id) %>">
       <%= render(partial: "loaded_questions/games/guessed_answer",
         collection: game.guesses,
         as: :guessed_answer,
@@ -39,7 +39,7 @@
         Close
       </button>
       <%= button_to("Yes, I am sure",
-        completed_round_loaded_questions_game_path(game.slug),
+        completed_round_loaded_questions_game_path(game.id),
         method: :patch,
         class: "btn btn-primary",
         data: { turbo_frame: "game_frame" }) %>

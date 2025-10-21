@@ -23,7 +23,7 @@ module LoadedQuestions
           player_name: new_game.player_name,
           question: new_game.question
         ).call
-        redirect_to loaded_questions_game_path(game.slug)
+        redirect_to loaded_questions_game_path(game.id)
       else
         render :new, locals: { new_game: }, status: :unprocessable_content
       end
@@ -31,11 +31,11 @@ module LoadedQuestions
 
     # GET /loaded_questions/games/:id
     def show
-      game = Game.from_slug(params[:id])
+      game = Game.find(params[:id])
       current_player = game.player_for(current_user)
 
       if current_player.nil?
-        redirect_to(new_loaded_questions_game_player_path(game.slug))
+        redirect_to(new_loaded_questions_game_player_path(game.id))
       else
         case game.status
         when Game::Status.polling
@@ -62,7 +62,7 @@ module LoadedQuestions
 
     # GET /loaded_questions/games/:id/new_round
     def new_round
-      game = Game.from_slug(params[:id])
+      game = Game.find(params[:id])
       current_player = game.player_for!(current_user)
       return head :forbidden if current_player.guesser?
 
@@ -72,7 +72,7 @@ module LoadedQuestions
 
     # POST /loaded_questions/games/:id/create_round
     def create_round
-      game = Game.from_slug(params[:id])
+      game = Game.find(params[:id])
       current_player = game.player_for!(current_user)
       return head :forbidden if current_player.guesser?
 
@@ -89,7 +89,7 @@ module LoadedQuestions
         ).call
         Broadcast::RoundCreated.new(game_id: game.id).call
 
-        game = Game.from_slug(params[:id])
+        game = Game.find(params[:id])
         current_player = game.player_for!(current_user)
         guessing_round_form = GuessingRoundForm.new(game:)
         render :polling_guesser,
@@ -102,7 +102,7 @@ module LoadedQuestions
 
     # PATCH /loaded_questions/games/:id/completed_round
     def completed_round
-      game = Game.from_slug(params[:id])
+      game = Game.find(params[:id])
       current_player = game.player_for!(current_user)
       return head :forbidden unless current_player.guesser?
 
@@ -119,7 +119,7 @@ module LoadedQuestions
 
     # PATCH /loaded_questions/games/:id/guessing_round
     def guessing_round
-      game = Game.from_slug(params[:id])
+      game = Game.find(params[:id])
       current_player = game.player_for!(current_user)
       return head :forbidden unless current_player.guesser?
 
@@ -137,13 +137,13 @@ module LoadedQuestions
 
     # PATCH /loaded_questions/games/:id/swap_guesses
     def swap_guesses
-      game = Game.from_slug(params[:id])
+      game = Game.find(params[:id])
       current_player = game.player_for!(current_user)
       return head :forbidden unless current_player.guesser?
       return head :forbidden unless game.status.guessing?
 
-      player_id1 = swap_params[:guess_id].to_i
-      player_id2 = swap_params[:swap_guess_id].to_i
+      player_id1 = swap_params[:guess_id]
+      player_id2 = swap_params[:swap_guess_id]
 
       game.swap_guesses(player_id1:, player_id2:)
       Broadcast::AnswersSwapped.new(game_id: game.id).call

@@ -17,7 +17,7 @@ module LoadedQuestions
   end
 
   class Game
-    type json_guessed_answer = { player_id: Integer, guessed_player_id: Integer }
+    type json_guessed_answer = { player_id: String, guessed_player_id: String }
     type json_document = {
       question: String,
       guesses: Array[json_guessed_answer],
@@ -29,13 +29,12 @@ module LoadedQuestions
       status: Status
     }
 
-    def self.from_id: (Integer id) -> Game
-    def self.from_slug: (String slug) -> Game
+    def self.find: (String id) -> Game
     private def self.scope: () -> ::Game::ActiveRecord_Relation
 
     def initialize: (::Game game) -> void
 
-    def id: () -> Integer
+    def id: () -> String
     def guesses: () -> Guesses
     def guesser: () -> Player
     def find_player: (Integer id) -> Player
@@ -43,7 +42,6 @@ module LoadedQuestions
     def player_for: (::User) -> Player?
     def players: () -> Array[Player]
     def question: () -> NormalizedString
-    def slug: () -> String
     def status: () -> Status
     def swap_guesses: (player_id1: Integer, player_id2: Integer) -> void
     def to_model: () -> ::Game
@@ -112,7 +110,7 @@ module LoadedQuestions
 
   module Broadcast
     class PlayerCreated
-      def initialize: (player_id: Integer) -> void
+      def initialize: (player_id: String) -> void
       def call: () -> void
 
       private
@@ -121,7 +119,7 @@ module LoadedQuestions
     end
 
     class PlayerConnected
-      def initialize: (player_id: Integer) -> void
+      def initialize: (player_id: String) -> void
       def call: () -> void
 
       private
@@ -130,7 +128,7 @@ module LoadedQuestions
     end
 
     class PlayerDisconnected
-      def initialize: (player_id: Integer) -> void
+      def initialize: (player_id: String) -> void
       def call: () -> void
 
       private
@@ -139,7 +137,7 @@ module LoadedQuestions
     end
 
     class AnswerUpdated
-      def initialize: (player_id: Integer) -> void
+      def initialize: (player_id: String) -> void
       def call: () -> void
 
       private
@@ -148,43 +146,43 @@ module LoadedQuestions
     end
 
     class GuessingRoundStarted
-      def initialize: (game_id: Integer) -> void
+      def initialize: (game_id: String) -> void
       def call: () -> void
 
       private
 
-      attr_reader game_id: Integer
+      attr_reader game_id: String
     end
 
     class AnswersSwapped
-      def initialize: (game_id: Integer) -> void
+      def initialize: (game_id: String) -> void
       def call: () -> void
 
       private
 
-      attr_reader game_id: Integer
+      attr_reader game_id: String
     end
 
     class RoundCompleted
-      def initialize: (game_id: Integer) -> void
+      def initialize: (game_id: String) -> void
       def call: () -> void
 
       private
 
-      attr_reader game_id: Integer
+      attr_reader game_id: String
     end
 
     class RoundCreated
-      def initialize: (game_id: Integer) -> void
+      def initialize: (game_id: String) -> void
       def call: () -> void
 
       private
 
-      attr_reader game_id: Integer
+      attr_reader game_id: String
     end
 
     class PlayerNameUpdated
-      def initialize: (player_id: Integer) -> void
+      def initialize: (player_id: String) -> void
       def call: () -> void
 
       private
@@ -306,13 +304,13 @@ module LoadedQuestions
   end
 
   class CreateNewPlayer
-    def initialize: (game_id: Integer, user: ::User, name: ::NormalizedString, ?guesser: bool) -> void
+    def initialize: (game_id: String, user: ::User, name: ::NormalizedString, ?guesser: bool) -> void
 
     def call: () -> ::Player
 
     private
 
-    attr_reader game_id: Integer
+    attr_reader game_id: String
     attr_reader guesser: bool
     attr_reader name: ::NormalizedString
     attr_reader user: ::User
@@ -328,7 +326,6 @@ module LoadedQuestions
 
     def initialize: (game: Game, user: ::User, ?name: _ToS?) -> void
 
-    def game_slug: () -> String
     def valid?: () -> bool
 
     private
@@ -368,12 +365,12 @@ module LoadedQuestions
     def answer: () -> ::NormalizedString
     def answered?: () -> bool
     def eql?: (Player other) -> bool
+    def game_id: () -> String
     def guesser?: () -> bool
     def hash: () -> Integer
-    def id: () -> Integer
+    def id: () -> String
     def name: () -> ::NormalizedString
     def online?: () -> bool
-    def game_slug: () -> String
     def score: () -> Integer
     def to_model: () -> ::Player
     def update_answer: (::NormalizedString answer) -> void

@@ -5,9 +5,7 @@ module LoadedQuestions
   # behavior and document parsing.
   class Game
     class << self
-      def from_id(id) = new(scope.find(id))
-
-      def from_slug(slug) = new(scope.find_by!(slug:))
+      def find(id) = new(scope.find(id))
 
       private
 
@@ -46,8 +44,6 @@ module LoadedQuestions
     end
 
     def question = NormalizedString.new(document.fetch(:question))
-
-    def slug = game.slug
 
     def status = Status.parse(document.fetch(:status))
 

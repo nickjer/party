@@ -11,18 +11,16 @@
 # It's strongly recommended that you check this file into your version control system.
 
 ActiveRecord::Schema[8.0].define(version: 2025_02_01_143957) do
-  create_table "games", force: :cascade do |t|
+  create_table "games", id: :string, force: :cascade do |t|
     t.integer "kind", null: false
-    t.string "slug", null: false
     t.json "document", default: {}, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["slug"], name: "index_games_on_slug", unique: true
   end
 
-  create_table "players", force: :cascade do |t|
-    t.integer "game_id", null: false
-    t.integer "user_id", null: false
+  create_table "players", id: :string, force: :cascade do |t|
+    t.string "game_id", null: false
+    t.string "user_id", null: false
     t.string "name", null: false
     t.json "document", default: {}, null: false
     t.datetime "created_at", null: false
@@ -33,7 +31,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_01_143957) do
     t.index ["user_id"], name: "index_players_on_user_id"
   end
 
-  create_table "users", force: :cascade do |t|
+  create_table "users", id: :string, force: :cascade do |t|
     t.datetime "last_seen_at", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false

@@ -48,12 +48,4 @@ class GameTest < ActiveSupport::TestCase
     assert_includes game.players, player1
     assert_includes game.players, player2
   end
-
-  test "#valid? returns false when slug is not unique" do
-    create(:game, slug: "abc123")
-    game = build(:game, slug: "abc123")
-
-    assert_not game.valid?
-    assert game.errors.added?(:slug, :taken, value: "abc123")
-  end
 end

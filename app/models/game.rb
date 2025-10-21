@@ -13,8 +13,6 @@ class Game < ApplicationRecord
     loaded_questions: 0
   }
 
-  validates :slug, uniqueness: true
-
   has_many :players, dependent: :destroy
 
   def document=(raw_json)

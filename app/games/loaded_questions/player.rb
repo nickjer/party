@@ -21,6 +21,8 @@ module LoadedQuestions
 
     def eql?(other) = self == other
 
+    def game_id = player.game_id
+
     def guesser? = document.fetch(:guesser)
 
     def hash = id.hash
@@ -30,8 +32,6 @@ module LoadedQuestions
     def name = player.name
 
     def online? = player.online?
-
-    def game_slug = game.slug
 
     def score = document.fetch(:score)
 

@@ -14,7 +14,7 @@ module LoadedQuestions
       game = ::Game.new
       game.kind = :loaded_questions
       game.document = document.to_json
-      game.slug = ::SecureRandom.alphanumeric(6)
+      game.id = ::Game.generate_unique_id
 
       ::Game.transaction do
         game.save!

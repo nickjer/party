@@ -1,8 +1,9 @@
 class ApplicationRecord < ::ActiveRecord::Base
+  def self.generate_unique_id: (?length: Integer) -> String
 end
 
 class Game < ::ApplicationRecord
-  extend ::ActiveRecord::Base::ClassMethods[::Game, ::Game::ActiveRecord_Relation, Integer]
+  extend ::ActiveRecord::Base::ClassMethods[::Game, ::Game::ActiveRecord_Relation, String]
 
   MIN_QUESTION_LENGTH: Integer
   MAX_QUESTION_LENGTH: Integer
@@ -16,25 +17,23 @@ class Game < ::ApplicationRecord
   def parsed_document: () -> Hash[Symbol, untyped]
   def players: () -> ::Player::ActiveRecord_Associations_CollectionProxy
   def players=: (::Player::ActiveRecord_Associations_CollectionProxy | Array[::Player]) -> (::Player::ActiveRecord_Associations_CollectionProxy | Array[::Player])
-  def player_ids: () -> Array[Integer]
-  def player_ids=: (Array[Integer]) -> Array[Integer]
-  def slug: () -> String
-  def slug=: (String) -> String
+  def player_ids: () -> Array[String]
+  def player_ids=: (Array[String]) -> Array[String]
 
   class ActiveRecord_Relation < ::ActiveRecord::Relation
     def loaded_questions: () -> ::Game::ActiveRecord_Relation
 
-    include ::_ActiveRecord_Relation[::Game, Integer]
+    include ::_ActiveRecord_Relation[::Game, String]
     include ::Enumerable[::Game]
   end
 
   class ActiveRecord_Associations_CollectionProxy < ::ActiveRecord::Associations::CollectionProxy
-    include ::ActiveRecord::Relation::Methods[::Game, Integer]
+    include ::ActiveRecord::Relation::Methods[::Game, String]
   end
 end
 
 class Player < ::ApplicationRecord
-  extend ::ActiveRecord::Base::ClassMethods[::Player, ::Player::ActiveRecord_Relation, Integer]
+  extend ::ActiveRecord::Base::ClassMethods[::Player, ::Player::ActiveRecord_Relation, String]
 
   MIN_NAME_LENGTH: Integer
   MAX_NAME_LENGTH: Integer
@@ -44,8 +43,8 @@ class Player < ::ApplicationRecord
   def document?: () -> bool
   def game: () -> ::Game
   def game=: (::Game) -> ::Game
-  def game_id: () -> Integer
-  def game_id=: (::Integer) -> ::Integer
+  def game_id: () -> String
+  def game_id=: (String) -> String
   def online?: () -> bool
   def name: () -> ::NormalizedString
   def name=: (_ToS) -> String
@@ -55,24 +54,24 @@ class Player < ::ApplicationRecord
   def user=: (::User) -> ::User
 
   class ActiveRecord_Relation < ::ActiveRecord::Relation
-    include ::_ActiveRecord_Relation[::Player, Integer]
+    include ::_ActiveRecord_Relation[::Player, String]
     include ::Enumerable[::Player]
   end
 
   class ActiveRecord_Associations_CollectionProxy < ::ActiveRecord::Associations::CollectionProxy
-    include ::ActiveRecord::Relation::Methods[::Player, Integer]
+    include ::ActiveRecord::Relation::Methods[::Player, String]
   end
 end
 
 class User < ::ApplicationRecord
-  extend ::ActiveRecord::Base::ClassMethods[::User, ::User::ActiveRecord_Relation, Integer]
+  extend ::ActiveRecord::Base::ClassMethods[::User, ::User::ActiveRecord_Relation, String]
 
   class ActiveRecord_Relation < ::ActiveRecord::Relation
-    include ::_ActiveRecord_Relation[::User, Integer]
+    include ::_ActiveRecord_Relation[::User, String]
     include ::Enumerable[::User]
   end
 
   class ActiveRecord_Associations_CollectionProxy < ::ActiveRecord::Associations::CollectionProxy
-    include ::ActiveRecord::Relation::Methods[::User, Integer]
+    include ::ActiveRecord::Relation::Methods[::User, String]
   end
 end

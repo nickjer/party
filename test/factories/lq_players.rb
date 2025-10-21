@@ -27,7 +27,7 @@ FactoryBot.define do
         guesser:
       ).call
 
-      player = LoadedQuestions::Game.from_slug(game.slug).player_for!(user)
+      player = LoadedQuestions::Game.find(game.id).player_for!(user)
 
       # Add answer if provided
       if answer.present?

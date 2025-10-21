@@ -16,7 +16,7 @@
         <%= form_with(
           model: answer_form,
           scope: :player,
-          url: answer_loaded_questions_game_player_path(game.slug),
+          url: answer_loaded_questions_game_player_path(game.id),
           method: :patch
         ) do |form| %>
           <div class="mt-3">

@@ -16,7 +16,7 @@
     <%= player.name %>
   </span>
   <% if player == current_player %>
-    <%= link_to edit_loaded_questions_game_player_path(player.game_slug),
+    <%= link_to edit_loaded_questions_game_player_path(player.game_id),
         data: { turbo_frame: "round_frame" },
         class: "btn btn-sm btn-link text-muted p-0",
         title: "Edit name" do %>

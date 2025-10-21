@@ -74,7 +74,7 @@ module LoadedQuestions
       def each: () { (GuessedAnswer) -> void } -> self
       def find: (Integer player_id) -> GuessedAnswer
       def size: () -> Integer
-      def swap: (player_id1: Integer, player_id2: Integer) -> self
+      def swap: (player_id1: Integer, player_id2: Integer) -> Guesses
       def as_json: () -> Array[json_guessed_answer]
       def score: () -> Integer
 

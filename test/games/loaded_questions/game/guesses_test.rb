@@ -22,28 +22,26 @@ module LoadedQuestions
         end
       end
 
-      test "#swap raises ActiveRecord::RecordNotFound when first player " \
-        "not found" do
+      test "#swap raises error when first player not found" do
         game = create(:lq_matching_game, player_names: %w[Alice Bob])
         second_player = game.players.reject(&:guesser?).first
 
-        error = assert_raises(ActiveRecord::RecordNotFound) do
+        error = assert_raises(RuntimeError) do
           game.guesses.swap(player_id1: 999_999, player_id2: second_player.id)
         end
 
-        assert_match(/Player 999999 not found/, error.message)
+        assert_equal "Player 999999 not found", error.message
       end
 
-      test "#swap raises ActiveRecord::RecordNotFound when second player " \
-        "not found" do
+      test "#swap raises error when second player not found" do
         game = create(:lq_matching_game, player_names: %w[Alice Bob])
         first_player = game.players.reject(&:guesser?).first
 
-        error = assert_raises(ActiveRecord::RecordNotFound) do
+        error = assert_raises(RuntimeError) do
           game.guesses.swap(player_id1: first_player.id, player_id2: 999_999)
         end
 
-        assert_match(/Player 999999 not found/, error.message)
+        assert_equal "Player 999999 not found", error.message
       end
 
       test "#initialize raises error when duplicate player found" do

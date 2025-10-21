@@ -88,8 +88,7 @@ module LoadedQuestions
     def to_model = model
 
     def swap_guesses(player_id1:, player_id2:)
-      guesses.swap(player_id1:, player_id2:)
-      model.document = document.to_json
+      self.guesses = guesses.swap(player_id1:, player_id2:)
     end
 
     private

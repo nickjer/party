@@ -7,6 +7,10 @@ module LoadedQuestions
     MIN_ANSWER_LENGTH = 3
     MAX_ANSWER_LENGTH = 80
 
+    class << self
+      def build(game_id:, user:) = new(::Player.new(game_id:, user:))
+    end
+
     def initialize(model) = @model = model
 
     def <=>(other) = name <=> other.name
@@ -24,7 +28,7 @@ module LoadedQuestions
       )
 
       @answer = new_answer
-      update_model_document
+      model.document = document.to_json
     end
 
     def answered? = answer.present?
@@ -33,7 +37,16 @@ module LoadedQuestions
 
     def game_id = model.game_id
 
-    def guesser? = json_document.fetch(:guesser)
+    def guesser?
+      return @guesser if defined?(@guesser)
+
+      @guesser = json_document.fetch(:guesser)
+    end
+
+    def guesser=(is_guesser)
+      @guesser = is_guesser
+      model.document = document.to_json
+    end
 
     def hash = id.hash
 
@@ -63,7 +76,7 @@ module LoadedQuestions
       raise ArgumentError, "Score cannot be negative" if new_score.negative?
 
       @score = new_score
-      update_model_document
+      model.document = document.to_json
     end
 
     def to_model = model
@@ -75,13 +88,9 @@ module LoadedQuestions
     # @dynamic model
     attr_reader :model
 
-    def json_document = model.parsed_document #: json_document
+    def document = { answer:, guesser: guesser?, score: }
 
-    def update_model_document
-      # @type var new_document: document
-      new_document = { answer:, guesser: guesser?, score: }
-      model.document = new_document.to_json
-    end
+    def json_document = model.parsed_document #: json_document
 
     def validate_between!(value, min:, max:, field:)
       return if value.length.between?(min, max)

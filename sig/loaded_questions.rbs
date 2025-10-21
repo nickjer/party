@@ -363,7 +363,9 @@ module LoadedQuestions
       score: Integer
     }
 
-    @score: Integer
+    def self.build: (game_id: String, user: ::User) -> Player
+
+    @guesser: bool
 
     attr_reader answer: ::NormalizedString
     attr_reader name: ::NormalizedString
@@ -378,6 +380,7 @@ module LoadedQuestions
     def eql?: (Player other) -> bool
     def game_id: () -> String
     def guesser?: () -> bool
+    def guesser=: (bool is_guesser) -> void
     def hash: () -> Integer
     def id: () -> String
     def name=: (::NormalizedString new_name) -> void
@@ -391,8 +394,8 @@ module LoadedQuestions
 
     attr_reader model: ::Player
 
+    def document: () -> document
     def json_document: () -> json_document
-    def update_model_document: () -> void
     def validate_between!: (::NormalizedString value, min: Integer, max: Integer, field: Symbol) -> void
   end
 

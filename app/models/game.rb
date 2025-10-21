@@ -4,9 +4,6 @@
 # is stored in the JSON document field, enabling multiple game types without
 # schema changes.
 class Game < ApplicationRecord
-  MIN_QUESTION_LENGTH = 3
-  MAX_QUESTION_LENGTH = 160
-
   attribute :document, :string
 
   enum :kind, {

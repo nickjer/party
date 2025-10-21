@@ -3,9 +3,6 @@
 module LoadedQuestions
   # Form object for validating player answers during the polling phase.
   class AnswerForm
-    MIN_LENGTH = 3
-    MAX_LENGTH = 80
-
     # @dynamic answer
     attr_reader :answer
 
@@ -20,8 +17,8 @@ module LoadedQuestions
     def show? = answer.blank? || !errors.empty?
 
     def valid?
-      min = MIN_LENGTH
-      max = MAX_LENGTH
+      min = Player::MIN_ANSWER_LENGTH
+      max = Player::MAX_ANSWER_LENGTH
       if (error = validate_length(answer, min:, max:))
         errors.add(:answer, message: error)
       end

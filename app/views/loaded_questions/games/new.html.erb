@@ -29,11 +29,11 @@
           <div class="mb-4">
             <%= form.label :question, "First Question" %>
             <%= form.text_area :question,
-                maxlength: Game::MAX_QUESTION_LENGTH,
+                maxlength: LoadedQuestions::Game::MAX_QUESTION_LENGTH,
                 rows: 3,
                 placeholder: "e.g., What would you do if you won the lottery?" %>
             <div class="form-text">
-              <%= Game::MIN_QUESTION_LENGTH %>-<%= Game::MAX_QUESTION_LENGTH %> characters
+              <%= LoadedQuestions::Game::MIN_QUESTION_LENGTH %>-<%= LoadedQuestions::Game::MAX_QUESTION_LENGTH %> characters
             </div>
           </div>
 

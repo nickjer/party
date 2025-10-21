@@ -5,9 +5,6 @@ end
 class Game < ::ApplicationRecord
   extend ::ActiveRecord::Base::ClassMethods[::Game, ::Game::ActiveRecord_Relation, String]
 
-  MIN_QUESTION_LENGTH: Integer
-  MAX_QUESTION_LENGTH: Integer
-
   def self.loaded_questions: () -> ::Game::ActiveRecord_Relation
 
   def document: () -> String

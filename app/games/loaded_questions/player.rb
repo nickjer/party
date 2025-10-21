@@ -4,66 +4,88 @@ module LoadedQuestions
   # Wrapper around ::Player model that provides Loaded Questions-specific
   # behavior and document parsing.
   class Player
-    def initialize(player, game:)
-      @player = player
-      @game = game
-    end
+    MIN_ANSWER_LENGTH = 3
+    MAX_ANSWER_LENGTH = 80
+
+    def initialize(model) = @model = model
 
     def <=>(other) = name <=> other.name
 
     def ==(other) = self.class == other.class && id == other.id
 
-    def active? = document.fetch(:active)
+    def answer = @answer ||= NormalizedString.new(document.fetch(:answer))
 
-    def answer = NormalizedString.new(document.fetch(:answer))
+    def answer=(new_answer)
+      validate_between!(
+        new_answer,
+        min: MIN_ANSWER_LENGTH,
+        max: MAX_ANSWER_LENGTH,
+        field: :answer
+      )
+
+      @answer = new_answer
+      update_document
+    end
 
     def answered? = answer.present?
 
     def eql?(other) = self == other
 
-    def game_id = player.game_id
+    def game_id = model.game_id
 
     def guesser? = document.fetch(:guesser)
 
     def hash = id.hash
 
-    def id = player.id
+    def id = model.id
 
-    def name = player.name
+    def name = model.name
 
-    def online? = player.online?
-
-    def score = document.fetch(:score)
-
-    def to_model = player
-
-    def update_answer(answer)
-      document[:answer] = answer.to_s
-      player.document = document.to_json
-      player.save!
+    def name=(new_name)
+      validate_between!(
+        new_name,
+        min: ::Player::MIN_NAME_LENGTH,
+        max: ::Player::MAX_NAME_LENGTH,
+        field: :name
+      )
+      model.name = new_name.to_s
     end
 
-    def update_name(name)
-      player.name = name.to_s
-      player.save!
+    def online? = model.online?
+
+    def save! = model.save!
+
+    def score = @score ||= document.fetch(:score)
+
+    def score=(new_score)
+      raise ArgumentError, "Score cannot be negative" if new_score.negative?
+
+      @score = new_score
+      update_document
     end
 
-    def update_score(new_score)
-      document[:score] = new_score
-      player.document = document.to_json
-      player.save!
-    end
+    def to_model = model
 
-    def user = player.user
+    def user = model.user
 
     private
 
-    # @dynamic game
-    attr_reader :game
+    # @dynamic model
+    attr_reader :model
 
-    # @dynamic player
-    attr_reader :player
+    def document = model.parsed_document #: json_document
 
-    def document = player.parsed_document #: document
+    def update_document
+      # @type var new_document: document
+      new_document = { answer:, guesser: guesser?, score: }
+      model.document = new_document.to_json
+    end
+
+    def validate_between!(value, min:, max:, field:)
+      return if value.length.between?(min, max)
+
+      raise ArgumentError, "#{field.to_s.humanize} length must be " \
+        "between #{min} and #{max} characters"
+    end
   end
 end

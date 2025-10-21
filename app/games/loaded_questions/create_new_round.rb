@@ -45,8 +45,7 @@ module LoadedQuestions
 
     def player_document(player)
       {
-        active: true,
-        answer: "",
+        answer: NormalizedString.new(""),
         guesser: (player.id == guesser.id),
         score: player.score
       }

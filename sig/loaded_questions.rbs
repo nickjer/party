@@ -1,8 +1,5 @@
 module LoadedQuestions
   class AnswerForm
-    MIN_LENGTH: Integer
-    MAX_LENGTH: Integer
-
     attr_reader answer: ::NormalizedString
     attr_reader errors: ::Errors
 
@@ -28,6 +25,9 @@ module LoadedQuestions
       guesses: Guesses,
       status: Status
     }
+
+    MIN_QUESTION_LENGTH: Integer
+    MAX_QUESTION_LENGTH: Integer
 
     def self.find: (String id) -> Game
     private def self.scope: () -> ::Game::ActiveRecord_Relation
@@ -349,20 +349,29 @@ module LoadedQuestions
   end
 
   class Player
+    MIN_ANSWER_LENGTH: Integer
+    MAX_ANSWER_LENGTH: Integer
+
     type json_document = {
-      active: bool,
       answer: String,
       guesser: bool,
       score: Integer
     }
-    type document = json_document
+    type document = {
+      answer: ::NormalizedString,
+      guesser: bool,
+      score: Integer
+    }
 
-    def initialize: (::Player player, game: Game) -> void
+    @answer: ::NormalizedString
+    @score: Integer
+
+    def initialize: (::Player model) -> void
 
     def <=>: (Player other) -> Integer
     def ==: (Player other) -> bool
-    def active?: () -> bool
     def answer: () -> ::NormalizedString
+    def answer=: (::NormalizedString new_answer) -> void
     def answered?: () -> bool
     def eql?: (Player other) -> bool
     def game_id: () -> String
@@ -370,20 +379,21 @@ module LoadedQuestions
     def hash: () -> Integer
     def id: () -> String
     def name: () -> ::NormalizedString
+    def name=: (::NormalizedString new_name) -> void
     def online?: () -> bool
+    def save!: () -> void
     def score: () -> Integer
+    def score=: (Integer new_score) -> void
     def to_model: () -> ::Player
-    def update_answer: (::NormalizedString answer) -> void
-    def update_name: (::NormalizedString name) -> void
-    def update_score: (Integer new_score) -> void
     def user: () -> ::User
 
     private
 
-    attr_reader game: Game
-    attr_reader player: ::Player
+    attr_reader model: ::Player
 
     def document: () -> json_document
+    def update_document: () -> void
+    def validate_between!: (::NormalizedString value, min: Integer, max: Integer, field: Symbol) -> void
   end
 
   class PlayersController < ::ApplicationController

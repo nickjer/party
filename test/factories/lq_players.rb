@@ -36,7 +36,8 @@ FactoryBot.define do
           raise "Invalid answer: #{answer_form.errors.full_messages.join(', ')}"
         end
 
-        player.update_answer(answer_form.answer)
+        player.answer = answer_form.answer
+        player.save!
       end
 
       player

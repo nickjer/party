@@ -36,8 +36,7 @@ module LoadedQuestions
 
     def document
       {
-        active: true,
-        answer: "",
+        answer: NormalizedString.new(""),
         guesser:,
         score: 0
       }

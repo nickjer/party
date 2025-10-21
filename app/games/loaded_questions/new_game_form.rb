@@ -26,8 +26,8 @@ module LoadedQuestions
         errors.add(:player_name, message: error)
       end
 
-      min = ::Game::MIN_QUESTION_LENGTH
-      max = ::Game::MAX_QUESTION_LENGTH
+      min = Game::MIN_QUESTION_LENGTH
+      max = Game::MAX_QUESTION_LENGTH
       if (error = validate_length(question, min:, max:))
         errors.add(:question, message: error)
       end

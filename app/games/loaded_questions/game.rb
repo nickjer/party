@@ -4,6 +4,9 @@ module LoadedQuestions
   # Wrapper around ::Game model that provides Loaded Questions-specific
   # behavior and document parsing.
   class Game
+    MIN_QUESTION_LENGTH = 3
+    MAX_QUESTION_LENGTH = 160
+
     class << self
       def find(id) = new(scope.find(id))
 
@@ -40,7 +43,7 @@ module LoadedQuestions
     def player_for(user) = players.find { |player| player.user == user }
 
     def players
-      game.players.map { |player| Player.new(player, game: self) }.sort
+      game.players.map { |player| Player.new(player) }.sort
     end
 
     def question = NormalizedString.new(document.fetch(:question))
@@ -74,7 +77,8 @@ module LoadedQuestions
         round_score = guesses.score
         current_guesser = guesser
         new_total_score = current_guesser.score + round_score
-        current_guesser.update_score(new_total_score)
+        current_guesser.score = new_total_score
+        current_guesser.save!
       end
 
       document[:status] = new_status.to_s

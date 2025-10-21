@@ -53,7 +53,9 @@ module LoadedQuestions
 
     def online? = model.online?
 
-    def save! = model.save!
+    def save!
+      model.save! if model.changed?
+    end
 
     def score = @score ||= document.fetch(:score)
 

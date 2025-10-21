@@ -13,7 +13,7 @@ module LoadedQuestions
 
     def ==(other) = self.class == other.class && id == other.id
 
-    def answer = @answer ||= NormalizedString.new(document.fetch(:answer))
+    def answer = @answer ||= NormalizedString.new(json_document.fetch(:answer))
 
     def answer=(new_answer)
       validate_between!(
@@ -24,7 +24,7 @@ module LoadedQuestions
       )
 
       @answer = new_answer
-      update_document
+      update_model_document
     end
 
     def answered? = answer.present?
@@ -33,13 +33,13 @@ module LoadedQuestions
 
     def game_id = model.game_id
 
-    def guesser? = document.fetch(:guesser)
+    def guesser? = json_document.fetch(:guesser)
 
     def hash = id.hash
 
     def id = model.id
 
-    def name = model.name
+    def name = NormalizedString.new(model.name)
 
     def name=(new_name)
       validate_between!(
@@ -57,13 +57,13 @@ module LoadedQuestions
       model.save! if model.changed?
     end
 
-    def score = @score ||= document.fetch(:score)
+    def score = @score ||= json_document.fetch(:score)
 
     def score=(new_score)
       raise ArgumentError, "Score cannot be negative" if new_score.negative?
 
       @score = new_score
-      update_document
+      update_model_document
     end
 
     def to_model = model
@@ -75,9 +75,9 @@ module LoadedQuestions
     # @dynamic model
     attr_reader :model
 
-    def document = model.parsed_document #: json_document
+    def json_document = model.parsed_document #: json_document
 
-    def update_document
+    def update_model_document
       # @type var new_document: document
       new_document = { answer:, guesser: guesser?, score: }
       model.document = new_document.to_json

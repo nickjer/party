@@ -49,6 +49,7 @@ class Player < ::ApplicationRecord
   def parsed_document: () -> Hash[Symbol, untyped]
   def user: () -> ::User
   def user=: (::User) -> ::User
+  def user_id: () -> String
 
   class ActiveRecord_Relation < ::ActiveRecord::Relation
     include ::_ActiveRecord_Relation[::Player, String]

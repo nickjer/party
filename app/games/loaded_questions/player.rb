@@ -8,7 +8,7 @@ module LoadedQuestions
     MAX_ANSWER_LENGTH = 80
 
     class << self
-      def build(game_id:, user:) = new(::Player.new(game_id:, user:))
+      def build(game_id:, user_id:) = new(::Player.new(game_id:, user_id:))
     end
 
     def initialize(model) = @model = model
@@ -81,7 +81,7 @@ module LoadedQuestions
 
     def to_model = model
 
-    def user = model.user
+    def user_id = model.user_id
 
     private
 

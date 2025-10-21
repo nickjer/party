@@ -7,7 +7,7 @@ module LoadedQuestions
     # GET /games/:game_id/player/new
     def new
       game = Game.find(params[:game_id])
-      current_player = game.player_for(current_user)
+      current_player = game.player_for(current_user.id)
 
       if current_player
         redirect_to_game(game)
@@ -41,7 +41,7 @@ module LoadedQuestions
     # GET /games/:game_id/player/edit
     def edit
       game = Game.find(params[:game_id])
-      current_player = game.player_for(current_user)
+      current_player = game.player_for(current_user.id)
       return redirect_to_new_player(game) if current_player.nil?
 
       edit_player = EditPlayerForm.new(game:, current_player:)
@@ -51,7 +51,7 @@ module LoadedQuestions
     # PATCH/PUT /games/:game_id/player
     def update
       game = Game.find(params[:game_id])
-      current_player = game.player_for(current_user)
+      current_player = game.player_for(current_user.id)
       return redirect_to_new_player(game) if current_player.nil?
 
       edit_player = EditPlayerForm.new(game:, current_player:,
@@ -70,7 +70,7 @@ module LoadedQuestions
     # PATCH /games/:game_id/player/answer
     def answer
       game = Game.find(params[:game_id])
-      current_player = game.player_for(current_user)
+      current_player = game.player_for(current_user.id)
       return redirect_to_new_player(game) if current_player.nil?
 
       answer_form = AnswerForm.new(answer: answer_params[:answer])

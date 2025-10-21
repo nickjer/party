@@ -17,46 +17,76 @@ module LoadedQuestions
       end
     end
 
-    def initialize(game)
-      @game = game
-    end
-
-    def id = game.id
-
-    def guesses
-      Guesses.parse(document.fetch(:guesses), players:)
-    end
-
-    def guesser
-      players.find(&:guesser?) || raise("Couldn't find guesser")
+    def initialize(model)
+      @model = model
     end
 
     def find_player(id)
       players.find { |player| player.id == id } || raise("Player not found")
     end
 
-    def player_for!(user)
-      player_for(user) ||
+    def guesser
+      players.find(&:guesser?) || raise("Couldn't find guesser")
+    end
+
+    def guesses
+      @guesses ||= Guesses.parse(json_document.fetch(:guesses), players:)
+    end
+
+    def guesses=(new_guesses)
+      @guesses = new_guesses
+      model.document = document.to_json
+    end
+
+    def id = model.id
+
+    def player_for!(user_id)
+      player_for(user_id) ||
         raise(ActiveRecord::RecordNotFound, "Couldn't find Player")
     end
 
-    def player_for(user) = players.find { |player| player.user == user }
-
-    def players
-      game.players.map { |player| Player.new(player) }.sort
+    def player_for(user_id)
+      players.find { |player| player.user_id == user_id }
     end
 
-    def question = NormalizedString.new(document.fetch(:question))
+    def players
+      @players ||= model.players.map { |player| Player.new(player) }.sort
+    end
 
-    def status = Status.parse(document.fetch(:status))
+    def question
+      @question ||= NormalizedString.new(json_document.fetch(:question))
+    end
 
-    def to_model = game
+    def question=(new_question)
+      validate_between!(
+        new_question,
+        min: MIN_QUESTION_LENGTH,
+        max: MAX_QUESTION_LENGTH,
+        field: :question
+      )
+
+      @question = new_question
+      model.document = document.to_json
+    end
+
+    def save!
+      model.save! if model.changed?
+    end
+
+    def status
+      @status ||= Status.parse(json_document.fetch(:status))
+    end
+
+    def status=(new_status)
+      @status = new_status
+      model.document = document.to_json
+    end
+
+    def to_model = model
 
     def swap_guesses(player_id1:, player_id2:)
-      swapped_guesses = guesses.swap(player_id1:, player_id2:)
-      document[:guesses] = swapped_guesses.as_json
-      game.document = document.to_json
-      game.save!
+      guesses.swap(player_id1:, player_id2:)
+      model.document = document.to_json
     end
 
     def update_status(new_status)
@@ -72,7 +102,7 @@ module LoadedQuestions
               { player_id: participant.id,
                 guessed_player_id: guessed_participant.id }
             end
-        document[:guesses] = guess_pairs
+        json_document[:guesses] = guess_pairs
       elsif status.guessing? && new_status.completed?
         round_score = guesses.score
         current_guesser = guesser
@@ -81,16 +111,25 @@ module LoadedQuestions
         current_guesser.save!
       end
 
-      document[:status] = new_status.to_s
-      game.document = document.to_json
-      game.save!
+      json_document[:status] = new_status.to_s
+      model.document = json_document.to_json
+      model.save!
     end
 
     private
 
-    # @dynamic game
-    attr_reader :game
+    # @dynamic model
+    attr_reader :model
 
-    def document = game.parsed_document #: json_document
+    def document = { question:, guesses:, status: }
+
+    def json_document = model.parsed_document #: json_document
+
+    def validate_between!(value, min:, max:, field:)
+      return if value.length.between?(min, max)
+
+      raise ArgumentError, "#{field.to_s.humanize} length must be " \
+        "between #{min} and #{max} characters"
+    end
   end
 end

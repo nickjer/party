@@ -16,6 +16,7 @@ module LoadedQuestions
       # Swap the answers
       game.swap_guesses(player_id1: guess1.player.id,
         player_id2: guess2.player.id)
+      game.save!
 
       # Reload from database to verify persistence
       game_after = reload(game:)

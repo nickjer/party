@@ -107,7 +107,7 @@ module LoadedQuestions
 
       form = NewPlayerForm.new(game:, user: existing_user, name: "NewName")
 
-      assert game.player_for(existing_user)
+      assert game.player_for(existing_user.id)
       assert_not_predicate form, :valid?
       assert form.errors.added?(:base,
         message: "You have already joined this game")
@@ -121,7 +121,7 @@ module LoadedQuestions
         name: game.guesser.name)
 
       assert(game.players.any? { |player| player.name == form.name })
-      assert game.player_for(existing_user)
+      assert game.player_for(existing_user.id)
       assert_not_predicate form, :valid?
       assert form.errors.added?(:name, message: "has already been taken")
       assert form.errors.added?(:base,

@@ -33,7 +33,7 @@ module LoadedQuestions
         errors.add(:name, message: "has already been taken")
       end
 
-      if game.player_for(user)
+      if game.player_for(user.id)
         errors.add(:base, message: "You have already joined this game")
       end
 

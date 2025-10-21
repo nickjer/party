@@ -20,21 +20,18 @@ module LoadedQuestions
         if guess1.player.id == guess1.guessed_player.id
           game.swap_guesses(player_id1: guess1.player.id,
             player_id2: guess2.player.id)
-          game = LoadedQuestions::Game.find(game.id)
+          game.save!
+          game = reload(game:)
           guess1, guess2 = game.guesses.to_a
         end
 
         # Assert player IDs don't match guessed player IDs
-        assert_not_equal guess1.player.id, guess1.guessed_player.id,
-          "First guess should have different player and guessed_player IDs"
-        assert_not_equal guess2.player.id, guess2.guessed_player.id,
-          "Second guess should have different player and guessed_player IDs"
+        assert_not_equal guess1.player.id, guess1.guessed_player.id
+        assert_not_equal guess2.player.id, guess2.guessed_player.id
 
         # Assert both are correct due to case-insensitive matching
-        assert_predicate guess1, :correct?,
-          "First guess should be correct due to case-insensitive match"
-        assert_predicate guess2, :correct?,
-          "Second guess should be correct due to case-insensitive match"
+        assert_predicate guess1, :correct?
+        assert_predicate guess2, :correct?
 
         # Verify score is 2 (both correct)
         assert_equal 2, game.guesses.score

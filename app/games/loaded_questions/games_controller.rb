@@ -32,7 +32,7 @@ module LoadedQuestions
     # GET /loaded_questions/games/:id
     def show
       game = Game.find(params[:id])
-      current_player = game.player_for(current_user)
+      current_player = game.player_for(current_user.id)
 
       if current_player.nil?
         redirect_to(new_loaded_questions_game_player_path(game.id))
@@ -63,7 +63,7 @@ module LoadedQuestions
     # GET /loaded_questions/games/:id/new_round
     def new_round
       game = Game.find(params[:id])
-      current_player = game.player_for!(current_user)
+      current_player = game.player_for!(current_user.id)
       return head :forbidden if current_player.guesser?
 
       new_round = NewRoundForm.new(game:)
@@ -73,7 +73,7 @@ module LoadedQuestions
     # POST /loaded_questions/games/:id/create_round
     def create_round
       game = Game.find(params[:id])
-      current_player = game.player_for!(current_user)
+      current_player = game.player_for!(current_user.id)
       return head :forbidden if current_player.guesser?
 
       new_round = NewRoundForm.new(
@@ -90,7 +90,7 @@ module LoadedQuestions
         Broadcast::RoundCreated.new(game_id: game.id).call
 
         game = Game.find(params[:id])
-        current_player = game.player_for!(current_user)
+        current_player = game.player_for!(current_user.id)
         guessing_round_form = GuessingRoundForm.new(game:)
         render :polling_guesser,
           locals: { game:, current_player:, guessing_round_form: }
@@ -103,7 +103,7 @@ module LoadedQuestions
     # PATCH /loaded_questions/games/:id/completed_round
     def completed_round
       game = Game.find(params[:id])
-      current_player = game.player_for!(current_user)
+      current_player = game.player_for!(current_user.id)
       return head :forbidden unless current_player.guesser?
 
       completed_round_form = CompletedRoundForm.new(game:)
@@ -120,7 +120,7 @@ module LoadedQuestions
     # PATCH /loaded_questions/games/:id/guessing_round
     def guessing_round
       game = Game.find(params[:id])
-      current_player = game.player_for!(current_user)
+      current_player = game.player_for!(current_user.id)
       return head :forbidden unless current_player.guesser?
 
       guessing_round_form = GuessingRoundForm.new(game:)
@@ -138,7 +138,7 @@ module LoadedQuestions
     # PATCH /loaded_questions/games/:id/swap_guesses
     def swap_guesses
       game = Game.find(params[:id])
-      current_player = game.player_for!(current_user)
+      current_player = game.player_for!(current_user.id)
       return head :forbidden unless current_player.guesser?
       return head :forbidden unless game.status.guessing?
 
@@ -146,6 +146,7 @@ module LoadedQuestions
       player_id2 = swap_params[:swap_guess_id]
 
       game.swap_guesses(player_id1:, player_id2:)
+      game.save!
       Broadcast::AnswersSwapped.new(game_id: game.id).call
 
       head :ok

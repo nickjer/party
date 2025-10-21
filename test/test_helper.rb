@@ -37,9 +37,9 @@ module ActiveSupport
       ::PlayerConnections.stubs(:instance).returns(@player_connections)
     end
 
-    def sign_in(user)
+    def sign_in(user_id)
       test_request = ActionDispatch::TestRequest.create
-      test_request.cookie_jar.encrypted[:current_user_id] = user.id
+      test_request.cookie_jar.encrypted[:current_user_id] = user_id
       cookies[:current_user_id] = test_request.cookie_jar[:current_user_id]
     end
 

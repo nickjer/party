@@ -6,7 +6,7 @@ module LoadedQuestions
   class GamesControllerTest < ActionDispatch::IntegrationTest
     test "#new renders new game form" do
       user = create(:user)
-      sign_in(user)
+      sign_in(user.id)
 
       get new_loaded_questions_game_path
 
@@ -18,7 +18,7 @@ module LoadedQuestions
     test "#show redirects to new player when user not in game" do
       game = create(:lq_game)
       user = create(:user)
-      sign_in(user)
+      sign_in(user.id)
 
       get loaded_questions_game_path(game.id)
 
@@ -29,7 +29,7 @@ module LoadedQuestions
     test "#show renders polling_guesser when polling and guesser" do
       game = create(:lq_game)
       guesser = game.players.find(&:guesser?)
-      sign_in(guesser.user)
+      sign_in(guesser.user_id)
 
       assert_predicate game.status, :polling?
       assert_predicate guesser, :guesser?
@@ -45,7 +45,7 @@ module LoadedQuestions
     test "#show renders polling_player when polling and not guesser" do
       game = create(:lq_game, player_names: %w[Bob])
       non_guesser = game.players.reject(&:guesser?).first
-      sign_in(non_guesser.user)
+      sign_in(non_guesser.user_id)
 
       assert_predicate game.status, :polling?
       assert_not_predicate non_guesser, :guesser?
@@ -61,7 +61,7 @@ module LoadedQuestions
     test "#show renders guessing_guesser when guessing and guesser" do
       game = create(:lq_matching_game)
       guesser = game.players.find(&:guesser?)
-      sign_in(guesser.user)
+      sign_in(guesser.user_id)
 
       assert_predicate game.status, :guessing?
       assert_predicate guesser, :guesser?
@@ -77,7 +77,7 @@ module LoadedQuestions
     test "#show renders guessing_player when guessing and not guesser" do
       game = create(:lq_matching_game)
       non_guesser = game.players.reject(&:guesser?).first
-      sign_in(non_guesser.user)
+      sign_in(non_guesser.user_id)
 
       assert_predicate game.status, :guessing?
       assert_not_predicate non_guesser, :guesser?
@@ -93,7 +93,7 @@ module LoadedQuestions
     test "#show renders completed when game completed" do
       game = create(:lq_completed_game)
       player = game.players.first
-      sign_in(player.user)
+      sign_in(player.user_id)
 
       assert_predicate game.status, :completed?
 
@@ -115,7 +115,7 @@ module LoadedQuestions
 
       # Sign in as guesser
       guesser = game.players.find(&:guesser?)
-      sign_in(guesser.user)
+      sign_in(guesser.user_id)
 
       # Make request to complete round
       patch completed_round_loaded_questions_game_path(game.id)
@@ -137,7 +137,7 @@ module LoadedQuestions
 
       # Sign in as guesser
       guesser = game.players.find(&:guesser?)
-      sign_in(guesser.user)
+      sign_in(guesser.user_id)
 
       # Try to complete round while still in polling phase
       patch completed_round_loaded_questions_game_path(game.id)
@@ -156,7 +156,7 @@ module LoadedQuestions
 
       # Sign in as non-guesser
       non_guesser = game.players.find { |p| !p.guesser? }
-      sign_in(non_guesser.user)
+      sign_in(non_guesser.user_id)
 
       # Try to complete round as non-guesser
       patch completed_round_loaded_questions_game_path(game.id)
@@ -167,7 +167,7 @@ module LoadedQuestions
 
     test "#create creates game and player in database" do
       user = create(:user)
-      sign_in(user)
+      sign_in(user.id)
 
       assert_difference ["::Game.count", "::Player.count"], 1 do
         post loaded_questions_games_path, params: {
@@ -183,7 +183,7 @@ module LoadedQuestions
 
     test "#create redirects to game show page with valid params" do
       user = create(:user)
-      sign_in(user)
+      sign_in(user.id)
 
       post loaded_questions_games_path, params: {
         game: {
@@ -199,7 +199,7 @@ module LoadedQuestions
 
     test "#create renders form with validation errors" do
       user = create(:user)
-      sign_in(user)
+      sign_in(user.id)
 
       post loaded_questions_games_path, params: {
         game: {
@@ -216,7 +216,7 @@ module LoadedQuestions
     test "#create_round creates new round and changes guesser" do
       game = create(:lq_completed_game)
       non_guesser = game.players.reject(&:guesser?).first
-      sign_in(non_guesser.user)
+      sign_in(non_guesser.user_id)
 
       post create_round_loaded_questions_game_path(game.id), params: {
         round: {
@@ -227,13 +227,13 @@ module LoadedQuestions
       assert_response :success
       game = reload(game:)
       assert_predicate game.status, :polling?
-      assert_predicate game.player_for(non_guesser.user), :guesser?
+      assert_predicate game.player_for(non_guesser.user_id), :guesser?
     end
 
     test "#create_round renders form with validation errors" do
       game = create(:lq_completed_game)
       non_guesser = game.players.reject(&:guesser?).first
-      sign_in(non_guesser.user)
+      sign_in(non_guesser.user_id)
 
       post create_round_loaded_questions_game_path(game.id), params: {
         round: {
@@ -251,7 +251,7 @@ module LoadedQuestions
 
       # Sign in as guesser
       guesser = game.players.find(&:guesser?)
-      sign_in(guesser.user)
+      sign_in(guesser.user_id)
 
       # Try to create new round as guesser
       post create_round_loaded_questions_game_path(game.id), params: {
@@ -273,7 +273,7 @@ module LoadedQuestions
 
       # Sign in as non-guesser
       non_guesser = game.players.find { |p| !p.guesser? }
-      sign_in(non_guesser.user)
+      sign_in(non_guesser.user_id)
 
       # Try to start guessing round as non-guesser
       patch guessing_round_loaded_questions_game_path(game.id)
@@ -285,7 +285,7 @@ module LoadedQuestions
     test "#guessing_round transitions from polling to guessing" do
       game = create(:lq_game, :with_players, :with_answers)
       guesser = game.players.find(&:guesser?)
-      sign_in(guesser.user)
+      sign_in(guesser.user_id)
 
       assert_predicate game.status, :polling?
 
@@ -300,7 +300,7 @@ module LoadedQuestions
       "enough answers" do
       game = create(:lq_game, player_names: %w[Bob Charlie])
       guesser = game.players.find(&:guesser?)
-      sign_in(guesser.user)
+      sign_in(guesser.user_id)
 
       assert_predicate game.status, :polling?
 
@@ -316,7 +316,7 @@ module LoadedQuestions
 
       # Sign in as guesser
       guesser = game.players.find(&:guesser?)
-      sign_in(guesser.user)
+      sign_in(guesser.user_id)
 
       # Try to access new_round as guesser
       get new_round_loaded_questions_game_path(game.id)
@@ -328,7 +328,7 @@ module LoadedQuestions
     test "#new_round renders form for non-guesser" do
       game = create(:lq_completed_game)
       non_guesser = game.players.reject(&:guesser?).first
-      sign_in(non_guesser.user)
+      sign_in(non_guesser.user_id)
 
       get new_round_loaded_questions_game_path(game.id)
 
@@ -339,7 +339,7 @@ module LoadedQuestions
     test "#swap_guesses swaps answers and returns ok" do
       game = create(:lq_matching_game, player_names: %w[Bob Charlie])
       guesser = game.players.find(&:guesser?)
-      sign_in(guesser.user)
+      sign_in(guesser.user_id)
 
       guess1, guess2 = game.guesses.to_a
       guess1_guessed_answer_before = guess1.guessed_answer
@@ -366,7 +366,7 @@ module LoadedQuestions
 
       # Sign in as non-guesser
       non_guesser = game.players.find { |p| !p.guesser? }
-      sign_in(non_guesser.user)
+      sign_in(non_guesser.user_id)
 
       # Try to swap guesses as non-guesser
       guess1, guess2 = game.guesses.to_a
@@ -390,7 +390,7 @@ module LoadedQuestions
 
       # Sign in as guesser
       guesser = game.players.find(&:guesser?)
-      sign_in(guesser.user)
+      sign_in(guesser.user_id)
 
       # Try to swap guesses while still in polling phase
       non_guessers = game.players.reject(&:guesser?)

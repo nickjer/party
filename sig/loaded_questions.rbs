@@ -83,17 +83,17 @@ module LoadedQuestions
 
       # @dynamic guesses
       attr_reader guesses: Array[GuessedAnswer]
+    end
 
-      class GuessedAnswer
-        attr_reader player: Player
-        attr_reader guessed_player: Player
+    class GuessedAnswer
+      attr_reader player: Player
+      attr_reader guessed_player: Player
 
-        def initialize: (player: Player, guessed_player: Player) -> void
-        def answer: () -> ::NormalizedString
-        def guessed_answer: () -> ::NormalizedString
-        def correct?: () -> bool
-        def as_json: () -> json_guessed_answer
-      end
+      def initialize: (player: Player, guessed_player: Player) -> void
+      def answer: () -> ::NormalizedString
+      def guessed_answer: () -> ::NormalizedString
+      def correct?: () -> bool
+      def as_json: () -> json_guessed_answer
     end
 
     class Status

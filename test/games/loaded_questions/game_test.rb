@@ -91,6 +91,25 @@ module LoadedQuestions
       assert_equal "Player already exists for user", error.message
     end
 
+    test "#guesses= persists to database after save" do
+      game = create(:lq_matching_game, player_names: %w[Alice Bob])
+      player1, player2 = game.players.reject(&:guesser?)
+
+      # Create new guesses with swapped assignments
+      new_guesses = Game::Guesses.new(guesses: [
+        Game::GuessedAnswer.new(player: player1, guessed_player: player2),
+        Game::GuessedAnswer.new(player: player2, guessed_player: player1)
+      ])
+
+      game.guesses = new_guesses
+      game.save!
+
+      reloaded_game = reload(game:)
+      reloaded_guess1 = reloaded_game.guesses.find(player1.id)
+
+      assert_equal player2.id, reloaded_guess1.guessed_player.id
+    end
+
     test "#players returns dynamically sorted players after name change" do
       game = build(:lq_polling_game, player_names: %w[Bob Charlie],
         guesser_name: "Alice")
@@ -105,6 +124,55 @@ module LoadedQuestions
       # Verify players are still sorted dynamically
       player_names_after = game.players.map(&:name).map(&:to_s)
       assert_equal %w[Bob Charlie Zoe], player_names_after
+    end
+
+    test "#question= persists to database after save" do
+      game = create(:lq_game)
+      new_question = NormalizedString.new("What is your favorite animal?")
+
+      game.question = new_question
+      game.save!
+
+      reloaded_game = reload(game:)
+
+      assert_equal "What is your favorite animal?", reloaded_game.question.to_s
+    end
+
+    test "#question= raises error when question is too long" do
+      game = build(:lq_game)
+      long_question = NormalizedString.new("a" * 161)
+
+      error = assert_raises(ArgumentError) do
+        game.question = long_question
+      end
+
+      assert_match(/Question length must be between 3 and 160 characters/,
+        error.message)
+    end
+
+    test "#question= raises error when question is too short" do
+      game = build(:lq_game)
+      short_question = NormalizedString.new("AB")
+
+      error = assert_raises(ArgumentError) do
+        game.question = short_question
+      end
+
+      assert_match(/Question length must be between 3 and 160 characters/,
+        error.message)
+    end
+
+    test "#status= persists to database after save" do
+      game = create(:lq_game)
+
+      assert_predicate game.status, :polling?
+
+      game.status = Game::Status.guessing
+      game.save!
+
+      reloaded_game = reload(game:)
+
+      assert_predicate reloaded_game.status, :guessing?
     end
 
     test "#swap_guesses persists answer swap to database" do

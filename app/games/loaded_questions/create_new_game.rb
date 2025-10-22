@@ -11,20 +11,17 @@ module LoadedQuestions
     end
 
     def call
-      game = ::Game.new
-      game.kind = :loaded_questions
-      game.document = document.to_json
-      game.id = ::Game.generate_unique_id
+      game = Game.build(question:)
+      player = Player.build(
+        game_id: game.id,
+        user_id: user.id,
+        name: player_name,
+        guesser: true
+      )
 
       ::Game.transaction do
         game.save!
-
-        CreateNewPlayer.new(
-          game_id: game.id,
-          user:,
-          name: player_name,
-          guesser: true
-        ).call
+        player.save!
       end
 
       game
@@ -40,13 +37,5 @@ module LoadedQuestions
 
     # @dynamic question
     attr_reader :question
-
-    def document
-      {
-        guesses: Game::Guesses.new(guesses: []),
-        question: question,
-        status: Game::Status.polling
-      }
-    end
   end
 end

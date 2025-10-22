@@ -8,7 +8,14 @@ module LoadedQuestions
     MAX_ANSWER_LENGTH = 80
 
     class << self
-      def build(game_id:, user_id:) = new(::Player.new(game_id:, user_id:))
+      def build(game_id:, user_id:, name:, guesser: false)
+        document = {
+          answer: NormalizedString.new(""),
+          guesser:,
+          score: 0
+        } #: document
+        new(::Player.new(game_id:, user_id:, name:, document: document.to_json))
+      end
     end
 
     def initialize(model) = @model = model

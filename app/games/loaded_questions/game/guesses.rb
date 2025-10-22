@@ -5,6 +5,8 @@ module LoadedQuestions
     # Collection of guessed answers with operations for swapping and scoring.
     class Guesses
       class << self
+        def empty = new(guesses: [])
+
         def parse(guesses, players:)
           player_map = players.index_by(&:id) #: Hash[String, Player]
           guesses = guesses

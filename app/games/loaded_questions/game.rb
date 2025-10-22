@@ -8,6 +8,15 @@ module LoadedQuestions
     MAX_QUESTION_LENGTH = 160
 
     class << self
+      def build(question:)
+        document = {
+          question: question,
+          guesses: Guesses.empty,
+          status: Status.polling
+        } #: document
+        new(::Game.new(kind: :loaded_questions, document: document.to_json))
+      end
+
       def find(id) = new(scope.find(id))
 
       private

@@ -20,12 +20,13 @@ FactoryBot.define do
         raise "Invalid player form: #{form.errors.full_messages.join(', ')}"
       end
 
-      LoadedQuestions::CreateNewPlayer.new(
+      player = LoadedQuestions::Player.build(
         game_id: game.id,
-        user:,
+        user_id: user.id,
         name: form.name,
         guesser:
-      ).call
+      )
+      player.save!
 
       player = LoadedQuestions::Game.find(game.id).player_for!(user.id)
 

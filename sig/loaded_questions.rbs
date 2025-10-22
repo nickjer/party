@@ -29,6 +29,7 @@ module LoadedQuestions
     MIN_QUESTION_LENGTH: Integer
     MAX_QUESTION_LENGTH: Integer
 
+    def self.build: (question: NormalizedString) -> Game
     def self.find: (String id) -> Game
     private def self.scope: () -> ::Game::ActiveRecord_Relation
 
@@ -62,6 +63,7 @@ module LoadedQuestions
     def validate_between!: (::NormalizedString value, min: Integer, max: Integer, field: Symbol) -> void
 
     class Guesses
+      def self.empty: () -> Guesses
       def self.parse: (
         Array[json_guessed_answer] guesses,
         players: Array[Player]
@@ -252,15 +254,13 @@ module LoadedQuestions
       question: ::NormalizedString
     ) -> void
 
-    def call: () -> ::Game
+    def call: () -> Game
 
     private
 
     attr_reader user: ::User
     attr_reader player_name: ::NormalizedString
     attr_reader question: ::NormalizedString
-
-    def document: () -> Game::document
   end
 
   class BeginGuessingRound
@@ -334,21 +334,6 @@ module LoadedQuestions
     def validate_length: (::NormalizedString value, min: Integer, max: Integer) -> String?
   end
 
-  class CreateNewPlayer
-    def initialize: (game_id: String, user: ::User, name: ::NormalizedString, ?guesser: bool) -> void
-
-    def call: () -> ::Player
-
-    private
-
-    attr_reader game_id: String
-    attr_reader guesser: bool
-    attr_reader name: ::NormalizedString
-    attr_reader user: ::User
-
-    def document: () -> Player::document
-  end
-
   class NewPlayerForm
     attr_reader errors: ::Errors
     attr_reader game: Game
@@ -394,7 +379,7 @@ module LoadedQuestions
       score: Integer
     }
 
-    def self.build: (game_id: String, user_id: String) -> Player
+    def self.build: (game_id: String, user_id: String, name: ::NormalizedString, ?guesser: bool) -> Player
 
     @guesser: bool
 

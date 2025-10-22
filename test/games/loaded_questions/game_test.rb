@@ -15,31 +15,6 @@ module LoadedQuestions
         error.message)
     end
 
-    test "swap_guesses persists answer swap to database" do
-      # Create game in guessing status with players and answers
-      game = create(:lq_matching_game, player_names: %w[Bob Charlie])
-
-      # Get current answer assignments
-      guess1, guess2 = game.guesses.to_a
-      guess1_guessed_answer_before = guess1.guessed_answer
-      guess2_guessed_answer_before = guess2.guessed_answer
-
-      # Swap the answers
-      game.swap_guesses(player_id1: guess1.player.id,
-        player_id2: guess2.player.id)
-      game.save!
-
-      # Reload from database to verify persistence
-      game_after = reload(game:)
-      guess1_after, guess2_after = game_after.guesses.to_a
-
-      # Verify answers were swapped and persisted
-      assert_equal guess2_guessed_answer_before, guess1_after.guessed_answer,
-        "First guess should have second guessed answer after swap"
-      assert_equal guess1_guessed_answer_before, guess2_after.guessed_answer,
-        "Second guess should have first guessed answer after swap"
-    end
-
     test "#add_player creates and adds player to game" do
       user = build(:user)
       game = build(:lq_game)
@@ -62,6 +37,33 @@ module LoadedQuestions
 
       assert_predicate player, :guesser?
       assert_equal player, game.guesser
+    end
+
+    test "#add_player maintains alphabetical sort order" do
+      game = build(:lq_polling_game, player_names: %w[Alice Charlie],
+        guesser_name: "David")
+      user = build(:user)
+
+      game.add_player(user_id: user.id, name: NormalizedString.new("Bob"))
+
+      player_names = game.players.map(&:name).map(&:to_s)
+      assert_equal %w[Alice Bob Charlie David], player_names
+    end
+
+    test "#add_player persists player after save" do
+      user = create(:user)
+      game = create(:lq_game)
+
+      player = game.add_player(user_id: user.id,
+        name: NormalizedString.new("Alice"))
+      game.save!
+
+      game_after = reload(game:)
+      reloaded_player = game_after.player_for(user.id)
+
+      assert_not_nil reloaded_player
+      assert_equal player.id, reloaded_player.id
+      assert_equal "Alice", reloaded_player.name.to_s
     end
 
     test "#add_player raises error when called twice for same user_id" do
@@ -89,33 +91,6 @@ module LoadedQuestions
       assert_equal "Player already exists for user", error.message
     end
 
-    test "#add_player persists player after save" do
-      user = create(:user)
-      game = create(:lq_game)
-
-      player = game.add_player(user_id: user.id,
-        name: NormalizedString.new("Alice"))
-      game.save!
-
-      game_after = reload(game:)
-      reloaded_player = game_after.player_for(user.id)
-
-      assert_not_nil reloaded_player
-      assert_equal player.id, reloaded_player.id
-      assert_equal "Alice", reloaded_player.name.to_s
-    end
-
-    test "#add_player maintains alphabetical sort order" do
-      game = build(:lq_polling_game, player_names: %w[Alice Charlie],
-        guesser_name: "David")
-      user = build(:user)
-
-      game.add_player(user_id: user.id, name: NormalizedString.new("Bob"))
-
-      player_names = game.players.map(&:name).map(&:to_s)
-      assert_equal %w[Alice Bob Charlie David], player_names
-    end
-
     test "#players returns dynamically sorted players after name change" do
       game = build(:lq_polling_game, player_names: %w[Bob Charlie],
         guesser_name: "Alice")
@@ -130,6 +105,31 @@ module LoadedQuestions
       # Verify players are still sorted dynamically
       player_names_after = game.players.map(&:name).map(&:to_s)
       assert_equal %w[Bob Charlie Zoe], player_names_after
+    end
+
+    test "#swap_guesses persists answer swap to database" do
+      # Create game in guessing status with players and answers
+      game = create(:lq_matching_game, player_names: %w[Bob Charlie])
+
+      # Get current answer assignments
+      guess1, guess2 = game.guesses.to_a
+      guess1_guessed_answer_before = guess1.guessed_answer
+      guess2_guessed_answer_before = guess2.guessed_answer
+
+      # Swap the answers
+      game.swap_guesses(player_id1: guess1.player.id,
+        player_id2: guess2.player.id)
+      game.save!
+
+      # Reload from database to verify persistence
+      game_after = reload(game:)
+      guess1_after, guess2_after = game_after.guesses.to_a
+
+      # Verify answers were swapped and persisted
+      assert_equal guess2_guessed_answer_before, guess1_after.guessed_answer,
+        "First guess should have second guessed answer after swap"
+      assert_equal guess1_guessed_answer_before, guess2_after.guessed_answer,
+        "Second guess should have first guessed answer after swap"
     end
   end
 end

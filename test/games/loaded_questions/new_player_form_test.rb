@@ -4,78 +4,30 @@ require "test_helper"
 
 module LoadedQuestions
   class NewPlayerFormTest < ActiveSupport::TestCase
-    test "#valid? returns true with valid unique name and new user" do
+    test "#errors returns Errors instance" do
       game = build(:lq_game)
       user_id = "user1"
-
       form = NewPlayerForm.new(game:, user_id:, name: "Bob")
 
-      assert_predicate form, :valid?
-      assert_predicate form.errors, :empty?
+      assert_instance_of Errors, form.errors
     end
 
-    test "#valid? returns true with name at minimum length" do
+    test "#name returns NormalizedString instance" do
       game = build(:lq_game)
       user_id = "user1"
-
       form = NewPlayerForm.new(game:, user_id:, name: "Bob")
 
+      assert_instance_of NormalizedString, form.name
+    end
+
+    test "#valid? normalizes name with NormalizedString" do
+      game = build(:lq_game)
+      user_id = "user1"
+
+      form = NewPlayerForm.new(game:, user_id:, name: "  Bob  ")
+
       assert_predicate form, :valid?
-      assert_predicate form.errors, :empty?
-    end
-
-    test "#valid? returns true with name at maximum length" do
-      game = build(:lq_game)
-      user_id = "user1"
-
-      form = NewPlayerForm.new(game:, user_id:, name: "a" * 25)
-
-      assert_predicate form, :valid?
-      assert_predicate form.errors, :empty?
-    end
-
-    test "#valid? returns false with name too short" do
-      game = build(:lq_game)
-      user_id = "user1"
-
-      form = NewPlayerForm.new(game:, user_id:, name: "ab")
-
-      assert_not_predicate form, :valid?
-      assert form.errors.added?(:name,
-        message: "is too short (minimum is 3 characters)")
-    end
-
-    test "#valid? returns false with blank name" do
-      game = build(:lq_game)
-      user_id = "user1"
-
-      form = NewPlayerForm.new(game:, user_id:, name: "")
-
-      assert_not_predicate form, :valid?
-      assert form.errors.added?(:name,
-        message: "is too short (minimum is 3 characters)")
-    end
-
-    test "#valid? returns false with nil name" do
-      game = build(:lq_game)
-      user_id = "user1"
-
-      form = NewPlayerForm.new(game:, user_id:, name: nil)
-
-      assert_not_predicate form, :valid?
-      assert form.errors.added?(:name,
-        message: "is too short (minimum is 3 characters)")
-    end
-
-    test "#valid? returns false with name too long" do
-      game = build(:lq_game)
-      user_id = "user1"
-
-      form = NewPlayerForm.new(game:, user_id:, name: "a" * 26)
-
-      assert_not_predicate form, :valid?
-      assert form.errors.added?(:name,
-        message: "is too long (maximum is 25 characters)")
+      assert_equal "Bob", form.name.to_s
     end
 
     test "#valid? returns false when name already taken" do
@@ -114,30 +66,78 @@ module LoadedQuestions
         message: "You have already joined this game")
     end
 
-    test "#valid? normalizes name with NormalizedString" do
+    test "#valid? returns false with blank name" do
       game = build(:lq_game)
       user_id = "user1"
 
-      form = NewPlayerForm.new(game:, user_id:, name: "  Bob  ")
+      form = NewPlayerForm.new(game:, user_id:, name: "")
+
+      assert_not_predicate form, :valid?
+      assert form.errors.added?(:name,
+        message: "is too short (minimum is 3 characters)")
+    end
+
+    test "#valid? returns false with name too long" do
+      game = build(:lq_game)
+      user_id = "user1"
+
+      form = NewPlayerForm.new(game:, user_id:, name: "a" * 26)
+
+      assert_not_predicate form, :valid?
+      assert form.errors.added?(:name,
+        message: "is too long (maximum is 25 characters)")
+    end
+
+    test "#valid? returns false with name too short" do
+      game = build(:lq_game)
+      user_id = "user1"
+
+      form = NewPlayerForm.new(game:, user_id:, name: "ab")
+
+      assert_not_predicate form, :valid?
+      assert form.errors.added?(:name,
+        message: "is too short (minimum is 3 characters)")
+    end
+
+    test "#valid? returns false with nil name" do
+      game = build(:lq_game)
+      user_id = "user1"
+
+      form = NewPlayerForm.new(game:, user_id:, name: nil)
+
+      assert_not_predicate form, :valid?
+      assert form.errors.added?(:name,
+        message: "is too short (minimum is 3 characters)")
+    end
+
+    test "#valid? returns true with name at maximum length" do
+      game = build(:lq_game)
+      user_id = "user1"
+
+      form = NewPlayerForm.new(game:, user_id:, name: "a" * 25)
 
       assert_predicate form, :valid?
-      assert_equal "Bob", form.name.to_s
+      assert_predicate form.errors, :empty?
     end
 
-    test "#name returns NormalizedString instance" do
+    test "#valid? returns true with name at minimum length" do
       game = build(:lq_game)
       user_id = "user1"
+
       form = NewPlayerForm.new(game:, user_id:, name: "Bob")
 
-      assert_instance_of NormalizedString, form.name
+      assert_predicate form, :valid?
+      assert_predicate form.errors, :empty?
     end
 
-    test "#errors returns Errors instance" do
+    test "#valid? returns true with valid unique name and new user" do
       game = build(:lq_game)
       user_id = "user1"
+
       form = NewPlayerForm.new(game:, user_id:, name: "Bob")
 
-      assert_instance_of Errors, form.errors
+      assert_predicate form, :valid?
+      assert_predicate form.errors, :empty?
     end
   end
 end

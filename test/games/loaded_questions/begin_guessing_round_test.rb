@@ -4,19 +4,6 @@ require "test_helper"
 
 module LoadedQuestions
   class BeginGuessingRoundTest < ActiveSupport::TestCase
-    test "#call transitions game from polling to guessing status" do
-      game = build(:lq_polling_game, players: [
-        { name: "Alice", answer: "Blue" },
-        { name: "Bob", answer: "Red" }
-      ])
-
-      assert_predicate game.status, :polling?
-
-      BeginGuessingRound.new(game:).call
-
-      assert_predicate game.status, :guessing?
-    end
-
     test "#call creates shuffled guess pairs from answered players" do
       game = build(:lq_polling_game, players: [
         { name: "Alice", answer: "Blue" },
@@ -59,6 +46,19 @@ module LoadedQuestions
       result = BeginGuessingRound.new(game:).call
 
       assert_equal game, result
+    end
+
+    test "#call transitions game from polling to guessing status" do
+      game = build(:lq_polling_game, players: [
+        { name: "Alice", answer: "Blue" },
+        { name: "Bob", answer: "Red" }
+      ])
+
+      assert_predicate game.status, :polling?
+
+      BeginGuessingRound.new(game:).call
+
+      assert_predicate game.status, :guessing?
     end
   end
 end

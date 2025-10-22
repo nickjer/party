@@ -4,38 +4,6 @@ require "test_helper"
 
 module LoadedQuestions
   class CompleteRoundTest < ActiveSupport::TestCase
-    test "#call transitions game from guessing to completed status" do
-      game = build(:lq_matching_game, player_names: %w[Alice Bob])
-
-      assert_predicate game.status, :guessing?
-
-      CompleteRound.new(game:).call
-
-      assert_predicate game.status, :completed?
-    end
-
-    test "#call updates guesser score with number of correct guesses" do
-      game = build(:lq_matching_game, player_names: %w[Alice Bob])
-      guesser = game.guesser
-
-      assert_equal 0, guesser.score
-
-      # Make all guesses correct
-      non_guessers = game.players.reject(&:guesser?)
-      correct_guesses =
-        non_guessers.map do |player|
-          Game::GuessedAnswer.new(player:, guessed_player: player)
-        end
-
-      game.guesses = Game::Guesses.new(guesses: correct_guesses)
-
-      assert_equal 2, game.guesses.score
-
-      CompleteRound.new(game:).call
-
-      assert_equal 2, game.guesser.score
-    end
-
     test "#call adds to existing guesser score" do
       game = build(:lq_matching_game, player_names: %w[Alice Bob Charlie])
       guesser = game.guesser
@@ -78,6 +46,38 @@ module LoadedQuestions
       result = CompleteRound.new(game:).call
 
       assert_equal game, result
+    end
+
+    test "#call transitions game from guessing to completed status" do
+      game = build(:lq_matching_game, player_names: %w[Alice Bob])
+
+      assert_predicate game.status, :guessing?
+
+      CompleteRound.new(game:).call
+
+      assert_predicate game.status, :completed?
+    end
+
+    test "#call updates guesser score with number of correct guesses" do
+      game = build(:lq_matching_game, player_names: %w[Alice Bob])
+      guesser = game.guesser
+
+      assert_equal 0, guesser.score
+
+      # Make all guesses correct
+      non_guessers = game.players.reject(&:guesser?)
+      correct_guesses =
+        non_guessers.map do |player|
+          Game::GuessedAnswer.new(player:, guessed_player: player)
+        end
+
+      game.guesses = Game::Guesses.new(guesses: correct_guesses)
+
+      assert_equal 2, game.guesses.score
+
+      CompleteRound.new(game:).call
+
+      assert_equal 2, game.guesser.score
     end
   end
 end

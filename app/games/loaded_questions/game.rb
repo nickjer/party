@@ -25,7 +25,7 @@ module LoadedQuestions
       private
 
       def scope
-        ::Game.strict_loading.loaded_questions.includes(players: :user)
+        ::Game.strict_loading.loaded_questions.includes(:players)
       end
     end
 

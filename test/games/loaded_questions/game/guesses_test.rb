@@ -5,6 +5,14 @@ require "test_helper"
 module LoadedQuestions
   class Game
     class GuessesTest < ActiveSupport::TestCase
+      test "#find raises ActiveRecord::RecordNotFound when player not found" do
+        game = build(:lq_matching_game, player_names: %w[Alice Bob])
+
+        assert_raises(ActiveRecord::RecordNotFound) do
+          game.guesses.find(999_999)
+        end
+      end
+
       test "#find returns guessed answer for player" do
         game = build(:lq_matching_game, player_names: %w[Alice Bob])
         non_guesser = game.players.reject(&:guesser?).first
@@ -14,12 +22,36 @@ module LoadedQuestions
         assert_equal non_guesser.id, result.player.id
       end
 
-      test "#find raises ActiveRecord::RecordNotFound when player not found" do
+      test "#initialize raises error when duplicate guessed player found" do
         game = build(:lq_matching_game, player_names: %w[Alice Bob])
+        player1, player2 = game.players.reject(&:guesser?)
 
-        assert_raises(ActiveRecord::RecordNotFound) do
-          game.guesses.find(999_999)
+        guesses = [
+          Game::GuessedAnswer.new(player: player1, guessed_player: player1),
+          Game::GuessedAnswer.new(player: player2, guessed_player: player1)
+        ]
+
+        error = assert_raises(RuntimeError) do
+          Game::Guesses.new(guesses:)
         end
+
+        assert_equal "Duplicate guessed player found in guesses", error.message
+      end
+
+      test "#initialize raises error when duplicate player found" do
+        game = build(:lq_matching_game, player_names: %w[Alice Bob])
+        player1, player2 = game.players.reject(&:guesser?)
+
+        guesses = [
+          Game::GuessedAnswer.new(player: player1, guessed_player: player1),
+          Game::GuessedAnswer.new(player: player1, guessed_player: player2)
+        ]
+
+        error = assert_raises(RuntimeError) do
+          Game::Guesses.new(guesses:)
+        end
+
+        assert_equal "Duplicate player found in guesses", error.message
       end
 
       test "#swap raises error when first player not found" do
@@ -42,38 +74,6 @@ module LoadedQuestions
         end
 
         assert_equal "Player 999999 not found", error.message
-      end
-
-      test "#initialize raises error when duplicate player found" do
-        game = build(:lq_matching_game, player_names: %w[Alice Bob])
-        player1, player2 = game.players.reject(&:guesser?)
-
-        guesses = [
-          Game::GuessedAnswer.new(player: player1, guessed_player: player1),
-          Game::GuessedAnswer.new(player: player1, guessed_player: player2)
-        ]
-
-        error = assert_raises(RuntimeError) do
-          Game::Guesses.new(guesses:)
-        end
-
-        assert_equal "Duplicate player found in guesses", error.message
-      end
-
-      test "#initialize raises error when duplicate guessed player found" do
-        game = build(:lq_matching_game, player_names: %w[Alice Bob])
-        player1, player2 = game.players.reject(&:guesser?)
-
-        guesses = [
-          Game::GuessedAnswer.new(player: player1, guessed_player: player1),
-          Game::GuessedAnswer.new(player: player2, guessed_player: player1)
-        ]
-
-        error = assert_raises(RuntimeError) do
-          Game::Guesses.new(guesses:)
-        end
-
-        assert_equal "Duplicate guessed player found in guesses", error.message
       end
     end
   end

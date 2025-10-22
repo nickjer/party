@@ -9,7 +9,7 @@ module LoadedQuestions
       include Turbo::Broadcastable::TestHelper
 
       test "#call broadcasts to other online players" do
-        game = create(:lq_game, player_names: %w[Alice Bob])
+        game = create(:lq_polling_game, player_names: %w[Alice Bob])
         alice = game.players.find { |p| p.name.to_s == "Alice" }
         bob = game.players.find { |p| p.name.to_s == "Bob" }
 
@@ -24,7 +24,7 @@ module LoadedQuestions
       end
 
       test "#call does not broadcast to disconnected player" do
-        game = create(:lq_game, player_names: %w[Alice Bob])
+        game = create(:lq_polling_game, player_names: %w[Alice Bob])
         alice = game.players.find { |p| p.name.to_s == "Alice" }
         bob = game.players.find { |p| p.name.to_s == "Bob" }
 
@@ -39,7 +39,7 @@ module LoadedQuestions
       end
 
       test "#call does not broadcast to offline players" do
-        game = create(:lq_game, player_names: %w[Alice Bob])
+        game = create(:lq_polling_game, player_names: %w[Alice Bob])
         alice = game.players.find { |p| p.name.to_s == "Alice" }
         bob = game.players.find { |p| p.name.to_s == "Bob" }
 
@@ -54,7 +54,7 @@ module LoadedQuestions
 
       test "#call broadcasts to multiple online players except " \
         "disconnected player" do
-        game = create(:lq_game, player_names: %w[Alice Bob Charlie])
+        game = create(:lq_polling_game, player_names: %w[Alice Bob Charlie])
         alice = game.players.find { |p| p.name.to_s == "Alice" }
         bob = game.players.find { |p| p.name.to_s == "Bob" }
         charlie = game.players.find { |p| p.name.to_s == "Charlie" }
@@ -73,7 +73,7 @@ module LoadedQuestions
       end
 
       test "#call handles game with only disconnected player" do
-        game = create(:lq_game) # Only guesser
+        game = create(:lq_game, :with_guesser) # Only guesser
         alice = game.players.first
 
         ::PlayerConnections.instance.increment(alice.id)
@@ -85,7 +85,7 @@ module LoadedQuestions
       end
 
       test "#call broadcasts replace turbo stream action" do
-        game = create(:lq_game, player_names: %w[Alice Bob])
+        game = create(:lq_polling_game, player_names: %w[Alice Bob])
         alice = game.players.find { |p| p.name.to_s == "Alice" }
         bob = game.players.find { |p| p.name.to_s == "Bob" }
 

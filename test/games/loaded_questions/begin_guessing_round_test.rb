@@ -5,7 +5,7 @@ require "test_helper"
 module LoadedQuestions
   class BeginGuessingRoundTest < ActiveSupport::TestCase
     test "#call transitions game from polling to guessing status" do
-      game = create(:lq_game, players: [
+      game = create(:lq_polling_game, players: [
         { name: "Alice", answer: "Blue" },
         { name: "Bob", answer: "Red" }
       ])
@@ -18,7 +18,7 @@ module LoadedQuestions
     end
 
     test "#call creates shuffled guess pairs from answered players" do
-      game = create(:lq_game, players: [
+      game = create(:lq_polling_game, players: [
         { name: "Alice", answer: "Blue" },
         { name: "Bob", answer: "Red" },
         { name: "Charlie", answer: "" }
@@ -51,7 +51,7 @@ module LoadedQuestions
     end
 
     test "#call returns the game" do
-      game = create(:lq_game, players: [
+      game = create(:lq_polling_game, players: [
         { name: "Alice", answer: "Blue" },
         { name: "Bob", answer: "Red" }
       ])

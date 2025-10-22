@@ -9,7 +9,7 @@ module LoadedQuestions
       include Turbo::Broadcastable::TestHelper
 
       test "#call broadcasts to online non-guesser players" do
-        game = create(:lq_game, player_names: %w[Alice Bob])
+        game = create(:lq_polling_game, player_names: %w[Alice Bob])
         game.players.find(&:guesser?)
         non_guesser = game.players.reject(&:guesser?).first
 
@@ -29,7 +29,7 @@ module LoadedQuestions
       end
 
       test "#call does not broadcast to guesser" do
-        game = create(:lq_game, player_names: %w[Alice Bob])
+        game = create(:lq_polling_game, player_names: %w[Alice Bob])
         guesser = game.players.find(&:guesser?)
 
         # Mark guesser as online
@@ -42,7 +42,7 @@ module LoadedQuestions
       end
 
       test "#call does not broadcast to offline non-guesser players" do
-        game = create(:lq_game, player_names: %w[Alice Bob])
+        game = create(:lq_polling_game, player_names: %w[Alice Bob])
         non_guesser = game.players.reject(&:guesser?).first
 
         # Non-guesser is offline
@@ -54,7 +54,7 @@ module LoadedQuestions
       end
 
       test "#call broadcasts to multiple online non-guesser players" do
-        game = create(:lq_game, player_names: %w[Alice Bob Charlie])
+        game = create(:lq_polling_game, player_names: %w[Alice Bob Charlie])
         game.players.find(&:guesser?)
         non_guessers = game.players.reject(&:guesser?)
 

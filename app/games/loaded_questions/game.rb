@@ -104,6 +104,7 @@ module LoadedQuestions
 
       player = Player.build(game_id: id, user_id:, name:, guesser:)
       players << player
+      players.sort!
       player
     end
 

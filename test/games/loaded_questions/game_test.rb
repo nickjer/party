@@ -79,7 +79,7 @@ module LoadedQuestions
     end
 
     test "#add_player raises error when player already exists for user" do
-      game = create(:lq_game, player_names: %w[Alice])
+      game = create(:lq_polling_game, player_names: %w[Alice])
       existing_player = game.players.first
       user = existing_player.to_model.user
 
@@ -104,6 +104,17 @@ module LoadedQuestions
       assert_not_nil reloaded_player
       assert_equal player.id, reloaded_player.id
       assert_equal "Alice", reloaded_player.name.to_s
+    end
+
+    test "#add_player maintains alphabetical sort order" do
+      game = create(:lq_polling_game, player_names: %w[Alice Charlie],
+        guesser_name: "David")
+      user = create(:user)
+
+      game.add_player(user_id: user.id, name: NormalizedString.new("Bob"))
+
+      player_names = game.players.map(&:name).map(&:to_s)
+      assert_equal %w[Alice Bob Charlie David], player_names
     end
   end
 end

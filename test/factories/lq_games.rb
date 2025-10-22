@@ -2,56 +2,47 @@
 
 FactoryBot.define do
   factory :lq_game, class: "LoadedQuestions::Game" do
-    transient do
-      user { association(:user) }
-      guesser { Faker::Name.unique.first_name.ljust(3, "a") }
-      question { Faker::Lorem.question }
-      player_names { [] }
-      players { player_names.map { |name| { name:, answer: nil } } }
-    end
-
-    skip_create
+    question { Faker::Lorem.question }
 
     initialize_with do
-      form = LoadedQuestions::NewGameForm.new(player_name: guesser, question:)
+      LoadedQuestions::Game.build(question:)
+    end
 
-      unless form.valid?
-        raise "Invalid game form: #{form.errors.full_messages.join(', ')}"
-      end
-
-      game = LoadedQuestions::CreateNewGame.new(
-        user:,
-        player_name: form.player_name,
-        question: form.question
-      ).call
-      game.save!
-
-      players.each do |player_data|
-        player = create(:lq_player, game:, name: player_data.fetch(:name))
-
-        # Add answer if provided
-        answer = player_data.fetch(:answer)
-        next unless answer.present? && !player.guesser?
-
-        answer_form = LoadedQuestions::AnswerForm.new(answer:)
-        unless answer_form.valid?
-          raise "Invalid answer: #{answer_form.errors.full_messages.join(', ')}"
+    trait :with_guesser do
+      transient do
+        guesser_name { Faker::Name.unique.first_name.ljust(3, "a") }
+        guesser do
+          association(:lq_player, game: instance, name: guesser_name,
+            guesser: true, strategy: :build)
         end
-
-        player.answer = answer_form.answer
-        player.save!
       end
 
-      LoadedQuestions::Game.find(game.id)
+      after(:build) do |game, context|
+        game.players << context.guesser
+      end
     end
 
     trait :with_players do
       transient do
         player_names { Array.new(2) { Faker::Name.unique.first_name.ljust(3, "a") } }
+        players { player_names.map { |name| { name:, answer: nil } } }
+      end
+
+      after(:build) do |game, context|
+        context.players.each do |player_data|
+          player = build(:lq_player,
+            game:,
+            name: player_data.fetch(:name),
+            guesser: false,
+            answer: player_data.fetch(:answer))
+          game.players << player
+        end
       end
     end
 
     trait :with_answers do
+      with_players
+
       transient do
         players do
           player_names.map do |name|
@@ -61,33 +52,20 @@ FactoryBot.define do
       end
     end
 
-    factory :lq_matching_game, traits: %i[with_players with_answers] do
-      initialize_with do
-        # Create base game with players and answers
-        game = build(:lq_game, user:, guesser:, question:, player_names:,
-          players:)
+    factory :lq_polling_game, traits: %i[with_guesser with_players]
 
-        # Transition to guessing status
-        game = LoadedQuestions::Game.find(game.id)
+    factory :lq_matching_game,
+      traits: %i[with_guesser with_players with_answers] do
+      after(:build) do |game|
         LoadedQuestions::BeginGuessingRound.new(game:).call
-        game.save!
-
-        LoadedQuestions::Game.find(game.id)
       end
     end
 
-    factory :lq_completed_game, traits: %i[with_players with_answers] do
-      initialize_with do
-        # Create matching game (with guessing status)
-        game = build(:lq_matching_game, user:, guesser:, question:,
-          player_names:, players:)
-
-        # Transition to completed status
-        game = LoadedQuestions::Game.find(game.id)
+    factory :lq_completed_game,
+      traits: %i[with_guesser with_players with_answers] do
+      after(:build) do |game|
+        LoadedQuestions::BeginGuessingRound.new(game:).call
         LoadedQuestions::CompleteRound.new(game:).call
-        game.save!
-
-        LoadedQuestions::Game.find(game.id)
       end
     end
   end

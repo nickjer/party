@@ -66,7 +66,7 @@ module LoadedQuestions
     end
 
     test "#call raises error when game is not in guessing status" do
-      game = create(:lq_game, player_names: %w[Alice Bob])
+      game = create(:lq_polling_game, player_names: %w[Alice Bob])
 
       assert_predicate game.status, :polling?
 

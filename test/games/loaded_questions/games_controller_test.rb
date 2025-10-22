@@ -27,7 +27,7 @@ module LoadedQuestions
     end
 
     test "#show renders polling_guesser when polling and guesser" do
-      game = create(:lq_game)
+      game = create(:lq_polling_game)
       guesser = game.players.find(&:guesser?)
       sign_in(guesser.user_id)
 
@@ -43,7 +43,7 @@ module LoadedQuestions
     end
 
     test "#show renders polling_player when polling and not guesser" do
-      game = create(:lq_game, player_names: %w[Bob])
+      game = create(:lq_polling_game, player_names: %w[Bob])
       non_guesser = game.players.reject(&:guesser?).first
       sign_in(non_guesser.user_id)
 
@@ -130,7 +130,7 @@ module LoadedQuestions
 
     test "#completed_round returns error when not in guessing phase" do
       # Create game with guesser and players in polling phase
-      game = create(:lq_game, player_names: %w[Bob Charlie])
+      game = create(:lq_polling_game, player_names: %w[Bob Charlie])
 
       # Verify game is in polling status
       assert_predicate game.status, :polling?
@@ -266,7 +266,7 @@ module LoadedQuestions
 
     test "#guessing_round returns forbidden when non-guesser tries" do
       # Create game with players and answers in polling status
-      game = create(:lq_game, :with_players, :with_answers)
+      game = create(:lq_polling_game)
 
       # Verify game is in polling status
       assert_predicate game.status, :polling?
@@ -283,7 +283,7 @@ module LoadedQuestions
     end
 
     test "#guessing_round transitions from polling to guessing" do
-      game = create(:lq_game, :with_players, :with_answers)
+      game = create(:lq_polling_game, :with_answers)
       guesser = game.players.find(&:guesser?)
       sign_in(guesser.user_id)
 
@@ -298,7 +298,7 @@ module LoadedQuestions
 
     test "#guessing_round renders form with validation errors when not " \
       "enough answers" do
-      game = create(:lq_game, player_names: %w[Bob Charlie])
+      game = create(:lq_polling_game, player_names: %w[Bob Charlie])
       guesser = game.players.find(&:guesser?)
       sign_in(guesser.user_id)
 
@@ -383,7 +383,7 @@ module LoadedQuestions
 
     test "#swap_guesses returns forbidden when not in guessing phase" do
       # Create game with players and answers in polling status
-      game = create(:lq_game, :with_players, :with_answers)
+      game = create(:lq_polling_game)
 
       # Verify game is in polling status
       assert_predicate game.status, :polling?

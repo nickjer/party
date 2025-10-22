@@ -17,7 +17,7 @@ module LoadedQuestions
     end
 
     test "#valid? returns true with exactly minimum answered players" do
-      game = create(:lq_game,
+      game = create(:lq_polling_game,
         players: [
           { name: "Bob", answer: "Blue" },
           { name: "Charlie", answer: "Red" }
@@ -43,7 +43,7 @@ module LoadedQuestions
     end
 
     test "#valid? returns false when not enough players answered" do
-      game = create(:lq_game,
+      game = create(:lq_polling_game,
         players: [
           { name: "Bob", answer: "Blue" },
           { name: "Charlie", answer: "" }
@@ -59,7 +59,7 @@ module LoadedQuestions
     end
 
     test "#valid? returns false when no players answered" do
-      game = create(:lq_game, player_names: %w[Bob Charlie])
+      game = create(:lq_polling_game, player_names: %w[Bob Charlie])
 
       form = GuessingRoundForm.new(game:)
 

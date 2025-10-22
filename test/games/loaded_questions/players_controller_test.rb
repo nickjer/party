@@ -98,7 +98,7 @@ module LoadedQuestions
     end
 
     test "#new redirects to game when user already in game" do
-      game = create(:lq_game)
+      game = create(:lq_polling_game)
       guesser = game.players.find(&:guesser?)
       sign_in(guesser.user_id)
 
@@ -109,7 +109,7 @@ module LoadedQuestions
     end
 
     test "#edit renders edit player form for current player" do
-      game = create(:lq_game)
+      game = create(:lq_polling_game)
       guesser = game.players.find(&:guesser?)
       sign_in(guesser.user_id)
 
@@ -121,7 +121,7 @@ module LoadedQuestions
     end
 
     test "#edit populates form with current player name" do
-      game = create(:lq_game, player_names: %w[Alice Bob])
+      game = create(:lq_polling_game, player_names: %w[Alice Bob])
       alice = game.players.find { |p| p.name.to_s == "Alice" }
       sign_in(alice.user_id)
 
@@ -142,7 +142,7 @@ module LoadedQuestions
     end
 
     test "#update updates player name and redirects to game" do
-      game = create(:lq_game, player_names: %w[Alice Bob])
+      game = create(:lq_polling_game, player_names: %w[Alice Bob])
       alice = game.players.find { |p| p.name.to_s == "Alice" }
       sign_in(alice.user_id)
 
@@ -159,7 +159,7 @@ module LoadedQuestions
     end
 
     test "#update returns validation error for short name" do
-      game = create(:lq_game, player_names: %w[Alice Bob])
+      game = create(:lq_polling_game, player_names: %w[Alice Bob])
       alice = game.players.find { |p| p.name.to_s == "Alice" }
       sign_in(alice.user_id)
 
@@ -175,7 +175,7 @@ module LoadedQuestions
     end
 
     test "#update returns validation error for duplicate name" do
-      game = create(:lq_game, player_names: %w[Alice Bob])
+      game = create(:lq_polling_game, player_names: %w[Alice Bob])
       alice = game.players.find { |p| p.name.to_s == "Alice" }
       sign_in(alice.user_id)
 

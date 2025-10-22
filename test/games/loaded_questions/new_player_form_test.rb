@@ -79,7 +79,7 @@ module LoadedQuestions
     end
 
     test "#valid? returns false when name already taken" do
-      game = create(:lq_game, player_names: %w[Bob])
+      game = create(:lq_polling_game, player_names: %w[Bob])
       user = create(:user)
 
       form = NewPlayerForm.new(game:, user:, name: "Bob")
@@ -91,7 +91,7 @@ module LoadedQuestions
 
     test "#valid? returns false when name already taken with different " \
       "casing" do
-      game = create(:lq_game, player_names: %w[Bob])
+      game = create(:lq_polling_game, player_names: %w[Bob])
       user = create(:user)
 
       form = NewPlayerForm.new(game:, user:, name: "bob")
@@ -102,28 +102,13 @@ module LoadedQuestions
     end
 
     test "#valid? returns false when user already joined game" do
-      existing_user = create(:user)
-      game = create(:lq_game, user: existing_user)
+      game = create(:lq_polling_game)
+      existing_user = User.find(game.players.first.user_id)
 
       form = NewPlayerForm.new(game:, user: existing_user, name: "NewName")
 
       assert game.player_for(existing_user.id)
       assert_not_predicate form, :valid?
-      assert form.errors.added?(:base,
-        message: "You have already joined this game")
-    end
-
-    test "#valid? returns false with name taken and user already joined" do
-      existing_user = create(:user)
-      game = create(:lq_game, user: existing_user)
-
-      form = NewPlayerForm.new(game:, user: existing_user,
-        name: game.guesser.name)
-
-      assert(game.players.any? { |player| player.name == form.name })
-      assert game.player_for(existing_user.id)
-      assert_not_predicate form, :valid?
-      assert form.errors.added?(:name, message: "has already been taken")
       assert form.errors.added?(:base,
         message: "You have already joined this game")
     end

@@ -6,7 +6,7 @@ module LoadedQuestions
   class Game
     class GuessesTest < ActiveSupport::TestCase
       test "#find returns guessed answer for player" do
-        game = create(:lq_matching_game, player_names: %w[Alice Bob])
+        game = build(:lq_matching_game, player_names: %w[Alice Bob])
         non_guesser = game.players.reject(&:guesser?).first
 
         result = game.guesses.find(non_guesser.id)
@@ -15,7 +15,7 @@ module LoadedQuestions
       end
 
       test "#find raises ActiveRecord::RecordNotFound when player not found" do
-        game = create(:lq_matching_game, player_names: %w[Alice Bob])
+        game = build(:lq_matching_game, player_names: %w[Alice Bob])
 
         assert_raises(ActiveRecord::RecordNotFound) do
           game.guesses.find(999_999)
@@ -23,7 +23,7 @@ module LoadedQuestions
       end
 
       test "#swap raises error when first player not found" do
-        game = create(:lq_matching_game, player_names: %w[Alice Bob])
+        game = build(:lq_matching_game, player_names: %w[Alice Bob])
         second_player = game.players.reject(&:guesser?).first
 
         error = assert_raises(RuntimeError) do
@@ -34,7 +34,7 @@ module LoadedQuestions
       end
 
       test "#swap raises error when second player not found" do
-        game = create(:lq_matching_game, player_names: %w[Alice Bob])
+        game = build(:lq_matching_game, player_names: %w[Alice Bob])
         first_player = game.players.reject(&:guesser?).first
 
         error = assert_raises(RuntimeError) do
@@ -45,7 +45,7 @@ module LoadedQuestions
       end
 
       test "#initialize raises error when duplicate player found" do
-        game = create(:lq_matching_game, player_names: %w[Alice Bob])
+        game = build(:lq_matching_game, player_names: %w[Alice Bob])
         player1, player2 = game.players.reject(&:guesser?)
 
         guesses = [
@@ -61,7 +61,7 @@ module LoadedQuestions
       end
 
       test "#initialize raises error when duplicate guessed player found" do
-        game = create(:lq_matching_game, player_names: %w[Alice Bob])
+        game = build(:lq_matching_game, player_names: %w[Alice Bob])
         player1, player2 = game.players.reject(&:guesser?)
 
         guesses = [

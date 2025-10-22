@@ -12,12 +12,12 @@ module LoadedQuestions
     # @dynamic errors
     attr_reader :errors
 
-    # @dynamic user
-    attr_reader :user
+    # @dynamic user_id
+    attr_reader :user_id
 
-    def initialize(game:, user:, name: nil)
+    def initialize(game:, user_id:, name: nil)
       @game = game
-      @user = user
+      @user_id = user_id
       @name = NormalizedString.new(name)
       @errors = Errors.new
     end
@@ -33,7 +33,7 @@ module LoadedQuestions
         errors.add(:name, message: "has already been taken")
       end
 
-      if game.player_for(user.id)
+      if game.player_for(user_id)
         errors.add(:base, message: "You have already joined this game")
       end
 

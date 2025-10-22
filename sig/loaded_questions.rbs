@@ -251,7 +251,7 @@ module LoadedQuestions
 
   class CreateNewGame
     def initialize: (
-      user: ::User,
+      user_id: String,
       player_name: ::NormalizedString,
       question: ::NormalizedString
     ) -> void
@@ -260,7 +260,7 @@ module LoadedQuestions
 
     private
 
-    attr_reader user: ::User
+    attr_reader user_id: String
     attr_reader player_name: ::NormalizedString
     attr_reader question: ::NormalizedString
   end
@@ -337,9 +337,9 @@ module LoadedQuestions
     attr_reader errors: ::Errors
     attr_reader game: Game
     attr_reader name: ::NormalizedString
-    attr_reader user: ::User
+    attr_reader user_id: String
 
-    def initialize: (game: Game, user: ::User, ?name: _ToS?) -> void
+    def initialize: (game: Game, user_id: String, ?name: _ToS?) -> void
 
     def valid?: () -> bool
 

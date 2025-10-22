@@ -4,7 +4,7 @@ require "test_helper"
 
 class PlayerTest < ActiveSupport::TestCase
   test "#parsed_document returns JSON with symbolized keys" do
-    player = create(:player,
+    player = build(:player,
       document: { answer: "Blue", guesser: false }.to_json)
 
     parsed = player.parsed_document
@@ -14,7 +14,7 @@ class PlayerTest < ActiveSupport::TestCase
   end
 
   test "#parsed_document memoizes result" do
-    player = create(:player, document: { test: "value" }.to_json)
+    player = build(:player, document: { test: "value" }.to_json)
 
     parsed1 = player.parsed_document
     parsed2 = player.parsed_document
@@ -23,7 +23,7 @@ class PlayerTest < ActiveSupport::TestCase
   end
 
   test "#document= clears memoized parsed_document" do
-    player = create(:player, document: { old: "value" }.to_json)
+    player = build(:player, document: { old: "value" }.to_json)
 
     old_parsed = player.parsed_document
     player.document = { new: "value" }.to_json
@@ -35,7 +35,7 @@ class PlayerTest < ActiveSupport::TestCase
   end
 
   test "#name returns NormalizedString" do
-    player = create(:player, name: "Alice")
+    player = build(:player, name: "Alice")
 
     assert_instance_of NormalizedString, player.name
     assert_equal "Alice", player.name.to_s

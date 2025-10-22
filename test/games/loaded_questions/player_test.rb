@@ -5,8 +5,8 @@ require "test_helper"
 module LoadedQuestions
   class PlayerTest < ActiveSupport::TestCase
     test ".build raises error when name is too short" do
-      game = create(:lq_game)
-      user = create(:user)
+      game = build(:lq_game)
+      user = build(:user)
       short_name = NormalizedString.new("AB")
 
       error = assert_raises(ArgumentError) do

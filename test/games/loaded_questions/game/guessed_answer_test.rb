@@ -7,7 +7,7 @@ module LoadedQuestions
     class GuessedAnswerTest < ActiveSupport::TestCase
       test "#correct? returns true with case-insensitive match" do
         # Create game with custom answers for case-insensitive test
-        game = create(:lq_matching_game,
+        game = build(:lq_matching_game,
           players: [
             { name: "Bob", answer: "Red" },
             { name: "Charlie", answer: "red" }
@@ -20,8 +20,6 @@ module LoadedQuestions
         if guess1.player.id == guess1.guessed_player.id
           game.swap_guesses(player_id1: guess1.player.id,
             player_id2: guess2.player.id)
-          game.save!
-          game = reload(game:)
           guess1, guess2 = game.guesses.to_a
         end
 

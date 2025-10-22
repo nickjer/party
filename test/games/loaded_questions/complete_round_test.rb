@@ -5,7 +5,7 @@ require "test_helper"
 module LoadedQuestions
   class CompleteRoundTest < ActiveSupport::TestCase
     test "#call transitions game from guessing to completed status" do
-      game = create(:lq_matching_game, player_names: %w[Alice Bob])
+      game = build(:lq_matching_game, player_names: %w[Alice Bob])
 
       assert_predicate game.status, :guessing?
 
@@ -15,7 +15,7 @@ module LoadedQuestions
     end
 
     test "#call updates guesser score with number of correct guesses" do
-      game = create(:lq_matching_game, player_names: %w[Alice Bob])
+      game = build(:lq_matching_game, player_names: %w[Alice Bob])
       guesser = game.guesser
 
       assert_equal 0, guesser.score
@@ -28,9 +28,7 @@ module LoadedQuestions
         end
 
       game.guesses = Game::Guesses.new(guesses: correct_guesses)
-      game.save!
 
-      game = reload(game:)
       assert_equal 2, game.guesses.score
 
       CompleteRound.new(game:).call
@@ -39,10 +37,9 @@ module LoadedQuestions
     end
 
     test "#call adds to existing guesser score" do
-      game = create(:lq_matching_game, player_names: %w[Alice Bob Charlie])
+      game = build(:lq_matching_game, player_names: %w[Alice Bob Charlie])
       guesser = game.guesser
       guesser.score = 5
-      guesser.save!
 
       # Make one guess correct, swap the other two
       player1, player2, player3 = game.players.reject(&:guesser?)
@@ -54,9 +51,7 @@ module LoadedQuestions
       ]
 
       game.guesses = Game::Guesses.new(guesses:)
-      game.save!
 
-      game = reload(game:)
       assert_equal 1, game.guesses.score
 
       CompleteRound.new(game:).call
@@ -66,7 +61,7 @@ module LoadedQuestions
     end
 
     test "#call raises error when game is not in guessing status" do
-      game = create(:lq_polling_game, player_names: %w[Alice Bob])
+      game = build(:lq_polling_game, player_names: %w[Alice Bob])
 
       assert_predicate game.status, :polling?
 
@@ -78,7 +73,7 @@ module LoadedQuestions
     end
 
     test "#call returns the game" do
-      game = create(:lq_matching_game, player_names: %w[Alice Bob])
+      game = build(:lq_matching_game, player_names: %w[Alice Bob])
 
       result = CompleteRound.new(game:).call
 

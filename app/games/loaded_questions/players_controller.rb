@@ -12,7 +12,7 @@ module LoadedQuestions
       if current_player
         redirect_to_game(game)
       else
-        new_player = NewPlayerForm.new(game:, user: current_user)
+        new_player = NewPlayerForm.new(game:, user_id: current_user.id)
         render :new, locals: { new_player: }
       end
     end
@@ -20,7 +20,7 @@ module LoadedQuestions
     # POST /games/:game_id/player
     def create
       game = Game.find(params[:game_id])
-      new_player = NewPlayerForm.new(game:, user: current_user,
+      new_player = NewPlayerForm.new(game:, user_id: current_user.id,
         name: new_player_params[:name])
 
       if new_player.valid?

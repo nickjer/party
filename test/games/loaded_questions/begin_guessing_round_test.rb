@@ -5,7 +5,7 @@ require "test_helper"
 module LoadedQuestions
   class BeginGuessingRoundTest < ActiveSupport::TestCase
     test "#call transitions game from polling to guessing status" do
-      game = create(:lq_polling_game, players: [
+      game = build(:lq_polling_game, players: [
         { name: "Alice", answer: "Blue" },
         { name: "Bob", answer: "Red" }
       ])
@@ -18,7 +18,7 @@ module LoadedQuestions
     end
 
     test "#call creates shuffled guess pairs from answered players" do
-      game = create(:lq_polling_game, players: [
+      game = build(:lq_polling_game, players: [
         { name: "Alice", answer: "Blue" },
         { name: "Bob", answer: "Red" },
         { name: "Charlie", answer: "" }
@@ -39,7 +39,7 @@ module LoadedQuestions
     end
 
     test "#call raises error when game is not in polling status" do
-      game = create(:lq_matching_game, player_names: %w[Alice Bob])
+      game = build(:lq_matching_game, player_names: %w[Alice Bob])
 
       assert_predicate game.status, :guessing?
 
@@ -51,7 +51,7 @@ module LoadedQuestions
     end
 
     test "#call returns the game" do
-      game = create(:lq_polling_game, players: [
+      game = build(:lq_polling_game, players: [
         { name: "Alice", answer: "Blue" },
         { name: "Bob", answer: "Red" }
       ])

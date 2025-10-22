@@ -5,7 +5,7 @@ require "test_helper"
 module LoadedQuestions
   class NewRoundFormTest < ActiveSupport::TestCase
     test "#valid? returns true when game is completed and question is valid" do
-      game = create(:lq_completed_game)
+      game = build(:lq_completed_game)
 
       form = NewRoundForm.new(game:, question: "What is your favorite food?")
 
@@ -15,7 +15,7 @@ module LoadedQuestions
     end
 
     test "#valid? returns true with question at minimum length" do
-      game = create(:lq_completed_game)
+      game = build(:lq_completed_game)
 
       form = NewRoundForm.new(game:, question: "Why")
 
@@ -25,7 +25,7 @@ module LoadedQuestions
     end
 
     test "#valid? returns true with question at maximum length" do
-      game = create(:lq_completed_game)
+      game = build(:lq_completed_game)
 
       form = NewRoundForm.new(game:, question: "a" * 160)
 
@@ -35,7 +35,7 @@ module LoadedQuestions
     end
 
     test "#valid? returns false when game is in polling phase" do
-      game = create(:lq_game)
+      game = build(:lq_game)
 
       form = NewRoundForm.new(game:, question: "Why?")
 
@@ -45,7 +45,7 @@ module LoadedQuestions
     end
 
     test "#valid? returns false when game is in guessing phase" do
-      game = create(:lq_matching_game)
+      game = build(:lq_matching_game)
 
       form = NewRoundForm.new(game:, question: "Why?")
 
@@ -55,7 +55,7 @@ module LoadedQuestions
     end
 
     test "#valid? returns false with question too short" do
-      game = create(:lq_completed_game)
+      game = build(:lq_completed_game)
 
       form = NewRoundForm.new(game:, question: "ab")
 
@@ -66,7 +66,7 @@ module LoadedQuestions
     end
 
     test "#valid? returns false with blank question" do
-      game = create(:lq_completed_game)
+      game = build(:lq_completed_game)
 
       form = NewRoundForm.new(game:, question: "")
 
@@ -77,7 +77,7 @@ module LoadedQuestions
     end
 
     test "#valid? returns true with nil question using random question" do
-      game = create(:lq_completed_game)
+      game = build(:lq_completed_game)
 
       form = NewRoundForm.new(game:, question: nil)
 
@@ -87,7 +87,7 @@ module LoadedQuestions
     end
 
     test "#valid? returns false with question too long" do
-      game = create(:lq_completed_game)
+      game = build(:lq_completed_game)
 
       form = NewRoundForm.new(game:, question: "a" * 161)
 
@@ -98,7 +98,7 @@ module LoadedQuestions
     end
 
     test "#valid? returns false when game is polling and question is invalid" do
-      game = create(:lq_game)
+      game = build(:lq_game)
 
       form = NewRoundForm.new(game:, question: "ab")
 
@@ -110,7 +110,7 @@ module LoadedQuestions
     end
 
     test "#valid? normalizes question with NormalizedString" do
-      game = create(:lq_completed_game)
+      game = build(:lq_completed_game)
 
       form = NewRoundForm.new(game:, question: "  What  is  your  name?  ")
 
@@ -119,14 +119,14 @@ module LoadedQuestions
     end
 
     test "#question returns NormalizedString instance" do
-      game = create(:lq_completed_game)
+      game = build(:lq_completed_game)
       form = NewRoundForm.new(game:, question: "Why?")
 
       assert_instance_of NormalizedString, form.question
     end
 
     test "#errors returns Errors instance" do
-      game = create(:lq_completed_game)
+      game = build(:lq_completed_game)
       form = NewRoundForm.new(game:, question: "Why?")
 
       assert_instance_of Errors, form.errors

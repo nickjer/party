@@ -19,7 +19,7 @@ module LoadedQuestions
 
       if new_game.valid?
         game = CreateNewGame.new(
-          user: current_user,
+          user_id: current_user.id,
           player_name: new_game.player_name,
           question: new_game.question
         ).call

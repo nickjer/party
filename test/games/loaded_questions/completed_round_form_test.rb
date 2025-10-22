@@ -5,7 +5,7 @@ require "test_helper"
 module LoadedQuestions
   class CompletedRoundFormTest < ActiveSupport::TestCase
     test "#valid? returns true when game is in guessing phase" do
-      game = create(:lq_matching_game)
+      game = build(:lq_matching_game)
 
       form = CompletedRoundForm.new(game:)
 
@@ -15,7 +15,7 @@ module LoadedQuestions
     end
 
     test "#valid? returns false when game is in polling phase" do
-      game = create(:lq_game)
+      game = build(:lq_game)
 
       form = CompletedRoundForm.new(game:)
 
@@ -25,7 +25,7 @@ module LoadedQuestions
     end
 
     test "#valid? returns false when game is in completed phase" do
-      game = create(:lq_completed_game)
+      game = build(:lq_completed_game)
 
       form = CompletedRoundForm.new(game:)
 
@@ -35,7 +35,7 @@ module LoadedQuestions
     end
 
     test "#errors returns Errors instance" do
-      game = create(:lq_game)
+      game = build(:lq_game)
       form = CompletedRoundForm.new(game:)
 
       assert_instance_of Errors, form.errors

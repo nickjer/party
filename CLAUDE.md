@@ -91,7 +91,7 @@ Use `Errors.new` (not `{}` or `[]`), call `errors.add(attribute, message:)` wher
 
 ### Service Objects
 
-**Builders**: Initialize with params, return built (unsaved) wrappers, caller saves. Example: `CreateNewGame.new(user:, player_name:, question:).call`
+**Builders**: Initialize with params, return built (unsaved) wrappers, caller saves. Example: `CreateNewGame.new(user_id:, player_name:, question:).call`
 
 **State Transitions**: Initialize with wrapper, validate state, modify state, return wrapper (caller saves). Example: `BeginGuessingRound.new(game:).call`
 

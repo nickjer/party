@@ -6,7 +6,7 @@ module LoadedQuestions
   class GuessingRoundFormTest < ActiveSupport::TestCase
     test "#valid? returns true when game is polling and enough players " \
       "answered" do
-      game = create(:lq_game, :with_players, :with_answers)
+      game = build(:lq_game, :with_players, :with_answers)
 
       form = GuessingRoundForm.new(game:)
 
@@ -17,7 +17,7 @@ module LoadedQuestions
     end
 
     test "#valid? returns true with exactly minimum answered players" do
-      game = create(:lq_polling_game,
+      game = build(:lq_polling_game,
         players: [
           { name: "Bob", answer: "Blue" },
           { name: "Charlie", answer: "Red" }
@@ -33,7 +33,7 @@ module LoadedQuestions
     end
 
     test "#valid? returns false when game is not polling" do
-      game = create(:lq_matching_game)
+      game = build(:lq_matching_game)
 
       form = GuessingRoundForm.new(game:)
 
@@ -43,7 +43,7 @@ module LoadedQuestions
     end
 
     test "#valid? returns false when not enough players answered" do
-      game = create(:lq_polling_game,
+      game = build(:lq_polling_game,
         players: [
           { name: "Bob", answer: "Blue" },
           { name: "Charlie", answer: "" }
@@ -59,7 +59,7 @@ module LoadedQuestions
     end
 
     test "#valid? returns false when no players answered" do
-      game = create(:lq_polling_game, player_names: %w[Bob Charlie])
+      game = build(:lq_polling_game, player_names: %w[Bob Charlie])
 
       form = GuessingRoundForm.new(game:)
 
@@ -71,7 +71,7 @@ module LoadedQuestions
     end
 
     test "#valid? returns false when only guesser in game" do
-      game = create(:lq_game)
+      game = build(:lq_game)
 
       form = GuessingRoundForm.new(game:)
 
@@ -83,7 +83,7 @@ module LoadedQuestions
     end
 
     test "#errors returns Errors instance" do
-      game = create(:lq_game)
+      game = build(:lq_game)
       form = GuessingRoundForm.new(game:)
 
       assert_instance_of Errors, form.errors

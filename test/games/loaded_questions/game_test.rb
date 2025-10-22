@@ -41,8 +41,8 @@ module LoadedQuestions
     end
 
     test "#add_player creates and adds player to game" do
-      user = create(:user)
-      game = create(:lq_game)
+      user = build(:user)
+      game = build(:lq_game)
 
       player = game.add_player(user_id: user.id,
         name: NormalizedString.new("Alice"))
@@ -54,20 +54,19 @@ module LoadedQuestions
     end
 
     test "#add_player creates guesser when guesser: true" do
-      user = create(:user)
+      user = build(:user)
       question = NormalizedString.new("What is your favorite color?")
       game = Game.build(question:)
       player = game.add_player(user_id: user.id,
         name: NormalizedString.new("Alice"), guesser: true)
-      game.save!
 
       assert_predicate player, :guesser?
       assert_equal player, game.guesser
     end
 
     test "#add_player raises error when called twice for same user_id" do
-      user = create(:user)
-      game = create(:lq_game)
+      user = build(:user)
+      game = build(:lq_game)
 
       game.add_player(user_id: user.id, name: NormalizedString.new("Alice"))
 
@@ -79,12 +78,12 @@ module LoadedQuestions
     end
 
     test "#add_player raises error when player already exists for user" do
-      game = create(:lq_polling_game, player_names: %w[Alice])
+      game = build(:lq_polling_game, player_names: %w[Alice])
       existing_player = game.players.first
-      user = existing_player.to_model.user
+      user_id = existing_player.user_id
 
       error = assert_raises(RuntimeError) do
-        game.add_player(user_id: user.id, name: NormalizedString.new("Bob"))
+        game.add_player(user_id:, name: NormalizedString.new("Bob"))
       end
 
       assert_equal "Player already exists for user", error.message
@@ -107,9 +106,9 @@ module LoadedQuestions
     end
 
     test "#add_player maintains alphabetical sort order" do
-      game = create(:lq_polling_game, player_names: %w[Alice Charlie],
+      game = build(:lq_polling_game, player_names: %w[Alice Charlie],
         guesser_name: "David")
-      user = create(:user)
+      user = build(:user)
 
       game.add_player(user_id: user.id, name: NormalizedString.new("Bob"))
 
@@ -118,7 +117,7 @@ module LoadedQuestions
     end
 
     test "#players returns dynamically sorted players after name change" do
-      game = create(:lq_polling_game, player_names: %w[Bob Charlie],
+      game = build(:lq_polling_game, player_names: %w[Bob Charlie],
         guesser_name: "Alice")
 
       player_names = game.players.map(&:name).map(&:to_s)

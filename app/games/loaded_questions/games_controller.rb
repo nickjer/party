@@ -88,6 +88,7 @@ module LoadedQuestions
           guesser: current_player,
           question: new_round.question
         ).call
+        game.save!
         Broadcast::RoundCreated.new(game_id: game.id).call
 
         game = Game.find(params[:id])

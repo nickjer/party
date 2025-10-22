@@ -76,6 +76,11 @@ module LoadedQuestions
 
     def online? = model.online?
 
+    def reset_answer
+      @answer = NormalizedString.new("")
+      model.document = document.to_json
+    end
+
     def save!
       model.save! if model.changed?
     end

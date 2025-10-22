@@ -18,13 +18,7 @@ module LoadedQuestions
 
     private
 
-    # @dynamic user
-    attr_reader :user
-
-    # @dynamic player_name
-    attr_reader :player_name
-
-    # @dynamic question
-    attr_reader :question
+    # @dynamic player_name, question, user
+    attr_reader :player_name, :question, :user
   end
 end

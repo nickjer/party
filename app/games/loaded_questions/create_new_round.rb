@@ -10,21 +10,14 @@ module LoadedQuestions
     end
 
     def call
-      game_model = game.to_model
-      game_model.document = game_document.to_json
+      game.guesses = Game::Guesses.empty
+      game.question = question
+      game.status = Game::Status.polling
 
-      # Update all player documents
-      player_models =
-        game.players.map do |player|
-          player_model = player.to_model
-          player_model.document = player_document(player).to_json
-          player_model
-        end
-
-      # Save all changes in a transaction
-      ::ActiveRecord::Base.transaction do
-        game_model.save!
-        player_models.each(&:save!)
+      # Clear out player answers and set new guesser
+      game.players.each do |player|
+        player.reset_answer
+        player.guesser = (player.id == guesser.id)
       end
 
       game
@@ -34,21 +27,5 @@ module LoadedQuestions
 
     # @dynamic game, guesser, question
     attr_reader :game, :guesser, :question
-
-    def game_document
-      {
-        guesses: Game::Guesses.new(guesses: []),
-        question: question,
-        status: Game::Status.polling
-      }
-    end
-
-    def player_document(player)
-      {
-        answer: NormalizedString.new(""),
-        guesser: (player.id == guesser.id),
-        score: player.score
-      }
-    end
   end
 end

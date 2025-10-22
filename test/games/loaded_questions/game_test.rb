@@ -4,6 +4,17 @@ require "test_helper"
 
 module LoadedQuestions
   class GameTest < ActiveSupport::TestCase
+    test ".build raises error when question is too short" do
+      short_question = NormalizedString.new("AB")
+
+      error = assert_raises(ArgumentError) do
+        Game.build(question: short_question)
+      end
+
+      assert_match(/Question length must be between 3 and 160 characters/,
+        error.message)
+    end
+
     test "swap_guesses persists answer swap to database" do
       # Create game in guessing status with players and answers
       game = create(:lq_matching_game, player_names: %w[Bob Charlie])

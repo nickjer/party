@@ -298,9 +298,6 @@ module LoadedQuestions
     attr_reader game: Game
     attr_reader guesser: Player
     attr_reader question: ::NormalizedString
-
-    def game_document: () -> Game::document
-    def player_document: (Player player) -> Player::document
   end
 
   class NewGameForm
@@ -402,6 +399,7 @@ module LoadedQuestions
     def id: () -> String
     def name=: (::NormalizedString new_name) -> void
     def online?: () -> bool
+    def reset_answer: () -> void
     def save!: () -> void
     def score=: (Integer new_score) -> void
     def to_model: () -> ::Player

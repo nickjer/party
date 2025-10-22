@@ -61,9 +61,7 @@ module LoadedQuestions
       players.find { |player| player.user_id == user_id }
     end
 
-    def players
-      @players ||= model.players.map { |player| Player.new(player) }.sort
-    end
+    def players = cached_players.sort
 
     def question
       @question ||= NormalizedString.new(json_document.fetch(:question))
@@ -103,8 +101,7 @@ module LoadedQuestions
       raise "Player already exists for user" if player_for(user_id)
 
       player = Player.build(game_id: id, user_id:, name:, guesser:)
-      players << player
-      players.sort!
+      cached_players << player
       player
     end
 
@@ -116,6 +113,10 @@ module LoadedQuestions
 
     # @dynamic model
     attr_reader :model
+
+    def cached_players
+      @cached_players ||= model.players.map { |player| Player.new(player) }
+    end
 
     def document = { question:, guesses:, status: }
 

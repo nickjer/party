@@ -57,6 +57,7 @@ module LoadedQuestions
 
     private
 
+    attr_reader cached_players: Array[Player]
     attr_reader model: ::Game
 
     def document: () -> document

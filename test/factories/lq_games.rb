@@ -18,7 +18,7 @@ FactoryBot.define do
       end
 
       after(:build) do |game, context|
-        game.players << context.guesser
+        game.instance_eval { cached_players << context.guesser }
       end
     end
 
@@ -35,7 +35,7 @@ FactoryBot.define do
             name: player_data.fetch(:name),
             guesser: false,
             answer: player_data.fetch(:answer))
-          game.players << player
+          game.instance_eval { cached_players << player }
         end
       end
     end

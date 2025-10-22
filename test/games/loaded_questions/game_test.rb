@@ -116,5 +116,21 @@ module LoadedQuestions
       player_names = game.players.map(&:name).map(&:to_s)
       assert_equal %w[Alice Bob Charlie David], player_names
     end
+
+    test "#players returns dynamically sorted players after name change" do
+      game = create(:lq_polling_game, player_names: %w[Bob Charlie],
+        guesser_name: "Alice")
+
+      player_names = game.players.map(&:name).map(&:to_s)
+      assert_equal %w[Alice Bob Charlie], player_names
+
+      # Update a player's name without saving
+      alice = game.players.first
+      alice.name = NormalizedString.new("Zoe")
+
+      # Verify players are still sorted dynamically
+      player_names_after = game.players.map(&:name).map(&:to_s)
+      assert_equal %w[Bob Charlie Zoe], player_names_after
+    end
   end
 end

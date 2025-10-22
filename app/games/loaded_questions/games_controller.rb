@@ -23,6 +23,7 @@ module LoadedQuestions
           player_name: new_game.player_name,
           question: new_game.question
         ).call
+        game.save!
         redirect_to loaded_questions_game_path(game.id)
       else
         render :new, locals: { new_game: }, status: :unprocessable_content

@@ -13,7 +13,6 @@ module LoadedQuestions
     def call
       game = Game.build(question:)
       game.add_player(user_id: user.id, name: player_name, guesser: true)
-      game.save!
       game
     end
 

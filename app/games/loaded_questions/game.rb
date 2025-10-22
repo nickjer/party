@@ -10,11 +10,14 @@ module LoadedQuestions
     class << self
       def build(question:)
         document = {
-          question: question,
+          question: NormalizedString.new(""),
           guesses: Guesses.empty,
           status: Status.polling
         } #: document
-        new(::Game.new(kind: :loaded_questions, document: document.to_json))
+        game =
+          new(::Game.new(kind: :loaded_questions, document: document.to_json))
+        game.question = question
+        game
       end
 
       def find(id) = new(scope.find(id))

@@ -14,7 +14,10 @@ module LoadedQuestions
           guesser:,
           score: 0
         } #: document
-        new(::Player.new(game_id:, user_id:, name:, document: document.to_json))
+        player =
+          new(::Player.new(game_id:, user_id:, document: document.to_json))
+        player.name = name
+        player
       end
     end
 

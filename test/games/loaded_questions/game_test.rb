@@ -28,5 +28,71 @@ module LoadedQuestions
       assert_equal guess1_guessed_answer_before, guess2_after.guessed_answer,
         "Second guess should have first guessed answer after swap"
     end
+
+    test "#add_player creates and adds player to game" do
+      user = create(:user)
+      game = create(:lq_game)
+
+      player = game.add_player(user_id: user.id,
+        name: NormalizedString.new("Alice"))
+
+      assert_equal user.id, player.user_id
+      assert_equal "Alice", player.name.to_s
+      assert_not_predicate player, :guesser?
+      assert_includes game.players, player
+    end
+
+    test "#add_player creates guesser when guesser: true" do
+      user = create(:user)
+      question = NormalizedString.new("What is your favorite color?")
+      game = Game.build(question:)
+      player = game.add_player(user_id: user.id,
+        name: NormalizedString.new("Alice"), guesser: true)
+      game.save!
+
+      assert_predicate player, :guesser?
+      assert_equal player, game.guesser
+    end
+
+    test "#add_player raises error when called twice for same user_id" do
+      user = create(:user)
+      game = create(:lq_game)
+
+      game.add_player(user_id: user.id, name: NormalizedString.new("Alice"))
+
+      error = assert_raises(RuntimeError) do
+        game.add_player(user_id: user.id, name: NormalizedString.new("Bob"))
+      end
+
+      assert_equal "Player already exists for user", error.message
+    end
+
+    test "#add_player raises error when player already exists for user" do
+      game = create(:lq_game, player_names: %w[Alice])
+      existing_player = game.players.first
+      user = existing_player.to_model.user
+
+      error = assert_raises(RuntimeError) do
+        game.add_player(user_id: user.id, name: NormalizedString.new("Bob"))
+      end
+
+      assert_equal "Player already exists for user", error.message
+    end
+
+    test "#add_player persists player after save" do
+      user = create(:user)
+      game = create(:lq_game)
+
+      player = game.add_player(user_id: user.id,
+        name: NormalizedString.new("Alice"))
+      game.save!
+
+      game_after = reload(game:)
+      reloaded_player = game_after.player_for(user.id)
+
+      assert_not_nil reloaded_player
+      assert_equal player.id, reloaded_player.id
+      assert_equal "Alice", reloaded_player.name.to_s
+    end
   end
 end

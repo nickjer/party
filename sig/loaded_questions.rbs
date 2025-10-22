@@ -51,6 +51,7 @@ module LoadedQuestions
     def question=: (NormalizedString new_question) -> void
     def save!: () -> void
     def status=: (Status new_status) -> void
+    def add_player: (user_id: String, name: ::NormalizedString, ?guesser: bool) -> Player
     def swap_guesses: (player_id1: Integer, player_id2: Integer) -> void
     def to_model: () -> ::Game
 

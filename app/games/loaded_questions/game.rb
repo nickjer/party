@@ -96,6 +96,14 @@ module LoadedQuestions
 
     def to_model = model
 
+    def add_player(user_id:, name:, guesser: false)
+      raise "Player already exists for user" if player_for(user_id)
+
+      player = Player.build(game_id: id, user_id:, name:, guesser:)
+      players << player
+      player
+    end
+
     def swap_guesses(player_id1:, player_id2:)
       self.guesses = guesses.swap(player_id1:, player_id2:)
     end

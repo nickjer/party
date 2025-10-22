@@ -12,18 +12,8 @@ module LoadedQuestions
 
     def call
       game = Game.build(question:)
-      player = Player.build(
-        game_id: game.id,
-        user_id: user.id,
-        name: player_name,
-        guesser: true
-      )
-
-      ::Game.transaction do
-        game.save!
-        player.save!
-      end
-
+      game.add_player(user_id: user.id, name: player_name, guesser: true)
+      game.save!
       game
     end
 

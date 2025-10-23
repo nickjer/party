@@ -1,7 +1,8 @@
-<%# locals: (game:, current_player:) %>
+<%# locals: (players:, current_player:, player:) %>
 <%= turbo_stream.update "players" do %>
   <%= render(partial: "loaded_questions/players/player",
-    collection: game.players,
+    collection: players,
     as: :player,
     locals: { current_player: }) %>
 <% end %>
+<%= turbo_stream.update_all "[data-player-name-id='#{player.id}']", player.name %>

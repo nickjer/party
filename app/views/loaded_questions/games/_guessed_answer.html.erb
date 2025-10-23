@@ -1,6 +1,6 @@
 <%# locals: (guessed_answer:, gripper:) %>
 <div class="mb-3" data-swap-target="group">
-  <div class="fw-bold text-secondary mb-1">
+  <div class="fw-bold text-secondary mb-1" data-player-name-id="<%= guessed_answer.player.id %>">
     <%= guessed_answer.player.name %>
   </div>
   <div class="card swap-item <%= "shadow-sm border-primary" if gripper %> <%= "bg-white" if gripper %> <%= "bg-light" unless gripper %>"

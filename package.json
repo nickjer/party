@@ -2,12 +2,15 @@
   "name": "app",
   "private": true,
   "devDependencies": {
+    "@herb-tools/formatter": "^0.7.5",
     "@herb-tools/linter": "^0.7.5",
     "esbuild": "^0.24.2"
   },
   "scripts": {
     "build": "esbuild app/javascript/*.* --bundle --sourcemap --format=esm --outdir=app/assets/builds --public-path=/assets",
     "build:css": "sass ./app/assets/stylesheets/application.bootstrap.scss:./app/assets/builds/application.css --no-source-map --load-path=node_modules --quiet-deps",
+    "herb:format": "herb-format",
+    "herb:format:check": "herb-format --check",
     "herb:lint": "herb-lint"
   },
   "dependencies": {

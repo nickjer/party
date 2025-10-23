@@ -7,7 +7,7 @@
       <i class="bi bi-hourglass-split me-2"></i>Guessing in Progress
     </h5>
     <p class="card-text text-muted mb-3">
-      <%= game.guesser.name %> is currently matching answers to players. Sit tight!
+      <span data-player-name-id="<%= game.guesser.id %>"><%= game.guesser.name %></span> is currently matching answers to players. Sit tight!
     </p>
     <div id="answers" class="border rounded p-2 bg-light">
       <%= render(partial: "loaded_questions/games/guessed_answer",

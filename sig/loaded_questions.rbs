@@ -197,12 +197,13 @@ module LoadedQuestions
     end
 
     class PlayerNameUpdated
-      def initialize: (player_id: String) -> void
+      def initialize: (game: Game, player: Player) -> void
       def call: () -> void
 
       private
 
-      attr_reader updated_player: ::Player
+      attr_reader game: Game
+      attr_reader player: Player
     end
   end
 

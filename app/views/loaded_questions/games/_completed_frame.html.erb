@@ -13,7 +13,7 @@
   </div>
   <div class="card-footer bg-light">
     <div class="d-flex justify-content-between align-items-center">
-      <strong><%= game.guesser.name %>'s Score:</strong>
+      <strong><span data-player-name-id="<%= game.guesser.id %>"><%= game.guesser.name %></span>'s Score:</strong>
       <span class="badge bg-primary fs-6"><%= game.guesses.score %> / <%= game.guesses.size %></span>
     </div>
   </div>

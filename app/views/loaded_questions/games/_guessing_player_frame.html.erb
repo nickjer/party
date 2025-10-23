@@ -1,14 +1,19 @@
 <%# locals: (game:) %>
+
 <%= render "loaded_questions/games/question_card", question: game.question %>
 
 <div class="card shadow-sm">
   <div class="card-body">
     <h5 class="card-title text-info mb-3">
-      <i class="bi bi-hourglass-split me-2"></i>Guessing in Progress
+      <i class="bi bi-hourglass-split me-2"></i>
+      Guessing in Progress
     </h5>
+
     <p class="card-text text-muted mb-3">
-      <span data-player-name-id="<%= game.guesser.id %>"><%= game.guesser.name %></span> is currently matching answers to players. Sit tight!
+      <span data-player-name-id="<%= game.guesser.id %>"><%= game.guesser.name %></span>
+      is currently matching answers to players. Sit tight!
     </p>
+
     <div id="answers" class="border rounded p-2 bg-light">
       <%= render(partial: "loaded_questions/games/guessed_answer",
         collection: game.guesses, as: :guessed_answer, locals: { gripper: false }) %>

@@ -1,16 +1,19 @@
 <%# locals: (game:, current_player:) %>
+
 <%= render "loaded_questions/games/question_card", question: game.question %>
 
 <div class="card shadow-sm mb-3">
   <div class="card-header bg-success text-white">
     <h5 class="mb-0"><i class="bi bi-trophy-fill me-2"></i>Results</h5>
   </div>
+
   <div class="card-body p-0">
     <div id="answers" class="list-group list-group-flush">
       <%= render(partial: "loaded_questions/games/completed_answer",
         collection: game.guesses, as: :completed_answer) %>
     </div>
   </div>
+
   <div class="card-footer bg-light">
     <div class="d-flex justify-content-between align-items-center">
       <strong><span data-player-name-id="<%= game.guesser.id %>"><%= game.guesser.name %></span>'s Score:</strong>
@@ -21,6 +24,7 @@
 
 <% unless current_player.guesser? %>
   <%= link_to new_round_loaded_questions_game_path(game.id), class: "btn btn-primary btn-lg w-100" do %>
-    <i class="bi bi-plus-circle-fill me-2"></i>Create Next Turn
+    <i class="bi bi-plus-circle-fill me-2"></i>
+    Create Next Turn
   <% end %>
 <% end %>

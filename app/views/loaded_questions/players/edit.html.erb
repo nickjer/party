@@ -1,4 +1,5 @@
 <%# locals: (game:, current_player:, edit_player:) %>
+
 <%= render "loaded_questions/games/player_stream", current_player: %>
 
 <%= turbo_frame_tag "game_frame" do %>
@@ -8,7 +9,8 @@
         <div class="card shadow-sm">
           <div class="card-body">
             <h2 class="h5 text-primary mb-3">
-              <i class="bi bi-pencil me-2"></i>Edit Your Name
+              <i class="bi bi-pencil me-2"></i>
+              Edit Your Name
             </h2>
             <%= form_with(
               model: edit_player,

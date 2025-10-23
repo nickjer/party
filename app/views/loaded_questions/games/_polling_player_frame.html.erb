@@ -1,18 +1,32 @@
 <%# locals: (game:, answer_form:) %>
+
 <%= render "loaded_questions/games/question_card", question: game.question %>
 
-<div class="card shadow-sm" data-controller="reveal" data-reveal-hidden-class="d-none">
+<div
+  class="card shadow-sm"
+  data-controller="reveal"
+  data-reveal-hidden-class="d-none"
+>
   <div class="card-body">
     <h5 class="card-title text-secondary mb-3">
-      <i class="bi bi-pencil-square me-2"></i>Your Answer
+      <i class="bi bi-pencil-square me-2"></i>
+      Your Answer
     </h5>
 
-    <button type="button" data-action="reveal#toggle" class="btn btn-secondary w-100">
-      <i class="bi bi-eye me-2"></i>Show / Hide Answer
+    <button
+      type="button"
+      data-action="reveal#toggle"
+      class="btn btn-secondary w-100"
+    >
+      <i class="bi bi-eye me-2"></i>
+      Show / Hide Answer
     </button>
 
     <%= turbo_frame_tag "answer_form_frame" do %>
-      <div data-reveal-target="item" class="<%= "d-none" unless answer_form.show? %>">
+      <div
+        data-reveal-target="item"
+        class="<%= "d-none" unless answer_form.show? %>"
+      >
         <%= form_with(
           model: answer_form,
           scope: :player,
@@ -26,7 +40,10 @@
               placeholder: "Type your answer here...",
               maxlength: LoadedQuestions::Player::MAX_ANSWER_LENGTH %>
             <div class="form-text">
-              <%= LoadedQuestions::Player::MIN_ANSWER_LENGTH %>-<%= LoadedQuestions::Player::MAX_ANSWER_LENGTH %> characters
+              <%= LoadedQuestions::Player::MIN_ANSWER_LENGTH %>
+              -
+              <%= LoadedQuestions::Player::MAX_ANSWER_LENGTH %>
+              characters
             </div>
           </div>
 

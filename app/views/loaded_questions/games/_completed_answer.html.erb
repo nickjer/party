@@ -1,10 +1,15 @@
 <%# locals: (completed_answer:) %>
+
 <div class="list-group-item list-group-item-<%= completed_answer.correct? ? "success" : "danger" %> py-2">
   <div class="mb-2">
     <strong data-player-name-id="<%= completed_answer.player.id %>"><%= completed_answer.player.name %></strong>
     <% unless completed_answer.correct? %>
       <span class="text-danger small ms-1">
-        (guessed: <span data-player-name-id="<%= completed_answer.guessed_player.id %>"><%= completed_answer.guessed_player.name %></span>)
+        (guessed:
+        <span data-player-name-id="<%= completed_answer.guessed_player.id %>">
+          <%= completed_answer.guessed_player.name %>
+        </span>
+        )
       </span>
     <% end %>
   </div>

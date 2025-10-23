@@ -1,4 +1,5 @@
 <%# locals: (game:, current_player:, new_round:) %>
+
 <%= render "loaded_questions/games/player_stream", current_player: %>
 
 <%= turbo_frame_tag "game_frame" do %>
@@ -8,7 +9,8 @@
         <div class="card shadow-sm">
           <div class="card-body">
             <h2 class="h5 text-primary mb-3">
-              <i class="bi bi-plus-circle me-2"></i>Start a New Round
+              <i class="bi bi-plus-circle me-2"></i>
+              Start a New Round
             </h2>
             <%= form_with(
               model: new_round,
@@ -23,7 +25,10 @@
                     rows: 3,
                     placeholder: "Ask a question that will get interesting answers..." %>
                 <div class="form-text">
-                  <%= LoadedQuestions::Game::MIN_QUESTION_LENGTH %>-<%= LoadedQuestions::Game::MAX_QUESTION_LENGTH %> characters
+                  <%= LoadedQuestions::Game::MIN_QUESTION_LENGTH %>
+                  -
+                  <%= LoadedQuestions::Game::MAX_QUESTION_LENGTH %>
+                  characters
                 </div>
               </div>
 

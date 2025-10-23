@@ -4,15 +4,14 @@ module LoadedQuestions
   module Broadcast
     # Broadcasts player creation to all other online players in the game
     class PlayerCreated
-      def initialize(player_id:)
-        @created_player = ::Player.find(player_id)
+      def initialize(game:, player:)
+        @game = game
+        @player = player
       end
 
       def call
-        game = Game.find(created_player.game_id)
-
         PlayerChannel.broadcast_to(game.players) do |current_player|
-          next if current_player.id == created_player.id
+          next if current_player.id == player.id
 
           ApplicationController.render(
             "loaded_questions/players/create",
@@ -24,8 +23,8 @@ module LoadedQuestions
 
       private
 
-      # @dynamic created_player
-      attr_reader :created_player
+      # @dynamic game, player
+      attr_reader :game, :player
     end
   end
 end

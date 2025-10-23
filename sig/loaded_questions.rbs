@@ -125,12 +125,13 @@ module LoadedQuestions
 
   module Broadcast
     class PlayerCreated
-      def initialize: (player_id: String) -> void
+      def initialize: (game: Game, player: Player) -> void
       def call: () -> void
 
       private
 
-      attr_reader created_player: ::Player
+      attr_reader game: Game
+      attr_reader player: Player
     end
 
     class PlayerConnected
@@ -152,48 +153,49 @@ module LoadedQuestions
     end
 
     class AnswerUpdated
-      def initialize: (player_id: String) -> void
+      def initialize: (game: Game, player: Player) -> void
       def call: () -> void
 
       private
 
-      attr_reader updated_player: ::Player
+      attr_reader game: Game
+      attr_reader player: Player
     end
 
     class GuessingRoundStarted
-      def initialize: (game_id: String) -> void
+      def initialize: (game: Game) -> void
       def call: () -> void
 
       private
 
-      attr_reader game_id: String
+      attr_reader game: Game
     end
 
     class AnswersSwapped
-      def initialize: (game_id: String) -> void
+      def initialize: (game: Game) -> void
       def call: () -> void
 
       private
 
-      attr_reader game_id: String
+      attr_reader game: Game
     end
 
     class RoundCompleted
-      def initialize: (game_id: String) -> void
+      def initialize: (game: Game) -> void
       def call: () -> void
 
       private
 
-      attr_reader game_id: String
+      attr_reader game: Game
     end
 
     class RoundCreated
-      def initialize: (game_id: String) -> void
+      def initialize: (game: Game) -> void
       def call: () -> void
 
       private
 
-      attr_reader game_id: String
+      attr_reader game: Game
     end
 
     class PlayerNameUpdated

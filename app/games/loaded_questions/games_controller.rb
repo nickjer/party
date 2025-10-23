@@ -89,7 +89,7 @@ module LoadedQuestions
           question: new_round.question
         ).call
         game.save!
-        Broadcast::RoundCreated.new(game_id: game.id).call
+        Broadcast::RoundCreated.new(game:).call
 
         game = Game.find(params[:id])
         current_player = game.player_for!(current_user.id)
@@ -112,7 +112,7 @@ module LoadedQuestions
       if completed_round_form.valid?
         CompleteRound.new(game:).call
         game.save!
-        Broadcast::RoundCompleted.new(game_id: game.id).call
+        Broadcast::RoundCompleted.new(game:).call
         render :completed, locals: { game:, current_player: }
       else
         render :guessing_guesser, locals: { game:, current_player: },
@@ -130,7 +130,7 @@ module LoadedQuestions
       if guessing_round_form.valid?
         BeginGuessingRound.new(game:).call
         game.save!
-        Broadcast::GuessingRoundStarted.new(game_id: game.id).call
+        Broadcast::GuessingRoundStarted.new(game:).call
         render :guessing_guesser, locals: { game:, current_player: }
       else
         render :polling_guesser,
@@ -151,7 +151,7 @@ module LoadedQuestions
 
       game.swap_guesses(player_id1:, player_id2:)
       game.save!
-      Broadcast::AnswersSwapped.new(game_id: game.id).call
+      Broadcast::AnswersSwapped.new(game:).call
 
       head :ok
     end

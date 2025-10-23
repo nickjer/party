@@ -4,14 +4,12 @@ module LoadedQuestions
   module Broadcast
     # Broadcasts player answer update to all online players in the game
     class AnswerUpdated
-      def initialize(player_id:)
-        @updated_player = ::Player.find(player_id)
+      def initialize(game:, player:)
+        @game = game
+        @player = player
       end
 
       def call
-        game = Game.find(updated_player.game_id)
-        player = game.find_player(updated_player.id)
-
         PlayerChannel.broadcast_to(game.players) do |current_player|
           ApplicationController.render(
             "loaded_questions/players/answer_updated",
@@ -23,8 +21,8 @@ module LoadedQuestions
 
       private
 
-      # @dynamic updated_player
-      attr_reader :updated_player
+      # @dynamic game, player
+      attr_reader :game, :player
     end
   end
 end

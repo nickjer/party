@@ -19,7 +19,7 @@ module LoadedQuestions
 
         # Bob being created should broadcast to Alice
         assert_turbo_stream_broadcasts alice.to_model, count: 1 do
-          PlayerCreated.new(player_id: bob.id).call
+          PlayerCreated.new(game:, player: bob).call
         end
       end
 
@@ -34,7 +34,7 @@ module LoadedQuestions
 
         # Bob being created should not broadcast to Bob himself
         assert_turbo_stream_broadcasts bob.to_model, count: 0 do
-          PlayerCreated.new(player_id: bob.id).call
+          PlayerCreated.new(game:, player: bob).call
         end
       end
 
@@ -48,7 +48,7 @@ module LoadedQuestions
 
         # Bob being created should not broadcast to offline Alice
         assert_turbo_stream_broadcasts alice.to_model, count: 0 do
-          PlayerCreated.new(player_id: bob.id).call
+          PlayerCreated.new(game:, player: bob).call
         end
       end
 
@@ -68,7 +68,7 @@ module LoadedQuestions
         # but not to Charlie
         assert_turbo_stream_broadcasts alice.to_model, count: 1 do
           assert_turbo_stream_broadcasts bob.to_model, count: 1 do
-            PlayerCreated.new(player_id: charlie.id).call
+            PlayerCreated.new(game:, player: charlie).call
           end
         end
       end
@@ -81,7 +81,7 @@ module LoadedQuestions
         ::PlayerConnections.instance.increment(alice.id)
 
         turbo_streams = capture_turbo_stream_broadcasts alice.to_model do
-          PlayerCreated.new(player_id: bob.id).call
+          PlayerCreated.new(game:, player: bob).call
         end
 
         assert_equal 1, turbo_streams.size

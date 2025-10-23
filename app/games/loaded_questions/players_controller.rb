@@ -24,14 +24,13 @@ module LoadedQuestions
         name: new_player_params[:name])
 
       if new_player.valid?
-        player = Player.build(
-          game_id: game.id,
+        player = game.add_player(
           user_id: current_user.id,
           name: new_player.name
         )
-        player.save!
+        game.save!
 
-        Broadcast::PlayerCreated.new(player_id: player.id).call
+        Broadcast::PlayerCreated.new(game:, player:).call
 
         redirect_to_game(game)
       else
@@ -78,7 +77,7 @@ module LoadedQuestions
       if answer_form.valid?
         current_player.answer = answer_form.answer
         current_player.save!
-        Broadcast::AnswerUpdated.new(player_id: current_player.id).call
+        Broadcast::AnswerUpdated.new(game:, player: current_player).call
       end
 
       status = answer_form.valid? ? :ok : :unprocessable_content

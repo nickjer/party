@@ -11,7 +11,7 @@ FactoryBot.define do
     trait :with_guesser do
       transient do
         guesser_user { association :user }
-        guesser_name { Faker::Name.unique.first_name.ljust(3, "a") }
+        guesser_name { "Guesser" }
       end
 
       after(:build) do |game, context|

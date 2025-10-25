@@ -20,8 +20,7 @@ module LoadedQuestions
       def correct? = answer == guessed_answer
 
       def as_json
-        { player_id: player.id,
-          guessed_player_id: guessed_player.id }
+        { player_id: player.id, guessed_player_id: guessed_player.id }.as_json
       end
     end
   end

@@ -37,27 +37,30 @@ module LoadedQuestions
 
       if current_player.nil?
         redirect_to(new_loaded_questions_game_player_path(game.id))
-      else
-        case game.status
-        when Game::Status.polling
-          if current_player.guesser?
-            guessing_round_form = GuessingRoundForm.new(game:)
-            render :polling_guesser,
-              locals: { game:, current_player:, guessing_round_form: }
-          else
-            answer_form = AnswerForm.new(answer: current_player.answer)
-            render :polling_player,
-              locals: { game:, current_player:, answer_form: }
-          end
-        when Game::Status.guessing
-          if current_player.guesser?
-            render :guessing_guesser, locals: { game:, current_player: }
-          else
-            render :guessing_player, locals: { game:, current_player: }
-          end
-        when Game::Status.completed
-          render :completed, locals: { game:, current_player: }
+        return
+      end
+
+      case game.status
+      when Game::Status.polling
+        if current_player.guesser?
+          guessing_round_form = GuessingRoundForm.new(game:)
+          render :polling_guesser,
+            locals: { game:, current_player:, guessing_round_form: }
+        else
+          answer_form = AnswerForm.new(answer: current_player.answer)
+          render :polling_player,
+            locals: { game:, current_player:, answer_form: }
         end
+      when Game::Status.guessing
+        if current_player.guesser?
+          render :guessing_guesser, locals: { game:, current_player: }
+        else
+          render :guessing_player, locals: { game:, current_player: }
+        end
+      when Game::Status.completed
+        render :completed, locals: { game:, current_player: }
+      else
+        raise "Unknown game status: #{game.status}"
       end
     end
 

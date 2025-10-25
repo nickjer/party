@@ -8,9 +8,9 @@ module LoadedQuestions
       test "#find raises ActiveRecord::RecordNotFound when player not found" do
         game = build(:lq_matching_game, player_names: %w[Alice Bob])
 
-        assert_raises(ActiveRecord::RecordNotFound) do
-          game.guesses.find(999_999)
-        end
+        error = assert_raises(RuntimeError) { game.guesses.find(999_999) }
+
+        assert_equal "Couldn't find guessed answer", error.message
       end
 
       test "#find returns guessed answer for player" do

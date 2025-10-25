@@ -94,8 +94,6 @@ module LoadedQuestions
         game.save!
         Broadcast::RoundCreated.new(game:).call
 
-        game = Game.find(params[:id])
-        current_player = game.player_for!(current_user.id)
         guessing_round_form = GuessingRoundForm.new(game:)
         render :polling_guesser,
           locals: { game:, current_player:, guessing_round_form: }

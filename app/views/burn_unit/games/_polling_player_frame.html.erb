@@ -1,0 +1,51 @@
+<%# locals: (game:, vote_form:) %>
+
+<%= render "burn_unit/games/question_card", question: game.question %>
+
+<div
+  class="card shadow-sm"
+  data-controller="reveal"
+  data-reveal-hidden-class="d-none"
+>
+  <div class="card-body">
+    <h5 class="card-title text-secondary mb-3">
+      <i class="bi bi-hand-index me-2"></i>
+      Your Vote
+    </h5>
+
+    <button
+      type="button"
+      data-action="reveal#toggle"
+      class="btn btn-secondary w-100"
+    >
+      <i class="bi bi-eye me-2"></i>
+      Show / Hide Vote
+    </button>
+
+    <%= turbo_frame_tag "vote_form_frame" do %>
+      <div
+        data-reveal-target="item"
+        class="<%= "d-none" unless vote_form.show? %>"
+      >
+        <%= form_with(
+          model: vote_form,
+          scope: :player,
+          url: vote_burn_unit_game_player_path(game.id),
+          method: :patch
+        ) do |form| %>
+          <div class="mt-3">
+            <%= form.select :candidate_id,
+              options_for_select(
+                game.candidates.map(&:player).without(vote_form.current_player).map { |player| [player.name.to_s, player.id] },
+                vote_form.candidate_id
+              ),
+              { prompt: "Select a player..." },
+              { aria: { label: "Vote for player" } } %>
+          </div>
+
+          <%= form.submit "Submit Vote", class: "mt-3 w-100" %>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+</div>

@@ -1,0 +1,41 @@
+<%# locals: (game:, current_player:, new_round:) %>
+
+<%= turbo_frame_tag "game_frame" do %>
+  <div class="d-flex flex-wrap flex-md-nowrap align-items-start gap-2 mt-2">
+    <div class="flex-grow-1">
+      <%= turbo_frame_tag "round_frame" do %>
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <h2 class="h5 text-danger mb-3">
+              <i class="bi bi-plus-circle me-2"></i>
+              Create Next Round
+            </h2>
+            <%= form_with(
+              model: new_round,
+              scope: :round,
+              url: create_round_burn_unit_game_path(game.id),
+              method: :post,
+              data: { turbo_frame: "round_frame" }
+            ) do |form| %>
+              <div class="mb-3">
+                <%= form.label :question, "Question" %>
+                <%= form.text_area :question,
+                    rows: 3,
+                    maxlength: BurnUnit::Game::MAX_QUESTION_LENGTH,
+                    placeholder: "Enter a question for the next round...",
+                    autofocus: true %>
+                <div class="form-text">
+                  <%= BurnUnit::Game::MIN_QUESTION_LENGTH %>-<%= BurnUnit::Game::MAX_QUESTION_LENGTH %> characters
+                </div>
+              </div>
+
+              <%= form.submit "Start Round", class: "w-100 btn-danger" %>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+
+    <%= render "burn_unit/games/players_list", players: game.players, current_player: %>
+  </div>
+<% end %>

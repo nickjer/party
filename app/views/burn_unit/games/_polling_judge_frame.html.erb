@@ -1,0 +1,123 @@
+<%# locals: (game:, vote_form:, completed_round_form:) %>
+
+<%= render "burn_unit/games/question_card", question: game.question %>
+
+<div
+  class="card shadow-sm mb-3"
+  data-controller="reveal"
+  data-reveal-hidden-class="d-none"
+>
+  <div class="card-body">
+    <h5 class="card-title text-secondary mb-3">
+      <i class="bi bi-hand-index me-2"></i>
+      Your Vote
+    </h5>
+
+    <button
+      type="button"
+      data-action="reveal#toggle"
+      class="btn btn-secondary w-100"
+    >
+      <i class="bi bi-eye me-2"></i>
+      Show / Hide Vote
+    </button>
+
+    <%= turbo_frame_tag "vote_form_frame" do %>
+      <div
+        data-reveal-target="item"
+        class="<%= "d-none" unless vote_form.show? %>"
+      >
+        <%= form_with(
+          model: vote_form,
+          scope: :player,
+          url: vote_burn_unit_game_player_path(game.id),
+          method: :patch
+        ) do |form| %>
+          <div class="mt-3">
+            <%= form.select :candidate_id,
+              options_for_select(
+                game.candidates.map(&:player).without(vote_form.current_player).map { |player| [player.name.to_s, player.id] },
+                vote_form.candidate_id
+              ),
+              { prompt: "Select a player..." },
+              { aria: { label: "Vote for player" } } %>
+          </div>
+
+          <%= form.submit "Submit Vote", class: "mt-3 w-100" %>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<% unless completed_round_form.errors[:base].empty? %>
+  <div class="alert alert-danger" role="alert">
+    <h6 class="alert-heading mb-2">
+      <i class="bi bi-exclamation-triangle-fill me-2"></i>
+      Cannot Tally Votes
+    </h6>
+    <% completed_round_form.errors[:base].each do |error| %>
+      <div>&bull; <%= error.full_message %></div>
+    <% end %>
+  </div>
+<% end %>
+
+<div class="card shadow-sm">
+  <div class="card-body" data-controller="dialog">
+    <h5 class="card-title text-warning mb-3">
+      <i class="bi bi-star-fill me-2"></i>
+      You're the Judge!
+    </h5>
+
+    <p class="card-text text-muted mb-3">
+      Waiting for all players to submit their votes. Once everyone has voted,
+      you can tally the results and see who wins.
+    </p>
+
+    <button
+      type="button"
+      class="btn btn-danger btn-lg w-100"
+      data-action="dialog#open"
+    >
+      <i class="bi bi-calculator-fill me-2"></i>
+      Tally Votes
+    </button>
+
+    <dialog
+      data-dialog-target="dialog"
+      class="border-0 p-4 rounded-3 shadow-lg"
+      style="max-width: 500px;"
+    >
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="fs-5 mb-0">
+          <i class="bi bi-calculator me-2"></i>
+          Tally Votes
+        </h1>
+        <button
+          type="button"
+          class="btn-close"
+          data-action="dialog#close"
+          aria-label="Close"
+        ></button>
+      </div>
+
+      <p class="mb-3">
+        Are you ready to tally the votes? Once tallied, everyone will see who
+        received the most votes.
+      </p>
+
+      <div class="d-flex justify-content-end gap-2">
+        <button
+          type="button"
+          class="btn btn-secondary"
+          data-action="dialog#close"
+        >
+          Close
+        </button>
+        <%= form_with(model: completed_round_form, scope: :game, url: completed_round_burn_unit_game_path(game.id), method: :patch) do |form| %>
+          <%= form.submit "Yes, tally votes", class: "btn btn-danger" %>
+        <% end %>
+      </div>
+    </dialog>
+  </div>
+</div>

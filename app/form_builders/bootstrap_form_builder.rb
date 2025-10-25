@@ -31,6 +31,12 @@ class BootstrapFormBuilder < ActionView::Helpers::FormBuilder
     add_error(method, super)
   end
 
+  def select(method, choices = nil, options = {}, html_options = {}, &)
+    style = error?(method) ? "form-select is-invalid" : "form-select"
+    html_options[:class] = "#{style} #{html_options[:class]}"
+    add_error(method, super)
+  end
+
   def submit(value = "Submit", options = {})
     options[:class] = "btn btn-primary #{options[:class]}"
     super

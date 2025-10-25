@@ -1,6 +1,21 @@
 # frozen_string_literal: true
 
 Rails.application.routes.draw do
+  namespace :burn_unit do
+    resources :games, only: %i[create new show] do
+      member do
+        get :new_round
+        post :create_round
+        patch :completed_round
+      end
+      resource :player, only: %i[create new edit update] do
+        member do
+          patch :vote
+        end
+      end
+    end
+  end
+
   namespace :loaded_questions do
     resources :games, only: %i[create new show] do
       member do

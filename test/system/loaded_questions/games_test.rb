@@ -1098,6 +1098,187 @@ module LoadedQuestions
           end
         end
       end
+
+      # Have Alice and Mia submit answers to progress to matching
+      using_session("charlie") do
+        fill_in "player[answer]", with: "Blue"
+        click_on "Submit Answer"
+
+        # Wait for answer form to be hidden
+        assert_selector "[data-reveal-target='item'].d-none", visible: :hidden,
+          wait: 5
+      end
+
+      using_session("zoe") do
+        fill_in "player[answer]", with: "Red"
+        click_on "Submit Answer"
+
+        # Wait for answer form to be hidden
+        assert_selector "[data-reveal-target='item'].d-none", visible: :hidden,
+          wait: 5
+      end
+
+      # Bob (guesser) starts the matching round
+      using_session("default") do
+        click_on "Begin Guessing"
+        within("dialog[open]") do
+          click_on "Yes, I am ready"
+        end
+
+        # Wait for matching view to load
+        assert_text "Blue", wait: 5
+        assert_text "Red"
+        assert_button "Complete Matching"
+
+        # Names should be in alphabetical order: Alice, Mia
+        within("#answers") do
+          guessed_answer_names = all("[data-player-name-id]").map(&:text)
+          assert_equal %w[Alice Mia], guessed_answer_names
+        end
+      end
+
+      # Alice (non-guesser) changes her name to Zara during matching
+      # (after Mia alphabetically)
+      using_session("charlie") do
+        within("#players") do
+          alice_div = find("div[id^='player_']", text: "Alice")
+          within(alice_div) do
+            find("a[title='Edit name']").click
+          end
+        end
+
+        assert_text "Edit Your Name", wait: 5
+        fill_in "Your Name", with: "Zara"
+        click_on "Update Name"
+
+        # Should be redirected back to matching view
+        assert_text "Blue", wait: 5
+        assert_text "Red"
+
+        # Verify name updated in guessed answers
+        within("#answers") do
+          assert_selector "[data-player-name-id]", text: "Zara"
+          assert_no_text "Alice"
+        end
+      end
+
+      # Verify Bob sees Zara's name change in guessed answers
+      using_session("default") do
+        within("#answers") do
+          assert_selector "[data-player-name-id]", text: "Zara", wait: 5
+          assert_no_text "Alice"
+
+          # Verify order has not changed - Zara is still first even though
+          # alphabetically she should be after Mia
+          guessed_answer_names = all("[data-player-name-id]").map(&:text)
+          assert_equal %w[Zara Mia], guessed_answer_names
+        end
+      end
+
+      # Verify Mia sees Zara's name change in guessed answers
+      using_session("zoe") do
+        within("#answers") do
+          assert_selector "[data-player-name-id]", text: "Zara", wait: 5
+          assert_no_text "Alice"
+
+          # Verify order - Zara is still in first position
+          guessed_answer_names = all("[data-player-name-id]").map(&:text)
+          assert_equal %w[Zara Mia], guessed_answer_names
+        end
+      end
+
+      # Refresh Bob's page and verify order is maintained
+      using_session("default") do
+        visit current_path
+
+        # Wait for page to reload
+        assert_text "Blue", wait: 5
+        assert_text "Red"
+
+        # Verify order is still the same after refresh - Zara before Mia
+        within("#answers") do
+          guessed_answer_names = all("[data-player-name-id]").map(&:text)
+          assert_equal %w[Zara Mia], guessed_answer_names
+        end
+      end
+
+      # Purposely leave answers in wrong order (or swap if needed)
+      # Check current state and ensure answers are wrong
+      using_session("default") do
+        swap_items = all(".swap-item")
+        answer1_text = swap_items[0].text
+
+        # Zara should match with Blue, Mia should match with Red
+        # If first answer is "Blue", it's correct - need to swap to make wrong
+        if answer1_text == "Blue"
+          # Swap to make them wrong
+          swap_items[0].drag_to(swap_items[1])
+          sleep 0.5
+        end
+
+        # Complete the round
+        click_on "Complete Matching"
+        within("dialog[open]") do
+          click_on "Yes, I am sure"
+        end
+
+        # Wait for completed view
+        assert_text "Score:", wait: 10
+      end
+
+      # Zara (non-guesser) changes name to Xena during completed phase
+      # (still after Mia alphabetically)
+      using_session("charlie") do
+        # Wait for completed view
+        assert_text "Score:", wait: 10
+
+        within("#players") do
+          zara_div = find("div[id^='player_']", text: "Zara")
+          within(zara_div) do
+            find("a[title='Edit name']").click
+          end
+        end
+
+        assert_text "Edit Your Name", wait: 5
+        fill_in "Your Name", with: "Xena"
+        click_on "Update Name"
+
+        # Should be redirected back to completed view
+        assert_text "Score:", wait: 5
+
+        # Verify name updated in completed answers
+        # (both main name and "guessed: ..." text)
+        within("#answers") do
+          # Should see Xena twice (once as player name, once in
+          # "guessed: ..." for wrong answer)
+          assert_selector "[data-player-name-id]", text: "Xena", count: 2
+          assert_no_text "Zara"
+        end
+      end
+
+      # Verify Bob sees Xena's name change in completed answers
+      # (including "guessed: ..." text)
+      using_session("default") do
+        within("#answers") do
+          # Should see Xena twice in the answers section
+          assert_selector "[data-player-name-id]", text: "Xena", count: 2,
+            wait: 5
+          assert_no_text "Zara"
+        end
+      end
+
+      # Verify Mia sees Xena's name change in completed answers
+      using_session("zoe") do
+        # Wait for completed view
+        assert_text "Score:", wait: 10
+
+        within("#answers") do
+          # Should see Xena twice in the answers section
+          assert_selector "[data-player-name-id]", text: "Xena", count: 2,
+            wait: 5
+          assert_no_text "Zara"
+        end
+      end
     end
   end
 end

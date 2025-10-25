@@ -59,7 +59,6 @@ group :development, :test do
   gem "rubocop-factory_bot", require: false
   gem "rubocop-rails", require: false
 
-  gem "erb_lint", require: false
   gem "factory_bot_rails"
   gem "rbs", require: false
   gem "steep", require: false

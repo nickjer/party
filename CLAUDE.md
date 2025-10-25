@@ -178,7 +178,7 @@ game.save!  # Saves wrapper and cached players
 
 **Ruby**: Follow Rails Omakase (RuboCop). Never use single-letter vars. Use keyword shorthand (`name:` not `name: name`), block shorthand (`find(&:guesser?)`). Use `# @dynamic` for RBS attr_readers. Wrap text in `NormalizedString.new`.
 
-**Views**: Turbo Frames for sections, Turbo Streams for real-time. Render same view for success/error with `:ok` or `:unprocessable_content` status. Lint with `bin/erb_lint`.
+**Views**: Turbo Frames for sections, Turbo Streams for real-time. Render same view for success/error with `:ok` or `:unprocessable_content` status. Lint with `yarn run herb:lint app`.
 
 **JavaScript**: Small Stimulus controllers, data attributes for config.
 

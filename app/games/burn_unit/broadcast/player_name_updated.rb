@@ -11,6 +11,8 @@ module BurnUnit
 
       def call
         PlayerChannel.broadcast_to(game.players) do |current_player|
+          next if current_player.id == player.id
+
           ApplicationController.render(
             "burn_unit/players/name_updated",
             formats: [:turbo_stream],

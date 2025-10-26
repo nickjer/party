@@ -8,7 +8,7 @@ module BurnUnit
     class PlayerNameUpdatedTest < ActiveSupport::TestCase
       include Turbo::Broadcastable::TestHelper
 
-      test "#call broadcasts to all online players" do
+      test "#call broadcasts to other online players" do
         game = create(:bu_polling_game, player_names: %w[Alice Bob])
         alice = game.players.find { |p| p.name.to_s == "Alice" }
         bob = game.players.find { |p| p.name.to_s == "Bob" }
@@ -17,25 +17,22 @@ module BurnUnit
         ::PlayerConnections.instance.increment(alice.id)
         ::PlayerConnections.instance.increment(bob.id)
 
-        # Alice name update should broadcast to both Alice and Bob
-        # (2 actions each: players list + name updates)
-        assert_turbo_stream_broadcasts alice.to_model, count: 2 do
-          assert_turbo_stream_broadcasts bob.to_model, count: 2 do
-            PlayerNameUpdated.new(game:, player: alice).call
-          end
+        # Alice name update should broadcast to Bob only
+        # (2 actions: players list + name updates)
+        assert_turbo_stream_broadcasts bob.to_model, count: 2 do
+          PlayerNameUpdated.new(game:, player: alice).call
         end
       end
 
-      test "#call broadcasts to updated player" do
+      test "#call does not broadcast to updated player" do
         game = create(:bu_polling_game, player_names: %w[Alice Bob])
         alice = game.players.find { |p| p.name.to_s == "Alice" }
 
         # Mark Alice as online
         ::PlayerConnections.instance.increment(alice.id)
 
-        # Alice name update should broadcast to Alice herself
-        # (2 actions: players list + name updates)
-        assert_turbo_stream_broadcasts alice.to_model, count: 2 do
+        # Alice name update should not broadcast to Alice herself
+        assert_turbo_stream_broadcasts alice.to_model, count: 0 do
           PlayerNameUpdated.new(game:, player: alice).call
         end
       end
@@ -54,7 +51,7 @@ module BurnUnit
         end
       end
 
-      test "#call broadcasts to multiple online players" do
+      test "#call with multiple players skips updated player" do
         game = create(:bu_polling_game, player_names: %w[Alice Bob Charlie])
         alice = game.players.find { |p| p.name.to_s == "Alice" }
         bob = game.players.find { |p| p.name.to_s == "Bob" }
@@ -65,13 +62,11 @@ module BurnUnit
         ::PlayerConnections.instance.increment(bob.id)
         ::PlayerConnections.instance.increment(charlie.id)
 
-        # Alice name update should broadcast to all online players
+        # Alice name update should broadcast to Bob and Charlie only
         # (2 actions each: players list + name updates)
-        assert_turbo_stream_broadcasts alice.to_model, count: 2 do
-          assert_turbo_stream_broadcasts bob.to_model, count: 2 do
-            assert_turbo_stream_broadcasts charlie.to_model, count: 2 do
-              PlayerNameUpdated.new(game:, player: alice).call
-            end
+        assert_turbo_stream_broadcasts bob.to_model, count: 2 do
+          assert_turbo_stream_broadcasts charlie.to_model, count: 2 do
+            PlayerNameUpdated.new(game:, player: alice).call
           end
         end
       end
@@ -79,10 +74,11 @@ module BurnUnit
       test "#call broadcasts update turbo stream actions" do
         game = create(:bu_polling_game, player_names: %w[Alice Bob])
         alice = game.players.find { |p| p.name.to_s == "Alice" }
+        bob = game.players.find { |p| p.name.to_s == "Bob" }
 
-        ::PlayerConnections.instance.increment(alice.id)
+        ::PlayerConnections.instance.increment(bob.id)
 
-        turbo_streams = capture_turbo_stream_broadcasts alice.to_model do
+        turbo_streams = capture_turbo_stream_broadcasts bob.to_model do
           PlayerNameUpdated.new(game:, player: alice).call
         end
 

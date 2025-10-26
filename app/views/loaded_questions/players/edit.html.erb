@@ -17,7 +17,7 @@
               scope: :player,
               url: loaded_questions_game_player_path(game.id),
               method: :patch,
-              data: { turbo_frame: "round_frame" }
+              data: { turbo_frame: "game_frame" }
             ) do |form| %>
               <div class="mb-3">
                 <%= form.label :name, "Your Name" %>

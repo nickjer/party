@@ -36,7 +36,7 @@
           <div class="mt-3">
             <%= form.select :candidate_id,
               options_for_select(
-                game.candidates.map(&:player).without(vote_form.current_player).map { |player| [player.name.to_s, player.id] },
+                game.candidates.map(&:player).without(vote_form.current_player).map { |player| [player.name.to_s, player.id, { data: { "player-name-id": player.id } }] },
                 vote_form.candidate_id
               ),
               { prompt: "Select a player..." },

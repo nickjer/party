@@ -38,10 +38,7 @@ module BurnUnit
 
       case game.status
       when Game::Status.polling
-        unless current_player.playing?
-          current_player.playing = true
-          current_player.save!
-        end
+        set_candidate(game:, player: current_player)
 
         vote_form = VoteForm.new(game:, current_player:,
           candidate_id: current_player.vote)
@@ -129,6 +126,14 @@ module BurnUnit
 
     def new_round_params
       params.expect(round: %w[question])
+    end
+
+    def set_candidate(game:, player:)
+      return if player.playing?
+
+      player.playing = true
+      player.save!
+      Broadcast::CandidateAdded.new(game:, player:).call
     end
   end
 end

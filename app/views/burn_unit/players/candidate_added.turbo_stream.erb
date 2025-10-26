@@ -1,0 +1,4 @@
+<%# locals: (current_player:, player:) %>
+<%= turbo_stream.append "player_candidate_id" do %>
+  <option value="<%= player.id %>" data-player-name-id="<%= player.id %>"><%= player.name %></option>
+<% end %>

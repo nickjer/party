@@ -2,8 +2,8 @@
 
 module LoadedQuestions
   module Broadcast
-    # Broadcasts player answer update to all online players in the game
-    class AnswerUpdated
+    # Broadcasts player answer creation to all online players in the game
+    class AnswerCreated
       def initialize(game:, player:)
         @game = game
         @player = player
@@ -12,7 +12,7 @@ module LoadedQuestions
       def call
         PlayerChannel.broadcast_to(game.players) do |current_player|
           ApplicationController.render(
-            "loaded_questions/players/answer_updated",
+            "loaded_questions/players/answer_created",
             formats: [:turbo_stream],
             locals: { current_player:, player: }
           )

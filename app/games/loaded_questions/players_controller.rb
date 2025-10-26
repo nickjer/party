@@ -75,9 +75,13 @@ module LoadedQuestions
 
       answer_form = AnswerForm.new(answer: answer_params[:answer])
       if answer_form.valid?
+        had_answer = current_player.answered?
         current_player.answer = answer_form.answer
         current_player.save!
-        Broadcast::AnswerUpdated.new(game:, player: current_player).call
+        unless had_answer
+          Broadcast::AnswerCreated.new(game:,
+            player: current_player).call
+        end
       end
 
       status = answer_form.valid? ? :ok : :unprocessable_content

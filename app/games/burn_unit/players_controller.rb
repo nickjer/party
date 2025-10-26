@@ -67,8 +67,13 @@ module BurnUnit
       vote_form = VoteForm.new(game:, current_player:,
         candidate_id: vote_params[:candidate_id])
       if vote_form.valid?
+        had_vote = current_player.voted?
         current_player.vote = vote_form.candidate_id
         current_player.save!
+        unless had_vote
+          Broadcast::VoteCreated.new(game:,
+            player: current_player).call
+        end
       end
 
       status = vote_form.valid? ? :ok : :unprocessable_content

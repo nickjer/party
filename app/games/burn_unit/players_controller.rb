@@ -52,6 +52,7 @@ module BurnUnit
       if edit_player.valid?
         current_player.name = edit_player.name
         current_player.save!
+        Broadcast::PlayerNameUpdated.new(game:, player: current_player).call
         redirect_to_game(game)
       else
         render :edit, locals: { game:, current_player:, edit_player: },

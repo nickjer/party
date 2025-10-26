@@ -87,6 +87,7 @@ module BurnUnit
           question: new_round.question
         ).call
         game.save!
+        Broadcast::RoundCreated.new(game:).call
 
         vote_form = VoteForm.new(game:, current_player:,
           candidate_id: current_player.vote)

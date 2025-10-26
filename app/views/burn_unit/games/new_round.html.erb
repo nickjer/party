@@ -17,7 +17,7 @@
               scope: :round,
               url: create_round_burn_unit_game_path(game.id),
               method: :post,
-              data: { turbo_frame: "round_frame" }
+              data: { turbo_frame: "game_frame" }
             ) do |form| %>
               <div class="mb-3">
                 <%= form.label :question, "Question" %>

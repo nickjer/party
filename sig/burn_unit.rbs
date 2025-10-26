@@ -320,6 +320,8 @@ module BurnUnit
 
     def initialize: (game: Game, current_player: Player, ?candidate_id: String?) -> void
 
+    def available_candidates: () -> Array[Player]
+    def game_id: () -> String
     def show?: () -> bool
     def valid?: () -> bool
   end

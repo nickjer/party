@@ -22,6 +22,12 @@ module BurnUnit
       @errors = Errors.new
     end
 
+    def available_candidates
+      game.candidates.map(&:player).without(current_player)
+    end
+
+    def game_id = game.id
+
     def show? = candidate_id.blank? || !errors.empty?
 
     def valid?

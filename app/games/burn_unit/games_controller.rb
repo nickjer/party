@@ -108,6 +108,7 @@ module BurnUnit
       if completed_round_form.valid?
         CompleteRound.new(game:).call
         game.save!
+        Broadcast::RoundCompleted.new(game:).call
         render :completed, locals: { game:, current_player: }
       else
         vote_form = VoteForm.new(game:, current_player:,

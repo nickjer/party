@@ -114,7 +114,7 @@
         >
           Close
         </button>
-        <%= form_with(model: completed_round_form, scope: :game, url: completed_round_burn_unit_game_path(game.id), method: :patch) do |form| %>
+        <%= form_with(model: completed_round_form, scope: :game, url: completed_round_burn_unit_game_path(game.id), method: :patch, data: { turbo_frame: "game_frame" }) do |form| %>
           <%= form.submit "Yes, tally votes", class: "btn btn-danger" %>
         <% end %>
       </div>

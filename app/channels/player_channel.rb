@@ -34,6 +34,8 @@ class PlayerChannel < ApplicationCable::Channel
 
     broadcaster =
       case game_kind
+      when :burn_unit
+        BurnUnit::Broadcast::PlayerConnected.new(player_id: player.id)
       when :loaded_questions
         LoadedQuestions::Broadcast::PlayerConnected.new(player_id: player.id)
       else
@@ -48,6 +50,8 @@ class PlayerChannel < ApplicationCable::Channel
 
     broadcaster =
       case game_kind
+      when :burn_unit
+        BurnUnit::Broadcast::PlayerDisconnected.new(player_id: player.id)
       when :loaded_questions
         LoadedQuestions::Broadcast::PlayerDisconnected.new(player_id: player.id)
       else

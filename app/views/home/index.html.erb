@@ -33,25 +33,25 @@
   </div>
 
   <div class="col">
-    <div class="card h-100 shadow-sm">
+    <div class="card h-100 shadow-sm hover-shadow">
       <div class="card-body d-flex flex-column">
-        <div class="mb-3 text-secondary">
-          <i class="bi bi-trophy-fill" style="font-size: 3rem;"></i>
+        <div class="mb-3 text-danger">
+          <i class="bi bi-fire" style="font-size: 3rem;"></i>
         </div>
 
         <h2 class="card-title h3 mb-3">Burn Unit</h2>
 
         <p class="card-text text-muted flex-grow-1">
           Uncover the hilarious truth about your friendships! Each round, vote
-          anonymously for the player best described by the current question.
-          Tally the votes and watch as personalities are revealed. Expect to
-          discover things you didn't know about each other!
+          for the player best described by the current question. Tally the votes
+          and watch as personalities are revealed. Expect to discover things you
+          didn't know about each other!
         </p>
 
-        <div class="btn btn-secondary btn-lg mt-3 w-100 disabled">
-          <i class="bi bi-hourglass-split me-2"></i>
-          Coming Soon
-        </div>
+        <%= link_to new_burn_unit_game_path, class: "btn btn-danger btn-lg mt-3 w-100" do %>
+          <i class="bi bi-play-circle-fill me-2"></i>
+          Start New Game
+        <% end %>
       </div>
     </div>
   </div>

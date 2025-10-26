@@ -23,7 +23,7 @@ class HomeControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_dom "h2", text: "Burn Unit"
-    assert_dom ".btn.disabled", text: /Coming Soon/
+    assert_dom "a[href='#{new_burn_unit_game_path}']", text: /Start New Game/
   end
 
   test "#index displays page title" do

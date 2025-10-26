@@ -1,0 +1,42 @@
+<%# locals: (game:, current_player:, edit_player:) %>
+
+<%= render "burn_unit/games/player_stream", current_player: %>
+
+<%= turbo_frame_tag "game_frame", data: { connection_monitor_target: "frame" } do %>
+  <div class="d-flex flex-wrap flex-md-nowrap align-items-start gap-2 mt-2">
+    <div class="flex-grow-1">
+      <%= turbo_frame_tag "round_frame" do %>
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <h2 class="h5 text-danger mb-3">
+              <i class="bi bi-pencil me-2"></i>
+              Edit Your Name
+            </h2>
+            <%= form_with(
+              model: edit_player,
+              scope: :player,
+              url: burn_unit_game_player_path(game.id),
+              method: :patch,
+              data: { turbo_frame: "game_frame" }
+            ) do |form| %>
+              <div class="mb-3">
+                <%= form.label :name, "Your Name" %>
+                <%= form.text_field :name,
+                    maxlength: Player::MAX_NAME_LENGTH,
+                    placeholder: "Enter your name",
+                    autofocus: true %>
+                <div class="form-text">
+                  <%= Player::MIN_NAME_LENGTH %>-<%= Player::MAX_NAME_LENGTH %> characters
+                </div>
+              </div>
+
+              <%= form.submit "Update Name", class: "w-100 btn-danger" %>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+
+    <%= render "burn_unit/games/players_list", players: game.players, current_player: %>
+  </div>
+<% end %>

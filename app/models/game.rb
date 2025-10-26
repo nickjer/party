@@ -7,7 +7,8 @@ class Game < ApplicationRecord
   attribute :document, :string
 
   enum :kind, {
-    loaded_questions: 0
+    loaded_questions: 0,
+    burn_unit: 1
   }
 
   has_many :players, dependent: :destroy

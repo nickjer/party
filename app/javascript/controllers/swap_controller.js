@@ -14,8 +14,8 @@ export default class extends Controller {
   connect() {
   }
 
-  groupTargetConnected(group_element) {
-    Sortable.create(group_element, {
+  groupTargetConnected(groupElement) {
+    Sortable.create(groupElement, {
       group: this.element.id,
       draggable: ".swap-item",
       swap: true,

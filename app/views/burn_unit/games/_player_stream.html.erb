@@ -1,0 +1,3 @@
+<%# locals: (current_player:) %>
+
+<%= turbo_stream_from current_player.to_model, channel: PlayerChannel %>

@@ -1,5 +1,7 @@
 <%# locals: (game:, current_player:, vote_form:) %>
 
+<%= render "burn_unit/games/player_stream", current_player: %>
+
 <%= turbo_frame_tag "game_frame" do %>
   <div class="d-flex flex-wrap flex-md-nowrap align-items-start gap-2 mt-2">
     <div class="flex-grow-1">

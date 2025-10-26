@@ -1,4 +1,26 @@
 module BurnUnit
+  module Broadcast
+    class PlayerConnected
+      def initialize: (player_id: String) -> void
+
+      def call: () -> void
+
+      private
+
+      attr_reader connected_player: ::Player
+    end
+
+    class PlayerDisconnected
+      def initialize: (player_id: String) -> void
+
+      def call: () -> void
+
+      private
+
+      attr_reader disconnected_player: ::Player
+    end
+  end
+
   class CompletedRoundForm
     attr_reader errors: ::Errors
 

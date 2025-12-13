@@ -11,6 +11,8 @@ module LoadedQuestions
 
       def call
         PlayerChannel.broadcast_to(game.players) do |current_player|
+          next if current_player.id == player.id
+
           ApplicationController.render(
             "loaded_questions/players/name_updated",
             formats: [:turbo_stream],

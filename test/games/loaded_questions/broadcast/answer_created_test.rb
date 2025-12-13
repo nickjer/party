@@ -5,7 +5,7 @@ require "turbo/broadcastable/test_helper"
 
 module LoadedQuestions
   module Broadcast
-    class AnswerUpdatedTest < ActiveSupport::TestCase
+    class AnswerCreatedTest < ActiveSupport::TestCase
       include Turbo::Broadcastable::TestHelper
 
       test "#call broadcasts to all online players" do
@@ -17,10 +17,10 @@ module LoadedQuestions
         ::PlayerConnections.instance.increment(alice.id)
         ::PlayerConnections.instance.increment(bob.id)
 
-        # Alice updating answer should broadcast to both Alice and Bob
+        # Alice creating answer should broadcast to both Alice and Bob
         assert_turbo_stream_broadcasts alice.to_model, count: 1 do
           assert_turbo_stream_broadcasts bob.to_model, count: 1 do
-            AnswerUpdated.new(game:, player: alice).call
+            AnswerCreated.new(game:, player: alice).call
           end
         end
       end
@@ -33,9 +33,9 @@ module LoadedQuestions
         # Only Alice is online, Bob is offline
         ::PlayerConnections.instance.increment(alice.id)
 
-        # Alice updating answer should not broadcast to offline Bob
+        # Alice creating answer should not broadcast to offline Bob
         assert_turbo_stream_broadcasts bob.to_model, count: 0 do
-          AnswerUpdated.new(game:, player: alice).call
+          AnswerCreated.new(game:, player: alice).call
         end
       end
 
@@ -47,7 +47,7 @@ module LoadedQuestions
         ::PlayerConnections.instance.increment(bob.id)
 
         turbo_streams = capture_turbo_stream_broadcasts bob.to_model do
-          AnswerUpdated.new(game:, player: alice).call
+          AnswerCreated.new(game:, player: alice).call
         end
 
         assert_equal 1, turbo_streams.size

@@ -4,8 +4,8 @@
 
 import { application } from "./application"
 
-import HelloController from "./hello_controller"
-application.register("hello", HelloController)
+import ConnectionMonitorController from "./connection_monitor_controller"
+application.register("connection-monitor", ConnectionMonitorController)
 
 import SwapController from "./swap_controller"
 application.register("swap", SwapController)

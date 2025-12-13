@@ -29,8 +29,24 @@
     <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
   </head>
 
-  <body>
+  <body data-controller="connection-monitor">
     <div class="container"><%= yield %></div>
+
+    <dialog
+      data-connection-monitor-target="dialog"
+      class="border-0 p-4 rounded-3 shadow-lg"
+      style="max-width: 500px;"
+    >
+      <div class="mb-3">
+        <h1 class="fs-5 mb-3">
+          <i class="bi bi-wifi-off me-2"></i>
+          Connection Lost
+        </h1>
+        <p class="mb-0">
+          You've lost connection to the server. The page will automatically refresh when the connection is restored.
+        </p>
+      </div>
+    </dialog>
   </body>
 
   <div class="container">

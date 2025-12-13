@@ -1,0 +1,11 @@
+<%# locals: (game:, current_player:) %>
+<%= turbo_stream.update "round_frame" do %>
+  <%= render "burn_unit/games/completed_frame", game:, current_player: %>
+<% end %>
+
+<%= turbo_stream.update "players" do %>
+  <%= render(partial: "burn_unit/players/player",
+    collection: game.players,
+    as: :player,
+    locals: { current_player: }) %>
+<% end %>

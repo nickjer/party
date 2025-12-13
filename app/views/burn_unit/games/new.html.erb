@@ -1,0 +1,57 @@
+<%# locals: (new_game:) %>
+
+<div class="row justify-content-center py-4">
+  <div class="col-md-8 col-lg-6">
+    <%= link_to root_path, class: "btn btn-link ps-0 mb-3" do %>
+      <i class="bi bi-arrow-left me-1"></i>
+      Back to Games
+    <% end %>
+
+    <div class="card shadow">
+      <div class="card-body p-4">
+        <div class="text-center mb-4">
+          <h1 class="h2 text-danger mb-2">
+            <i class="bi bi-fire me-2"></i>
+            Burn Unit
+          </h1>
+          <p class="text-muted mb-0">
+            Start a new game and become the first judge
+          </p>
+        </div>
+
+        <%= form_with(model: new_game, scope: :game, url: burn_unit_games_path) do |form| %>
+          <div class="mb-4">
+            <%= form.label :player_name, "Your Name" %>
+            <%= form.text_field :player_name,
+                maxlength: Player::MAX_NAME_LENGTH,
+                placeholder: "Enter your name",
+                autofocus: true %>
+            <div class="form-text">
+              <%= Player::MIN_NAME_LENGTH %>-<%= Player::MAX_NAME_LENGTH %> characters
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <%= form.label :question, "First Question" %>
+            <%= form.text_area :question,
+                maxlength: BurnUnit::Game::MAX_QUESTION_LENGTH,
+                rows: 3,
+                placeholder: "e.g., Who is most likely to survive a zombie apocalypse?" %>
+            <div class="form-text">
+              <%= BurnUnit::Game::MIN_QUESTION_LENGTH %> - <%= BurnUnit::Game::MAX_QUESTION_LENGTH %> characters
+            </div>
+          </div>
+
+          <%= form.submit "Create New Game", class: "btn-lg w-100 btn-danger" %>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="text-center mt-3">
+      <small class="text-muted">
+        <i class="bi bi-info-circle me-1"></i>
+        You'll be the first judge and ask the question
+      </small>
+    </div>
+  </div>
+</div>

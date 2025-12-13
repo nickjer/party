@@ -1,0 +1,381 @@
+module BurnUnit
+  module Broadcast
+    class PlayerConnected
+      def initialize: (player_id: String) -> void
+
+      def call: () -> void
+
+      private
+
+      attr_reader connected_player: ::Player
+    end
+
+    class PlayerDisconnected
+      def initialize: (player_id: String) -> void
+
+      def call: () -> void
+
+      private
+
+      attr_reader disconnected_player: ::Player
+    end
+
+    class VoteCreated
+      def initialize: (game: Game, player: Player) -> void
+
+      def call: () -> void
+
+      private
+
+      attr_reader game: Game
+      attr_reader player: Player
+    end
+
+    class RoundCompleted
+      def initialize: (game: Game) -> void
+
+      def call: () -> void
+
+      private
+
+      attr_reader game: Game
+    end
+
+    class RoundCreated
+      def initialize: (game: Game) -> void
+
+      def call: () -> void
+
+      private
+
+      attr_reader game: Game
+    end
+
+    class PlayerNameUpdated
+      def initialize: (game: Game, player: Player) -> void
+
+      def call: () -> void
+
+      private
+
+      attr_reader game: Game
+      attr_reader player: Player
+    end
+
+    class CandidateAdded
+      def initialize: (game: Game, player: Player) -> void
+
+      def call: () -> void
+
+      private
+
+      attr_reader game: Game
+      attr_reader player: Player
+    end
+
+    class PlayerCreated
+      def initialize: (game: Game, player: Player) -> void
+
+      def call: () -> void
+
+      private
+
+      attr_reader game: Game
+      attr_reader player: Player
+    end
+  end
+
+  class CompletedRoundForm
+    attr_reader errors: ::Errors
+
+    def initialize: (game: Game) -> void
+
+    def valid?: () -> bool
+
+    private
+
+    attr_reader game: Game
+  end
+
+  class CompleteRound
+    def initialize: (game: Game) -> void
+
+    def call: () -> Game
+
+    private
+
+    attr_reader game: Game
+  end
+
+  class CreateNewGame
+    def initialize: (
+      user_id: String,
+      player_name: ::NormalizedString,
+      question: ::NormalizedString
+    ) -> void
+
+    def call: () -> Game
+
+    private
+
+    attr_reader user_id: String
+    attr_reader player_name: ::NormalizedString
+    attr_reader question: ::NormalizedString
+  end
+
+  class CreateNewRound
+    def initialize: (
+      game: Game,
+      judge: Player,
+      question: ::NormalizedString
+    ) -> void
+
+    def call: () -> Game
+
+    private
+
+    attr_reader game: Game
+    attr_reader judge: Player
+    attr_reader question: ::NormalizedString
+  end
+
+  class EditPlayerForm
+    attr_reader errors: ::Errors
+    attr_reader game: Game
+    attr_reader current_player: Player
+    attr_reader name: ::NormalizedString
+
+    def initialize: (game: Game, current_player: Player, ?name: _ToS?) -> void
+
+    def valid?: () -> bool
+
+    private
+
+    def validate_length: (::NormalizedString value, min: Integer, max: Integer) -> String?
+  end
+
+  class Game
+    type json_document = {
+      question: String,
+      status: String
+    }
+    type document = {
+      question: NormalizedString,
+      status: Status
+    }
+
+    MIN_QUESTION_LENGTH: Integer
+    MAX_QUESTION_LENGTH: Integer
+
+    def self.build: (question: NormalizedString) -> Game
+    def self.find: (String id) -> Game
+    private def self.scope: () -> ::Game::ActiveRecord_Relation
+
+    attr_reader question: NormalizedString
+    attr_reader status: Status
+
+    def initialize: (::Game game) -> void
+
+    def add_player: (user_id: String, name: ::NormalizedString, ?judge: bool, ?playing: bool) -> Player
+    def candidates: () -> Array[Candidate]
+    def find_player: (Integer id) -> Player
+    def id: () -> String
+    def judge: () -> Player
+    def player_for: (String user_id) -> Player?
+    def player_for!: (String user_id) -> Player
+    def players: () -> Array[Player]
+    def question=: (NormalizedString new_question) -> void
+    def save!: () -> void
+    def status=: (Status new_status) -> void
+    def to_model: () -> ::Game
+
+    private
+
+    attr_reader cached_players: Array[Player]
+    attr_reader model: ::Game
+
+    def document: () -> document
+    def json_document: () -> json_document
+    def validate_between!: (::NormalizedString value, min: Integer, max: Integer, field: Symbol) -> void
+
+    class Candidate
+      def self.from: (Array[Player] playing_players) -> Array[Candidate]
+
+      @winner: bool
+
+      attr_reader player: Player
+      attr_reader voters: Array[Player]
+
+      def initialize: (player: Player, voters: Array[Player], winner: bool) -> void
+
+      def id: () -> String
+      def name: () -> ::NormalizedString
+      def vote_count: () -> Integer
+      def winner?: () -> bool
+    end
+
+    class Status
+      def self.completed: () -> Status
+      def self.parse: (String status) -> Status
+      def self.polling: () -> Status
+
+      attr_reader status: Symbol
+
+      def initialize: (Symbol status) -> void
+
+      def ==: (Status other) -> bool
+      def as_json: () -> String
+      def completed?: () -> bool
+      def eql?: (Status other) -> bool
+      def hash: () -> Integer
+      def polling?: () -> bool
+      def to_s: () -> String
+    end
+  end
+
+  class NewGameForm
+    attr_reader errors: ::Errors
+    attr_reader player_name: ::NormalizedString
+    attr_reader question: ::NormalizedString
+
+    def initialize: (
+      ?player_name: _ToS?,
+      ?question: _ToS?
+    ) -> void
+
+    def valid?: () -> bool
+
+    private
+
+    def validate_length: (::NormalizedString value, min: Integer, max: Integer) -> String?
+  end
+
+  class NewPlayerForm
+    attr_reader errors: ::Errors
+    attr_reader game: Game
+    attr_reader name: ::NormalizedString
+    attr_reader user_id: String
+
+    def initialize: (game: Game, user_id: String, ?name: _ToS?) -> void
+
+    def valid?: () -> bool
+
+    private
+
+    def validate_length: (::NormalizedString value, min: Integer, max: Integer) -> String?
+  end
+
+  class NewRoundForm
+    attr_reader errors: ::Errors
+    attr_reader question: ::NormalizedString
+
+    def initialize: (game: Game, ?question: _ToS?) -> void
+
+    def valid?: () -> bool
+
+    private
+
+    attr_reader game: Game
+
+    def validate_length: (::NormalizedString value, min: Integer, max: Integer) -> String?
+  end
+
+  class Player
+    type json_document = {
+      judge: bool,
+      score: Integer,
+      vote: String?,
+      playing: bool
+    }
+    type document = {
+      judge: bool,
+      score: Integer,
+      vote: String?,
+      playing: bool
+    }
+
+    def self.build: (game_id: String, user_id: String, name: ::NormalizedString, ?judge: bool, ?playing: bool) -> Player
+
+    @judge: bool
+    @playing: bool
+    @vote: String?
+
+    attr_reader name: ::NormalizedString
+    attr_reader score: Integer
+
+    def initialize: (::Player model) -> void
+
+    def <=>: (Player other) -> Integer
+    def ==: (Player other) -> bool
+    def eql?: (Player other) -> bool
+    def game_id: () -> String
+    def hash: () -> Integer
+    def id: () -> String
+    def judge?: () -> bool
+    def judge=: (bool is_judge) -> void
+    def name=: (::NormalizedString new_name) -> void
+    def online?: () -> bool
+    def playing?: () -> bool
+    def playing=: (bool is_playing) -> void
+    def save!: () -> void
+    def score=: (Integer new_score) -> void
+    def to_model: () -> ::Player
+    def user_id: () -> String
+    def vote: () -> String?
+    def vote=: (String? player_id) -> void
+    def voted?: () -> bool
+
+    private
+
+    attr_reader model: ::Player
+
+    def document: () -> document
+    def json_document: () -> json_document
+    def validate_between!: (::NormalizedString value, min: Integer, max: Integer, field: Symbol) -> void
+  end
+
+  class VoteForm
+    attr_reader candidate_id: String?
+    attr_reader current_player: Player
+    attr_reader game: Game
+    attr_reader errors: ::Errors
+
+    def initialize: (game: Game, current_player: Player, ?candidate_id: String?) -> void
+
+    def available_candidates: () -> Array[Player]
+    def game_id: () -> String
+    def show?: () -> bool
+    def valid?: () -> bool
+  end
+
+  class GamesController < ::ApplicationController
+    def new: () -> untyped
+    def create: () -> untyped
+    def show: () -> untyped
+    def new_round: () -> untyped
+    def create_round: () -> untyped
+    def completed_round: () -> untyped
+
+    private
+
+    def new_game_params: () -> ::ActionController::Parameters
+    def new_round_params: () -> ::ActionController::Parameters
+    def set_candidate: (game: Game, player: Player) -> void
+  end
+
+  class PlayersController < ::ApplicationController
+    def new: () -> untyped
+    def create: () -> untyped
+    def edit: () -> untyped
+    def update: () -> untyped
+    def vote: () -> untyped
+
+    private
+
+    def new_player_params: () -> ::ActionController::Parameters
+    def update_player_params: () -> ::ActionController::Parameters
+    def vote_params: () -> ::ActionController::Parameters
+    def redirect_to_game: (Game game) -> void
+    def redirect_to_new_player: (Game game) -> void
+  end
+end

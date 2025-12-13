@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-module LoadedQuestions
+module BurnUnit
   module Broadcast
-    # Broadcasts player answer update to all online players in the game
-    class AnswerUpdated
+    # Broadcasts player creation to all other online players in the game
+    class PlayerCreated
       def initialize(game:, player:)
         @game = game
         @player = player
@@ -11,10 +11,12 @@ module LoadedQuestions
 
       def call
         PlayerChannel.broadcast_to(game.players) do |current_player|
+          next if current_player.id == player.id
+
           ApplicationController.render(
-            "loaded_questions/players/answer_updated",
+            "burn_unit/players/create",
             formats: [:turbo_stream],
-            locals: { current_player:, player: }
+            locals: { players: game.players, current_player: }
           )
         end
       end

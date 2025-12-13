@@ -1,0 +1,77 @@
+<%# locals: (game:, vote_form:, completed_round_form:) %>
+
+<%= render "burn_unit/games/question_card", question: game.question %>
+
+<%= render "burn_unit/games/vote_form", vote_form: %>
+
+<% unless completed_round_form.errors[:base].empty? %>
+  <div class="alert alert-danger" role="alert">
+    <h6 class="alert-heading mb-2">
+      <i class="bi bi-exclamation-triangle-fill me-2"></i>
+      Cannot Tally Votes
+    </h6>
+    <% completed_round_form.errors[:base].each do |error| %>
+      <div>&bull; <%= error.full_message %></div>
+    <% end %>
+  </div>
+<% end %>
+
+<div class="card shadow-sm">
+  <div class="card-body" data-controller="dialog">
+    <h5 class="card-title text-warning mb-3">
+      <i class="bi bi-star-fill me-2"></i>
+      You're the Judge!
+    </h5>
+
+    <p class="card-text text-muted mb-3">
+      Waiting for all players to submit their votes. Once everyone has voted,
+      you can tally the results and see who wins.
+    </p>
+
+    <button
+      type="button"
+      class="btn btn-danger btn-lg w-100"
+      data-action="dialog#open"
+    >
+      <i class="bi bi-calculator-fill me-2"></i>
+      Tally Votes
+    </button>
+
+    <dialog
+      data-dialog-target="dialog"
+      class="border-0 p-4 rounded-3 shadow-lg"
+      style="max-width: 500px;"
+    >
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="fs-5 mb-0">
+          <i class="bi bi-calculator me-2"></i>
+          Tally Votes
+        </h1>
+        <button
+          type="button"
+          class="btn-close"
+          data-action="dialog#close"
+          aria-label="Close"
+        ></button>
+      </div>
+
+      <p class="mb-3">
+        Are you ready to tally the votes? Once tallied, everyone will see who
+        received the most votes.
+      </p>
+
+      <div class="d-flex justify-content-end gap-2">
+        <button
+          type="button"
+          class="btn btn-secondary"
+          data-action="dialog#close"
+        >
+          Close
+        </button>
+        <%= form_with(model: completed_round_form, scope: :game, url: completed_round_burn_unit_game_path(game.id), method: :patch, data: { turbo_frame: "game_frame" }) do |form| %>
+          <%= form.submit "Yes, tally votes", class: "btn btn-danger" %>
+        <% end %>
+      </div>
+    </dialog>
+  </div>
+</div>

@@ -1,0 +1,15 @@
+<%# locals: (game:, current_player:, vote_form:) %>
+
+<%= render "burn_unit/games/player_stream", current_player: %>
+
+<%= turbo_frame_tag "game_frame", data: { connection_monitor_target: "frame" } do %>
+  <div class="d-flex flex-wrap flex-md-nowrap align-items-start gap-2 mt-2">
+    <div class="flex-grow-1">
+      <%= turbo_frame_tag "round_frame" do %>
+        <%= render "burn_unit/games/polling_player_frame", game:, vote_form: %>
+      <% end %>
+    </div>
+
+    <%= render "burn_unit/games/players_list", players: game.players, current_player: %>
+  </div>
+<% end %>

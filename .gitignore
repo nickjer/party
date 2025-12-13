@@ -40,3 +40,5 @@
 
 /.gem_rbs_collection
 /coverage
+/.claude
+/.idea

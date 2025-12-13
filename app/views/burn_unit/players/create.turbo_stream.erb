@@ -1,0 +1,7 @@
+<%# locals: (players:, current_player:) %>
+<%= turbo_stream.update "players" do %>
+  <%= render partial: "burn_unit/players/player",
+    collection: players,
+    as: :player,
+    locals: { current_player: } %>
+<% end %>

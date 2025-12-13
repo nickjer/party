@@ -152,7 +152,7 @@ module LoadedQuestions
       attr_reader disconnected_player: ::Player
     end
 
-    class AnswerUpdated
+    class AnswerCreated
       def initialize: (game: Game, player: Player) -> void
       def call: () -> void
 

@@ -1,0 +1,16 @@
+services:
+  party:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["bin/rails", "server", "--binding", "0.0.0.0", "--port", "3000"]
+    restart: unless-stopped
+    environment:
+      - RAILS_MASTER_KEY=${RAILS_MASTER_KEY}
+    ports:
+      - 3000:3000
+    volumes:
+      - party_storage:/rails/storage
+
+volumes:
+  party_storage:

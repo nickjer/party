@@ -378,4 +378,20 @@ module BurnUnit
     def redirect_to_game: (Game game) -> void
     def redirect_to_new_player: (Game game) -> void
   end
+
+  class Questions
+    include Singleton
+
+    def self.instance: () -> Questions
+
+    def initialize: () -> void
+
+    def question: () -> String
+
+    private
+
+    attr_reader questions: Array[String]
+
+    def load_questions: () -> Array[String]
+  end
 end

@@ -2,9 +2,9 @@
   "name": "app",
   "private": true,
   "devDependencies": {
-    "@herb-tools/formatter": "^0.7.5",
-    "@herb-tools/linter": "^0.7.5",
-    "esbuild": "^0.25.11"
+    "@herb-tools/formatter": "^0.8.4",
+    "@herb-tools/linter": "^0.8.4",
+    "esbuild": "^0.27.1"
   },
   "scripts": {
     "build": "esbuild app/javascript/*.* --bundle --sourcemap --format=esm --outdir=app/assets/builds --public-path=/assets",

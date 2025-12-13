@@ -72,6 +72,17 @@ module BurnUnit
       attr_reader game: Game
       attr_reader player: Player
     end
+
+    class PlayerCreated
+      def initialize: (game: Game, player: Player) -> void
+
+      def call: () -> void
+
+      private
+
+      attr_reader game: Game
+      attr_reader player: Player
+    end
   end
 
   class CompletedRoundForm

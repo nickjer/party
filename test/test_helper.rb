@@ -2,6 +2,7 @@
 
 require "simplecov"
 SimpleCov.start "rails" do
+  add_group "Burn Unit", "app/games/burn_unit"
   add_group "Loaded Questions", "app/games/loaded_questions"
 end
 

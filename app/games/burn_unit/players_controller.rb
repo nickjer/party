@@ -21,11 +21,13 @@ module BurnUnit
         name: new_player_params[:name])
 
       if new_player.valid?
-        game.add_player(
+        player = game.add_player(
           user_id: current_user.id,
           name: new_player.name
         )
         game.save!
+
+        Broadcast::PlayerCreated.new(game:, player:).call
 
         redirect_to_game(game)
       else

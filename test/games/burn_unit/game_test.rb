@@ -163,6 +163,28 @@ module BurnUnit
       assert_equal "Alice", player.name.to_s
     end
 
+    test "#player_for! returns player for given user_id" do
+      user = build(:user)
+      game = build(:bu_game)
+      game.add_player(user_id: user.id, name: NormalizedString.new("Alice"))
+
+      player = game.player_for!(user.id)
+
+      assert_not_nil player
+      assert_equal "Alice", player.name.to_s
+    end
+
+    test "#player_for! raises RecordNotFound when user has no player" do
+      game = build(:bu_polling_game)
+      non_existent_user = build(:user)
+
+      error = assert_raises(ActiveRecord::RecordNotFound) do
+        game.player_for!(non_existent_user.id)
+      end
+
+      assert_equal "Couldn't find Player", error.message
+    end
+
     test "#players returns dynamically sorted players after name change" do
       game = build(:bu_polling_game, player_names: %w[Bob Charlie],
         judge_name: "Alice")

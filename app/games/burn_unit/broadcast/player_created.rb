@@ -2,8 +2,8 @@
 
 module BurnUnit
   module Broadcast
-    # Broadcasts when a player becomes a candidate to all online players
-    class CandidateAdded
+    # Broadcasts player creation to all other online players in the game
+    class PlayerCreated
       def initialize(game:, player:)
         @game = game
         @player = player
@@ -14,9 +14,9 @@ module BurnUnit
           next if current_player.id == player.id
 
           ApplicationController.render(
-            "burn_unit/players/candidate_added",
+            "burn_unit/players/create",
             formats: [:turbo_stream],
-            locals: { current_player:, player: }
+            locals: { players: game.players, current_player: }
           )
         end
       end

@@ -55,13 +55,13 @@ module BurnUnit
         "is too short (minimum is 3 characters)")
     end
 
-    test "#valid? returns false with nil question" do
+    test "#valid? returns true with nil question using random question" do
       game = build(:bu_completed_game, judge_name: "Alice")
       form = NewRoundForm.new(game:, question: nil)
 
-      assert_not_predicate form, :valid?
-      assert form.errors.added?(:question, message:
-        "is too short (minimum is 3 characters)")
+      assert_predicate game.status, :completed?
+      assert_predicate form, :valid?
+      assert_not_predicate form.question.to_s, :empty?
     end
 
     test "#valid? returns false with question too long" do

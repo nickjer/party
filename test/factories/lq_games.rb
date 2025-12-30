@@ -60,6 +60,11 @@ FactoryBot.define do
     factory :lq_completed_game, traits: %i[with_guesser with_answers] do
       after(:build) do |game|
         LoadedQuestions::BeginGuessingRound.new(game:).call
+        # Assign correct guesses (required for completed view)
+        game.guesses.each do |guess|
+          game.assign_guess(player_id: guess.player.id,
+            answer_id: guess.player.answer.id)
+        end
         LoadedQuestions::CompleteRound.new(game:).call
       end
     end

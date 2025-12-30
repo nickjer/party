@@ -88,10 +88,10 @@ module LoadedQuestions
       assert_not_predicate form, :show?
     end
 
-    test "#answer returns NormalizedString instance" do
+    test "#answer returns Answer instance" do
       form = AnswerForm.new(answer: "Test")
 
-      assert_instance_of NormalizedString, form.answer
+      assert_instance_of Answer, form.answer
     end
 
     test "#errors returns Errors instance" do

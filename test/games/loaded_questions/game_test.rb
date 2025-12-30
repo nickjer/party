@@ -175,29 +175,24 @@ module LoadedQuestions
       assert_predicate reloaded_game.status, :guessing?
     end
 
-    test "#swap_guesses persists answer swap to database" do
+    test "#assign_guess persists answer assignment to database" do
       # Create game in guessing status with players and answers
       game = create(:lq_matching_game, player_names: %w[Bob Charlie])
 
-      # Get current answer assignments
-      guess1, guess2 = game.guesses.to_a
-      guess1_guessed_answer_before = guess1.guessed_answer
-      guess2_guessed_answer_before = guess2.guessed_answer
+      # Get players and their answers
+      bob, charlie = game.guesses.map(&:player)
 
-      # Swap the answers
-      game.swap_guesses(player_id1: guess1.player.id,
-        player_id2: guess2.player.id)
+      # Assign Bob's answer to Charlie's slot
+      game.assign_guess(player_id: charlie.id, answer_id: bob.answer.id)
       game.save!
 
       # Reload from database to verify persistence
       game_after = reload(game:)
-      guess1_after, guess2_after = game_after.guesses.to_a
+      charlie_guess = game_after.guesses.find(charlie.id)
 
-      # Verify answers were swapped and persisted
-      assert_equal guess2_guessed_answer_before, guess1_after.guessed_answer,
-        "First guess should have second guessed answer after swap"
-      assert_equal guess1_guessed_answer_before, guess2_after.guessed_answer,
-        "Second guess should have first guessed answer after swap"
+      # Verify assignment was persisted
+      assert_equal bob.answer, charlie_guess.guessed_answer,
+        "Charlie's slot should have Bob's answer assigned"
     end
   end
 end

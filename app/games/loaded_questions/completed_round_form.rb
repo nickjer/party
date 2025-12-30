@@ -16,6 +16,10 @@ module LoadedQuestions
         errors.add(:base, message: "Game is not in guessing phase")
       end
 
+      unless game.guesses.complete?
+        errors.add(:base, message: "All answers must be assigned to players")
+      end
+
       errors.empty?
     end
 

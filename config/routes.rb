@@ -23,7 +23,7 @@ Rails.application.routes.draw do
         post :create_round
         patch :completed_round
         patch :guessing_round
-        patch :swap_guesses
+        patch :assign_guess
       end
       resource :player, only: %i[create new edit update] do
         member do

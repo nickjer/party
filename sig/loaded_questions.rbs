@@ -1,6 +1,25 @@
 module LoadedQuestions
+  class Answer
+    type json_answer = { id: String, value: String }
+
+    attr_reader id: String
+    attr_reader value: ::NormalizedString
+
+    def self.build: (value: _ToS) -> Answer
+    def self.empty: () -> Answer
+    def self.parse: (json_answer data) -> Answer
+
+    def initialize: (id: String, value: _ToS) -> void
+
+    def <=>: (Answer other) -> Integer
+    def ==: (Answer other) -> bool
+    def blank?: () -> bool
+    def to_s: () -> String
+    def as_json: () -> json_answer
+  end
+
   class AnswerForm
-    attr_reader answer: ::NormalizedString
+    attr_reader answer: Answer
     attr_reader errors: ::Errors
 
     def initialize: (?answer: _ToS?) -> void
@@ -14,7 +33,7 @@ module LoadedQuestions
   end
 
   class Game
-    type json_guessed_answer = { player_id: String, guessed_player_id: String }
+    type json_guessed_answer = { player_id: String, guessed_player_id: String? }
     type json_document = {
       question: String,
       guesses: Array[json_guessed_answer],
@@ -52,7 +71,7 @@ module LoadedQuestions
     def save!: () -> void
     def status=: (Status new_status) -> void
     def add_player: (user_id: String, name: ::NormalizedString, ?guesser: bool) -> Player
-    def swap_guesses: (player_id1: Integer, player_id2: Integer) -> void
+    def assign_guess: (player_id: String, answer_id: String?) -> void
     def to_model: () -> ::Game
 
     private
@@ -76,9 +95,12 @@ module LoadedQuestions
       def initialize: (guesses: Array[GuessedAnswer]) -> void
 
       def each: () { (GuessedAnswer) -> void } -> self
-      def find: (Integer player_id) -> GuessedAnswer
+      def find: (String player_id) -> GuessedAnswer
       def size: () -> Integer
-      def swap: (player_id1: Integer, player_id2: Integer) -> Guesses
+      def assigned: () -> Array[GuessedAnswer]
+      def unassigned_answers: () -> Array[Answer]
+      def complete?: () -> bool
+      def assign: (player_id: String, answer_id: String?) -> Guesses
       def as_json: () -> Array[json_guessed_answer]
       def score: () -> Integer
 
@@ -86,6 +108,7 @@ module LoadedQuestions
 
       # @dynamic guesses
       attr_reader guesses: Array[GuessedAnswer]
+      attr_reader answer_to_player_map: Hash[String, Player]
 
       def validate_unique_players!: () -> void
       def validate_unique_guessed_players!: () -> void
@@ -93,11 +116,12 @@ module LoadedQuestions
 
     class GuessedAnswer
       attr_reader player: Player
-      attr_reader guessed_player: Player
+      attr_reader guessed_player: Player?
 
-      def initialize: (player: Player, guessed_player: Player) -> void
-      def answer: () -> ::NormalizedString
-      def guessed_answer: () -> ::NormalizedString
+      def initialize: (player: Player, guessed_player: Player?) -> void
+      def answer: () -> Answer
+      def guessed_answer: () -> Answer?
+      def assigned?: () -> bool
       def correct?: () -> bool
       def as_json: () -> json_guessed_answer
     end
@@ -171,7 +195,7 @@ module LoadedQuestions
       attr_reader game: Game
     end
 
-    class AnswersSwapped
+    class GuessesUpdated
       def initialize: (game: Game) -> void
       def call: () -> void
 
@@ -217,13 +241,13 @@ module LoadedQuestions
     def create_round: () -> untyped
     def completed_round: () -> untyped
     def guessing_round: () -> untyped
-    def swap_guesses: () -> untyped
+    def assign_guess: () -> untyped
 
     private
 
     def new_game_params: () -> ::ActionController::Parameters
     def new_round_params: () -> ::ActionController::Parameters
-    def swap_params: () -> ::ActionController::Parameters
+    def assign_guess_params: () -> ::ActionController::Parameters
   end
 
   class CompletedRoundForm
@@ -371,12 +395,12 @@ module LoadedQuestions
     MAX_ANSWER_LENGTH: Integer
 
     type json_document = {
-      answer: String,
+      answer: Answer::json_answer,
       guesser: bool,
       score: Integer
     }
     type document = {
-      answer: ::NormalizedString,
+      answer: Answer,
       guesser: bool,
       score: Integer
     }
@@ -385,7 +409,7 @@ module LoadedQuestions
 
     @guesser: bool
 
-    attr_reader answer: ::NormalizedString
+    attr_reader answer: Answer
     attr_reader name: ::NormalizedString
     attr_reader score: Integer
 
@@ -393,7 +417,7 @@ module LoadedQuestions
 
     def <=>: (Player other) -> Integer
     def ==: (Player other) -> bool
-    def answer=: (::NormalizedString new_answer) -> void
+    def answer=: (Answer new_answer) -> void
     def answered?: () -> bool
     def eql?: (Player other) -> bool
     def game_id: () -> String

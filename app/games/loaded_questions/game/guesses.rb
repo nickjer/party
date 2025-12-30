@@ -2,7 +2,7 @@
 
 module LoadedQuestions
   class Game
-    # Collection of guessed answers with operations for swapping and scoring.
+    # Collection of guessed answers with operations for assigning and scoring.
     class Guesses
       class << self
         def empty = new(guesses: [])
@@ -10,12 +10,13 @@ module LoadedQuestions
         def parse(guesses, players:)
           player_map = players.index_by(&:id) #: Hash[String, Player]
           guesses = guesses
-            .map do |guessed_answer|
+            .map do |guess_data|
+              guessed_player_id = guess_data[:guessed_player_id]
+              guessed_player =
+                guessed_player_id ? player_map.fetch(guessed_player_id) : nil
               GuessedAnswer.new(
-                player: player_map.fetch(guessed_answer[:player_id]),
-                guessed_player: player_map.fetch(
-                  guessed_answer[:guessed_player_id]
-                )
+                player: player_map.fetch(guess_data[:player_id]),
+                guessed_player:
               )
             end
           new(guesses:)
@@ -37,28 +38,37 @@ module LoadedQuestions
 
       def find(player_id)
         found_guess = guesses.find { |guess| guess.player.id == player_id }
-        raise "Couldn't find guessed answer" if found_guess.nil?
+        if found_guess.nil?
+          raise "Couldn't find guessed answer for player #{player_id}"
+        end
 
         found_guess
       end
 
       def size = guesses.size
 
-      def swap(player_id1:, player_id2:)
-        index1 = guesses.find_index { |guess| guess.player.id == player_id1 }
-        index2 = guesses.find_index { |guess| guess.player.id == player_id2 }
+      def assigned = guesses.select(&:assigned?)
 
-        raise "Player #{player_id1} not found" if index1.nil?
-        raise "Player #{player_id2} not found" if index2.nil?
+      def unassigned_answers
+        assigned_answer_ids =
+          guesses.filter_map { |guess| guess.guessed_answer&.id }
+        answer_to_player_map.except(*assigned_answer_ids).values.map(&:answer).sort
+      end
 
-        guess1 = guesses.fetch(index1)
-        guess2 = guesses.fetch(index2)
+      def complete? = guesses.all?(&:assigned?)
 
-        new_guesses = guesses.dup
-        new_guesses[index1] = GuessedAnswer.new(player: guess1.player,
-          guessed_player: guess2.guessed_player)
-        new_guesses[index2] = GuessedAnswer.new(player: guess2.player,
-          guessed_player: guess1.guessed_player)
+      def assign(player_id:, answer_id:)
+        guessed_player = answer_id ? answer_to_player_map.fetch(answer_id) : nil
+
+        new_guesses = guesses.map do |guess|
+          if guess.player.id == player_id
+            GuessedAnswer.new(player: guess.player, guessed_player:)
+          elsif guessed_player && guess.guessed_player&.id == guessed_player.id
+            GuessedAnswer.new(player: guess.player, guessed_player: nil)
+          else
+            guess
+          end
+        end
 
         Guesses.new(guesses: new_guesses)
       end
@@ -72,6 +82,11 @@ module LoadedQuestions
       # @dynamic guesses
       attr_reader :guesses
 
+      def answer_to_player_map
+        @answer_to_player_map ||=
+          guesses.to_h { |guess| [guess.player.answer.id, guess.player] }
+      end
+
       def validate_unique_players!
         players = guesses.map(&:player)
         return if players.uniq.size == players.size
@@ -80,8 +95,9 @@ module LoadedQuestions
       end
 
       def validate_unique_guessed_players!
-        guessed_players = guesses.map(&:guessed_player)
-        return if guessed_players.uniq.size == guessed_players.size
+        guessed_player_ids =
+          guesses.filter_map { |guess| guess.guessed_player&.id }
+        return if guessed_player_ids.uniq.size == guessed_player_ids.size
 
         raise "Duplicate guessed player found in guesses"
       end

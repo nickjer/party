@@ -20,7 +20,7 @@ module LoadedQuestions
     test "#answer= persists to database after save" do
       game = create(:lq_game)
       player = create(:lq_player, game:)
-      new_answer = NormalizedString.new("Blue")
+      new_answer = Answer.build(value: "Blue")
 
       player.answer = new_answer
       player.save!
@@ -34,7 +34,7 @@ module LoadedQuestions
     test "#answer= raises error when answer is too long" do
       game = build(:lq_game)
       player = build(:lq_player, game:)
-      long_answer = NormalizedString.new("a" * 81)
+      long_answer = Answer.build(value: "a" * 81)
 
       error = assert_raises(ArgumentError) do
         player.answer = long_answer
@@ -47,7 +47,7 @@ module LoadedQuestions
     test "#answer= raises error when answer is too short" do
       game = build(:lq_game)
       player = build(:lq_player, game:)
-      short_answer = NormalizedString.new("AB")
+      short_answer = Answer.build(value: "AB")
 
       error = assert_raises(ArgumentError) do
         player.answer = short_answer

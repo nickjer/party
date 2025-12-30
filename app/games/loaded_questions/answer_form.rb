@@ -10,7 +10,7 @@ module LoadedQuestions
     attr_reader :errors
 
     def initialize(answer: nil)
-      @answer = ::NormalizedString.new(answer)
+      @answer = Answer.build(value: answer.to_s)
       @errors = Errors.new
     end
 
@@ -19,7 +19,7 @@ module LoadedQuestions
     def valid?
       min = Player::MIN_ANSWER_LENGTH
       max = Player::MAX_ANSWER_LENGTH
-      if (error = validate_length(answer, min:, max:))
+      if (error = validate_length(answer.value, min:, max:))
         errors.add(:answer, message: error)
       end
 

@@ -10,6 +10,9 @@ application.register("connection-monitor", ConnectionMonitorController)
 import SwapController from "./swap_controller"
 application.register("swap", SwapController)
 
+import GuessAssignmentController from "./guess_assignment_controller"
+application.register("guess-assignment", GuessAssignmentController)
+
 import Dialog from '@stimulus-components/dialog'
 application.register('dialog', Dialog)
 

@@ -5,12 +5,13 @@ require "test_helper"
 module LoadedQuestions
   class Game
     class GuessesTest < ActiveSupport::TestCase
-      test "#find raises ActiveRecord::RecordNotFound when player not found" do
+      test "#find raises error when player not found" do
         game = build(:lq_matching_game, player_names: %w[Alice Bob])
 
-        error = assert_raises(RuntimeError) { game.guesses.find(999_999) }
+        error = assert_raises(RuntimeError) { game.guesses.find("nonexistent") }
 
-        assert_equal "Couldn't find guessed answer", error.message
+        assert_equal "Couldn't find guessed answer for player nonexistent",
+          error.message
       end
 
       test "#find returns guessed answer for player" do
@@ -54,26 +55,51 @@ module LoadedQuestions
         assert_equal "Duplicate player found in guesses", error.message
       end
 
-      test "#swap raises error when first player not found" do
+      test "#assign assigns answer to player slot" do
         game = build(:lq_matching_game, player_names: %w[Alice Bob])
-        second_player = game.players.reject(&:guesser?).first
+        alice, bob = game.guesses.map(&:player)
 
-        error = assert_raises(RuntimeError) do
-          game.guesses.swap(player_id1: 999_999, player_id2: second_player.id)
-        end
+        new_guesses = game.guesses.assign(player_id: alice.id,
+          answer_id: bob.answer.id)
 
-        assert_equal "Player 999999 not found", error.message
+        alice_guess = new_guesses.find(alice.id)
+        assert_equal bob.answer, alice_guess.guessed_answer
       end
 
-      test "#swap raises error when second player not found" do
+      test "#assign with nil answer_id clears the assignment" do
         game = build(:lq_matching_game, player_names: %w[Alice Bob])
-        first_player = game.players.reject(&:guesser?).first
+        alice = game.guesses.first.player
 
-        error = assert_raises(RuntimeError) do
-          game.guesses.swap(player_id1: first_player.id, player_id2: 999_999)
-        end
+        # First assign an answer to Alice
+        guesses = game.guesses.assign(player_id: alice.id,
+          answer_id: alice.answer.id)
 
-        assert_equal "Player 999999 not found", error.message
+        # Verify Alice has an assigned answer before clearing
+        alice_guess_before = guesses.find(alice.id)
+        assert_predicate alice_guess_before, :assigned?
+
+        # Now clear the assignment
+        new_guesses = guesses.assign(player_id: alice.id, answer_id: nil)
+
+        alice_guess = new_guesses.find(alice.id)
+        assert_not_predicate alice_guess, :assigned?
+      end
+
+      test "#assign clears previous assignment when answer is reassigned" do
+        game = build(:lq_matching_game, player_names: %w[Alice Bob])
+        alice, bob = game.guesses.map(&:player)
+
+        # First assign Bob's answer to Alice
+        guesses = game.guesses.assign(player_id: alice.id,
+          answer_id: bob.answer.id)
+        # Then assign Bob's answer to Bob (should clear Alice's assignment)
+        guesses = guesses.assign(player_id: bob.id, answer_id: bob.answer.id)
+
+        alice_guess = guesses.find(alice.id)
+        bob_guess = guesses.find(bob.id)
+
+        assert_not_predicate alice_guess, :assigned?
+        assert_equal bob.answer, bob_guess.guessed_answer
       end
     end
   end

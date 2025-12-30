@@ -1,5 +1,0 @@
-<%# locals: (guessed_answers:) %>
-<%= turbo_stream.update "answers" do %>
-  <%= render(partial: "loaded_questions/games/guessed_answer",
-    collection: guessed_answers, as: :guessed_answer, locals: { gripper: false }) %>
-<% end %>

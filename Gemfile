@@ -2,7 +2,9 @@
 
 source "https://rubygems.org"
 
-# Using 8-1-stable for minitest 6 compatibility fix (until Rails 8.1.2 is released)
+# Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
+# gem "rails", "~> 8.1.0"
+# Using 8-1-stable for minitest 6 compatibility fix (until Rails 8.1.2 is out)
 gem "rails", github: "rails/rails", branch: "8-1-stable"
 # The modern asset pipeline for Rails [https://github.com/rails/propshaft]
 gem "propshaft"

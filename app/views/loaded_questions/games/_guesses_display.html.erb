@@ -31,7 +31,7 @@
       </h6>
       <% guesses.sort_by { |guess| guess.player.name }.each do |guess| %>
         <div class="mb-2">
-          <div class="fw-bold text-secondary small">
+          <div class="fw-bold text-secondary small" data-player-name-id="<%= guess.player.id %>">
             <%= guess.player.name %>
           </div>
           <% if guess.assigned? %>

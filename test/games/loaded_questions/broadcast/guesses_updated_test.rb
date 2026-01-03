@@ -64,7 +64,7 @@ module LoadedQuestions
         end
       end
 
-      test "#call broadcasts update turbo stream action" do
+      test "#call broadcasts replace turbo stream action" do
         game = create(:lq_matching_game, player_names: %w[Alice Bob])
         non_guesser = game.players.reject(&:guesser?).first
 
@@ -75,7 +75,7 @@ module LoadedQuestions
         end
 
         assert_equal 1, turbo_streams.size
-        assert_equal "update", turbo_streams[0]["action"]
+        assert_equal "replace", turbo_streams[0]["action"]
         assert_equal "guesses-display", turbo_streams[0]["target"]
       end
     end

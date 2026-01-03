@@ -52,7 +52,11 @@ module LoadedQuestions
       def unassigned_answers
         assigned_answer_ids =
           guesses.filter_map { |guess| guess.guessed_answer&.id }
-        answer_to_player_map.except(*assigned_answer_ids).values.map(&:answer).sort
+        answer_to_player_map
+          .except(*assigned_answer_ids)
+          .values
+          .map(&:answer)
+          .sort
       end
 
       def complete? = guesses.all?(&:assigned?)

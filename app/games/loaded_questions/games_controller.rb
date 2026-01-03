@@ -54,7 +54,8 @@ module LoadedQuestions
       when Game::Status.guessing
         if current_player.guesser?
           completed_round_form = CompletedRoundForm.new(game:)
-          render :guessing_guesser, locals: { game:, current_player:, completed_round_form: }
+          render :guessing_guesser,
+            locals: { game:, current_player:, completed_round_form: }
         else
           render :guessing_player, locals: { game:, current_player: }
         end
@@ -117,7 +118,8 @@ module LoadedQuestions
         Broadcast::RoundCompleted.new(game:).call
         render :completed, locals: { game:, current_player: }
       else
-        render :guessing_guesser, locals: { game:, current_player:, completed_round_form: },
+        render :guessing_guesser,
+          locals: { game:, current_player:, completed_round_form: },
           status: :unprocessable_content
       end
     end
@@ -134,7 +136,8 @@ module LoadedQuestions
         game.save!
         Broadcast::GuessingRoundStarted.new(game:).call
         completed_round_form = CompletedRoundForm.new(game:)
-        render :guessing_guesser, locals: { game:, current_player:, completed_round_form: }
+        render :guessing_guesser,
+          locals: { game:, current_player:, completed_round_form: }
       else
         render :polling_guesser,
           locals: { game:, current_player:, guessing_round_form: },

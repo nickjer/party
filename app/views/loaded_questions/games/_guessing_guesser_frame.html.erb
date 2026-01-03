@@ -55,7 +55,7 @@
       <%# Player slots %>
       <% game.guesses.sort_by { |guess| guess.player.name }.each do |guess| %>
         <div class="mb-2">
-          <div class="fw-bold text-secondary small"><%= guess.player.name %></div>
+          <div class="fw-bold text-secondary small" data-player-name-id="<%= guess.player.id %>"><%= guess.player.name %></div>
           <div
             class="player-slot p-1 rounded border"
             data-guess-assignment-target="playerSlot"

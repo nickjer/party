@@ -2,7 +2,11 @@
 
 <div
   id="<%= dom_id(player) %>"
-  class="d-flex align-items-center gap-2 py-1 px-2 rounded <%= "bg-danger bg-opacity-10" if player == current_player %>"
+  class="<%= class_names(
+    "d-flex align-items-center gap-2 py-1 px-2 rounded-end",
+    "bg-danger bg-opacity-10": player == current_player
+  ) %>"
+  style="border-left: 5px solid <%= player.judge? ? "var(--bs-warning)" : "transparent" %>;"
 >
   <% if player == current_player || player.online? %>
     <i class="bi bi-circle-fill text-success" style="font-size: 0.5rem;"></i>

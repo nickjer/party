@@ -67,17 +67,25 @@ export default class extends Controller {
     formData.append("guess_assignment[answer_id]", answerId || "")
 
     try {
-      await fetch(this.urlValue, {
+      const response = await fetch(this.urlValue, {
         method: "PATCH",
         body: formData,
         headers: {
           "X-CSRF-Token": document.querySelector("[name='csrf-token']")?.content || ""
         }
       })
+
+      if (!response.ok) {
+        console.error("Assignment failed with status:", response.status)
+        window.location.reload()
+        return
+      }
     } catch (error) {
       console.error("Assignment failed:", error)
-    } finally {
-      this.overlayTarget.classList.add("d-none")
+      window.location.reload()
+      return
     }
+
+    this.overlayTarget.classList.add("d-none")
   }
 }

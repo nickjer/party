@@ -1,4 +1,4 @@
-<%# locals: (game:, current_player:) %>
+<%# locals: (game:, current_player:, completed_round_form:) %>
 
 <%= render "loaded_questions/games/player_stream", current_player: %>
 
@@ -6,7 +6,7 @@
   <div class="d-flex flex-wrap flex-md-nowrap align-items-start gap-2 mt-2">
     <div class="flex-grow-1">
       <%= turbo_frame_tag "round_frame" do %>
-        <%= render "loaded_questions/games/guessing_guesser_frame", game: %>
+        <%= render "loaded_questions/games/guessing_guesser_frame", game:, completed_round_form: %>
       <% end %>
     </div>
 

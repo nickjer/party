@@ -10,7 +10,9 @@ FactoryBot.define do
 
     initialize_with do
       player = game.add_player(user_id: user.id, name:, guesser:)
-      player.answer = NormalizedString.new(answer) if answer.present?
+      if answer.present?
+        player.answer = LoadedQuestions::Answer.build(value: answer)
+      end
       player
     end
 

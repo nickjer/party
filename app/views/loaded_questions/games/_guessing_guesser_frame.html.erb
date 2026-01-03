@@ -1,28 +1,73 @@
-<%# locals: (game:) %>
+<%# locals: (game:, completed_round_form:) %>
+
+<style>
+  .answer-pool .unassign-btn { display: none; }
+  .player-slot .answer-card { width: 100%; }
+  .player-slot .answer-text { flex: 1; }
+</style>
 
 <%= render "loaded_questions/games/question_card", question: game.question %>
 
-<div class="card shadow-sm">
-  <div class="card-body">
-    <h5 class="card-title text-warning mb-2">
-      <i class="bi bi-puzzle-fill me-2"></i>
-      Match Answers to Players
-    </h5>
+<% unless completed_round_form.errors[:base].empty? %>
+  <div class="alert alert-danger" role="alert">
+    <h6 class="alert-heading mb-2">
+      <i class="bi bi-exclamation-triangle-fill me-2"></i>
+      Cannot Complete Matching
+    </h6>
+    <% completed_round_form.errors[:base].each do |error| %>
+      <div>&bull; <%= error.full_message %></div>
+    <% end %>
+  </div>
+<% end %>
 
-    <p class="card-text text-muted small mb-3">
-      Drag answers to match players.
-    </p>
+<div
+  data-controller="guess-assignment"
+  data-guess-assignment-url-value="<%= assign_guess_loaded_questions_game_path(game.id) %>"
+>
+  <%# Loading overlay %>
+  <div
+    data-guess-assignment-target="overlay"
+    class="d-none position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
+    style="background: rgba(0,0,0,0.3); z-index: 1000;"
+  >
+    <div class="spinner-border text-light" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
 
-    <div
-      id="answers"
-      data-controller="swap"
-      data-swap-name-value="guess"
-      data-swap-url-value="<%= swap_guesses_loaded_questions_game_path(game.id) %>"
-    >
-      <%= render(partial: "loaded_questions/games/guessed_answer",
-        collection: game.guesses,
-        as: :guessed_answer,
-        locals: { gripper: true }) %>
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <h5 class="card-title text-info mb-2">
+        <i class="bi bi-people-fill me-2"></i>
+        Match Answers to Players
+      </h5>
+      <p class="card-text text-muted small mb-3">
+        Drag answers onto players to match them.
+      </p>
+
+      <%# Answer pool %>
+      <div class="answer-pool d-flex flex-wrap gap-2 mb-3" data-guess-assignment-target="pool">
+        <% game.guesses.unassigned_answers.each do |answer| %>
+          <%= render "loaded_questions/games/draggable_answer", answer: %>
+        <% end %>
+      </div>
+
+      <%# Player slots %>
+      <% game.guesses.sort_by { |guess| guess.player.name }.each do |guess| %>
+        <div class="mb-2">
+          <div class="fw-bold text-secondary small" data-player-name-id="<%= guess.player.id %>"><%= guess.player.name %></div>
+          <div
+            class="player-slot p-1 rounded border"
+            data-guess-assignment-target="playerSlot"
+            data-player-id="<%= guess.player.id %>"
+            style="min-height: 44px;"
+          >
+            <% if guess.assigned? %>
+              <%= render "loaded_questions/games/draggable_answer", answer: guess.guessed_answer %>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
     </div>
   </div>
 </div>

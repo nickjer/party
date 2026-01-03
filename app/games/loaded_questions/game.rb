@@ -105,8 +105,8 @@ module LoadedQuestions
       player
     end
 
-    def swap_guesses(player_id1:, player_id2:)
-      self.guesses = guesses.swap(player_id1:, player_id2:)
+    def assign_guess(player_id:, answer_id:)
+      self.guesses = guesses.assign(player_id:, answer_id:)
     end
 
     private

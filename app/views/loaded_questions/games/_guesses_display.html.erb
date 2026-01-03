@@ -1,0 +1,52 @@
+<%# locals: (guesses:) %>
+
+<div id="guesses-display">
+  <%# Answer pool %>
+  <% if guesses.unassigned_answers.any? %>
+    <div class="card shadow-sm mb-3">
+      <div class="card-body">
+        <h6 class="card-title text-warning mb-2">
+          <i class="bi bi-collection me-2"></i>
+          Unassigned Answers
+        </h6>
+        <div class="d-flex flex-wrap gap-2">
+          <% guesses.unassigned_answers.each do |answer| %>
+            <div class="card bg-light">
+              <div class="card-body p-2">
+                <%= answer %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <%# Player assignments %>
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <h6 class="card-title text-info mb-2">
+        <i class="bi bi-people-fill me-2"></i>
+        Player Assignments
+      </h6>
+      <% guesses.sort_by { |guess| guess.player.name }.each do |guess| %>
+        <div class="mb-2">
+          <div class="fw-bold text-secondary small" data-player-name-id="<%= guess.player.id %>">
+            <%= guess.player.name %>
+          </div>
+          <% if guess.assigned? %>
+            <div class="card bg-light">
+              <div class="card-body p-2">
+                <%= guess.guessed_answer %>
+              </div>
+            </div>
+          <% else %>
+            <div class="text-muted small fst-italic">
+              No answer assigned
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

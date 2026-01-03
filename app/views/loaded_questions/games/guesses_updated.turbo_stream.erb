@@ -1,0 +1,4 @@
+<%# locals: (guesses:) %>
+<%= turbo_stream.replace "guesses-display" do %>
+  <%= render "loaded_questions/games/guesses_display", guesses: %>
+<% end %>

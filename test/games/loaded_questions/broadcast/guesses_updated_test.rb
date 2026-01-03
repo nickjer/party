@@ -5,7 +5,7 @@ require "turbo/broadcastable/test_helper"
 
 module LoadedQuestions
   module Broadcast
-    class AnswersSwappedTest < ActiveSupport::TestCase
+    class GuessesUpdatedTest < ActiveSupport::TestCase
       include Turbo::Broadcastable::TestHelper
 
       test "#call broadcasts to online non-guesser players" do
@@ -18,7 +18,7 @@ module LoadedQuestions
 
         # Should broadcast to non-guesser
         assert_turbo_stream_broadcasts non_guesser.to_model, count: 1 do
-          AnswersSwapped.new(game:).call
+          GuessesUpdated.new(game:).call
         end
       end
 
@@ -31,7 +31,7 @@ module LoadedQuestions
 
         # Should not broadcast to guesser
         assert_turbo_stream_broadcasts guesser.to_model, count: 0 do
-          AnswersSwapped.new(game:).call
+          GuessesUpdated.new(game:).call
         end
       end
 
@@ -43,7 +43,7 @@ module LoadedQuestions
 
         # Should not broadcast to offline player
         assert_turbo_stream_broadcasts non_guesser.to_model, count: 0 do
-          AnswersSwapped.new(game:).call
+          GuessesUpdated.new(game:).call
         end
       end
 
@@ -59,24 +59,24 @@ module LoadedQuestions
         assert_turbo_stream_broadcasts non_guessers.first.to_model, count: 1 do
           assert_turbo_stream_broadcasts non_guessers.second.to_model,
             count: 1 do
-            AnswersSwapped.new(game:).call
+            GuessesUpdated.new(game:).call
           end
         end
       end
 
-      test "#call broadcasts update turbo stream action" do
+      test "#call broadcasts replace turbo stream action" do
         game = create(:lq_matching_game, player_names: %w[Alice Bob])
         non_guesser = game.players.reject(&:guesser?).first
 
         ::PlayerConnections.instance.increment(non_guesser.id)
 
         turbo_streams = capture_turbo_stream_broadcasts non_guesser.to_model do
-          AnswersSwapped.new(game:).call
+          GuessesUpdated.new(game:).call
         end
 
         assert_equal 1, turbo_streams.size
-        assert_equal "update", turbo_streams[0]["action"]
-        assert_equal "answers", turbo_streams[0]["target"]
+        assert_equal "replace", turbo_streams[0]["action"]
+        assert_equal "guesses-display", turbo_streams[0]["target"]
       end
     end
   end

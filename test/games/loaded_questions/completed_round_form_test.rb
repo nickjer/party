@@ -31,8 +31,24 @@ module LoadedQuestions
       assert form.errors.added?(:base, message: "Game is not in guessing phase")
     end
 
-    test "#valid? returns true when game is in guessing phase" do
+    test "#valid? returns false when guesses are not all assigned" do
       game = build(:lq_matching_game)
+
+      form = CompletedRoundForm.new(game:)
+
+      assert_predicate game.status, :guessing?
+      assert_not_predicate form, :valid?
+      assert form.errors.added?(:base,
+        message: "All answers must be assigned to players")
+    end
+
+    test "#valid? returns true when all guesses are assigned" do
+      game = build(:lq_matching_game)
+      # Assign all guesses
+      game.guesses.each do |guess|
+        game.assign_guess(player_id: guess.player.id,
+          answer_id: guess.player.answer.id)
+      end
 
       form = CompletedRoundForm.new(game:)
 

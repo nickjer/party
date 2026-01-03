@@ -110,6 +110,13 @@ module LoadedQuestions
       # Create game in guessing status with players and answers
       game = create(:lq_matching_game, player_names: %w[Bob Charlie])
 
+      # Assign all guesses (required for completion)
+      game.guesses.each do |guess|
+        game.assign_guess(player_id: guess.player.id,
+          answer_id: guess.player.answer.id)
+      end
+      game.save!
+
       # Verify game is in guessing status
       assert_predicate game.status, :guessing?
 
@@ -336,72 +343,61 @@ module LoadedQuestions
       assert_dom "textarea[name='round[question]']"
     end
 
-    test "#swap_guesses swaps answers and returns ok" do
+    test "#assign_guess assigns answer and returns ok" do
       game = create(:lq_matching_game, player_names: %w[Bob Charlie])
       guesser = game.players.find(&:guesser?)
       sign_in(guesser.user_id)
 
-      guess1, guess2 = game.guesses.to_a
-      guess1_guessed_answer_before = guess1.guessed_answer
-      guess2_guessed_answer_before = guess2.guessed_answer
+      bob, charlie = game.guesses.map(&:player)
 
-      patch swap_guesses_loaded_questions_game_path(game.id), params: {
-        guess_swapper: {
-          guess_id: guess1.player.id,
-          swap_guess_id: guess2.player.id
+      patch assign_guess_loaded_questions_game_path(game.id), params: {
+        guess_assignment: {
+          player_id: charlie.id,
+          answer_id: bob.answer.id
         }
       }
 
       assert_response :ok
       game = reload(game:)
-      guess1_after, guess2_after = game.guesses.to_a
+      charlie_guess = game.guesses.find(charlie.id)
 
-      assert_equal guess2_guessed_answer_before, guess1_after.guessed_answer
-      assert_equal guess1_guessed_answer_before, guess2_after.guessed_answer
+      assert_equal bob.answer, charlie_guess.guessed_answer
     end
 
-    test "#swap_guesses returns forbidden when non-guesser tries" do
-      # Create game in guessing status
+    test "#assign_guess returns forbidden when non-guesser tries" do
       game = create(:lq_matching_game)
-
-      # Sign in as non-guesser
-      non_guesser = game.players.find { |p| !p.guesser? }
+      non_guesser = game.players.find { |player| !player.guesser? }
       sign_in(non_guesser.user_id)
 
-      # Try to swap guesses as non-guesser
-      guess1, guess2 = game.guesses.to_a
-      patch swap_guesses_loaded_questions_game_path(game.id), params: {
-        guess_swapper: {
-          guess_id: guess1.player.id,
-          swap_guess_id: guess2.player.id
+      bob = game.guesses.first.player
+
+      patch assign_guess_loaded_questions_game_path(game.id), params: {
+        guess_assignment: {
+          player_id: bob.id,
+          answer_id: bob.answer.id
         }
       }
 
-      # Verify forbidden response
       assert_response :forbidden
     end
 
-    test "#swap_guesses returns forbidden when not in guessing phase" do
-      # Create game with players and answers in polling status
+    test "#assign_guess returns forbidden when not in guessing phase" do
       game = create(:lq_polling_game)
 
-      # Verify game is in polling status
       assert_predicate game.status, :polling?
 
-      # Sign in as guesser
       guesser = game.players.find(&:guesser?)
       sign_in(guesser.user_id)
 
-      # Try to swap guesses while still in polling phase
-      non_guessers = game.players.reject(&:guesser?)
-      patch swap_guesses_loaded_questions_game_path(game.id), params: {
-        guess_swapper: {
-          guess_id: non_guessers[0].id,
-          swap_guess_id: non_guessers[1].id
+      non_guesser = game.players.reject(&:guesser?).first
+
+      patch assign_guess_loaded_questions_game_path(game.id), params: {
+        guess_assignment: {
+          player_id: non_guesser.id,
+          answer_id: "some-answer-id"
         }
       }
 
-      # Verify forbidden response
       assert_response :forbidden
     end
   end

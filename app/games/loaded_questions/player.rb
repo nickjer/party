@@ -10,7 +10,7 @@ module LoadedQuestions
     class << self
       def build(game_id:, user_id:, name:, guesser: false)
         document = {
-          answer: NormalizedString.new(""),
+          answer: Answer.empty,
           guesser:,
           score: 0
         } #: document
@@ -27,11 +27,11 @@ module LoadedQuestions
 
     def ==(other) = self.class == other.class && id == other.id
 
-    def answer = @answer ||= NormalizedString.new(json_document.fetch(:answer))
+    def answer = @answer ||= Answer.parse(json_document.fetch(:answer))
 
     def answer=(new_answer)
       validate_between!(
-        new_answer,
+        new_answer.value,
         min: MIN_ANSWER_LENGTH,
         max: MAX_ANSWER_LENGTH,
         field: :answer
@@ -77,7 +77,7 @@ module LoadedQuestions
     def online? = model.online?
 
     def reset_answer
-      @answer = NormalizedString.new("")
+      @answer = Answer.empty
       model.document = document.to_json
     end
 

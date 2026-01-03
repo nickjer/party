@@ -260,9 +260,7 @@ module LoadedQuestions
         end
       end
 
-      # Back to Mia - she should be able to start matching
-      answer1_original = nil
-      answer2_original = nil
+      # Back to Mia (guesser) - she should be able to start matching
       using_session("default") do
         # Mia (guesser) should see Begin Guessing button
         assert_button "Begin Guessing"
@@ -273,8 +271,10 @@ module LoadedQuestions
           click_on "Yes, I am ready"
         end
 
-        # Should see the answers in shuffled order
-        assert_text "Blue"
+        # Guesser should see all answers and player names
+        # Pool answers are sorted alphabetically: Blue, Red
+        # Player slots are sorted alphabetically: Alice, Zoe
+        assert_text "Blue", wait: 5
         assert_text "Red"
         assert_text "Alice"
         assert_text "Zoe"
@@ -282,83 +282,325 @@ module LoadedQuestions
         # Mia (guesser) should see Complete Matching button
         assert_button "Complete Matching"
 
-        # Test drag and drop swapping
-        swap_items = all(".swap-item")
-        assert_equal 2, swap_items.length
+        # Guesser initial state: both answers in pool, both player slots empty
+        pool = find(".answer-pool")
+        alice_row = find(".fw-bold", text: "Alice").find(:xpath, "..")
+        zoe_row = find(".fw-bold", text: "Zoe").find(:xpath, "..")
 
-        # Remember the original answer assignments
-        answer1_original = swap_items[0].text
-        answer2_original = swap_items[1].text
-
-        # Always swap at least once to test the swap functionality
-        swap_items[0].drag_to(swap_items[1])
-
-        # Wait for swap to complete and persist
-        sleep 0.5
-
-        # Verify the answers are now swapped visually
-        swap_items_after = all(".swap-item")
-        assert_equal answer2_original, swap_items_after[0].text
-        assert_equal answer1_original, swap_items_after[1].text
-
-        # Refresh the page to verify swap persisted
-        visit current_path
-
-        # Verify the swapped order is maintained after refresh
-        swap_items_refreshed = all(".swap-item")
-        assert_equal answer2_original, swap_items_refreshed[0].text
-        assert_equal answer1_original, swap_items_refreshed[1].text
+        assert_equal 2, pool.all(".answer-card").length
+        within(alice_row) { assert_equal 0, all(".answer-card").length }
+        within(zoe_row) { assert_equal 0, all(".answer-card").length }
       end
 
-      # Verify Alice (non-guesser) sees the swapped order via broadcast
+      # Verify Alice (non-guesser) sees initial state
       using_session("alice") do
-        # Wait for the broadcast to update Alice's view
-        sleep 0.5
-
-        # Alice should see the same swapped order that Mia sees
-        guessed_answers = all(".swap-item")
-        assert_equal 2, guessed_answers.length
-        assert_equal answer2_original, guessed_answers[0].text
-        assert_equal answer1_original, guessed_answers[1].text
-
-        # Alice should NOT see Complete Matching button (not the guesser)
-        assert_no_button "Complete Matching"
-      end
-
-      # Verify Zoe (non-guesser) sees the swapped order via broadcast
-      using_session("zoe") do
-        # Wait for the broadcast to update Zoe's view
-        sleep 0.5
-
-        # Zoe should see the same swapped order
-        guessed_answers = all(".swap-item")
-        assert_equal 2, guessed_answers.length
-        assert_equal answer2_original, guessed_answers[0].text
-        assert_equal answer1_original, guessed_answers[1].text
-
-        # Zoe should NOT see Complete Matching button (not the guesser)
-        assert_no_button "Complete Matching"
-      end
-
-      # Back to Mia - swap again if needed to get correct matches
-      using_session("default") do
-        swap_items_current = all(".swap-item")
-
-        # Players are alphabetically sorted: Alice (index 0), Zoe (index 1)
-        # Alice should match with Blue, Zoe should match with Red
-        answer1 = swap_items_current[0].text
-        needs_second_swap = answer1 != "Blue"
-
-        if needs_second_swap
-          # Swap again to get correct matches
-          swap_items_current[0].drag_to(swap_items_current[1])
-          sleep 0.5
+        within("#guesses-display", wait: 5) do
+          assert_text "Unassigned Answers"
+          assert_text "Blue"
+          assert_text "Red"
+          # Non-guesser: both Alice and Zoe show "No answer assigned"
+          alice_row = find(".fw-bold", text: "Alice").find(:xpath, "..")
+          zoe_row = find(".fw-bold", text: "Zoe").find(:xpath, "..")
+          within(alice_row) { assert_text "No answer assigned" }
+          within(zoe_row) { assert_text "No answer assigned" }
         end
+        # Non-guesser should NOT see Complete Matching button
+        assert_no_button "Complete Matching"
+      end
 
-        # Verify correct matches (Alice->Blue, Zoe->Red)
-        swap_items_final = all(".swap-item")
-        assert_equal "Blue", swap_items_final[0].text
-        assert_equal "Red", swap_items_final[1].text
+      # =========================================================
+      # PERMUTATION 1: Guesser drags answer from pool to empty slot
+      # =========================================================
+      using_session("default") do
+        pool = find(".answer-pool")
+        alice_row = find(".fw-bold", text: "Alice").find(:xpath, "..")
+        alice_slot = alice_row.find(".player-slot")
+
+        # Guesser drags "Blue" from pool to Alice's empty slot
+        blue_answer = pool.find(".answer-card", text: "Blue")
+        blue_answer.drag_to(alice_slot)
+        sleep 0.5
+
+        # Guesser verifies: Blue in Alice's slot, Red still in pool
+        pool = find(".answer-pool")
+        assert_equal 1, pool.all(".answer-card").length
+        within(pool) { assert_text "Red" }
+        within(alice_row) { assert_selector ".answer-card", text: "Blue" }
+      end
+
+      # Verify Alice (non-guesser) sees the same state
+      using_session("alice") do
+        within("#guesses-display", wait: 5) do
+          # Non-guesser: only Red is unassigned (Blue was assigned to Alice)
+          unassigned_section =
+            find("h6", text: "Unassigned Answers").find(:xpath, "..")
+          within(unassigned_section) do
+            assert_text "Red"
+            assert_no_text "Blue"
+          end
+          # Non-guesser: Alice has Blue assigned, Zoe has none
+          alice_row = find(".fw-bold", text: "Alice").find(:xpath, "..")
+          zoe_row = find(".fw-bold", text: "Zoe").find(:xpath, "..")
+          within(alice_row) { assert_text "Blue" }
+          within(zoe_row) { assert_text "No answer assigned" }
+        end
+      end
+
+      # =========================================================
+      # PERMUTATION 2: Guesser drags answer from slot to empty slot
+      # =========================================================
+      using_session("default") do
+        alice_row = find(".fw-bold", text: "Alice").find(:xpath, "..")
+        zoe_row = find(".fw-bold", text: "Zoe").find(:xpath, "..")
+        alice_slot = alice_row.find(".player-slot")
+        zoe_slot = zoe_row.find(".player-slot")
+
+        # Guesser drags "Blue" from Alice's slot to Zoe's empty slot
+        blue_answer = alice_slot.find(".answer-card", text: "Blue")
+        blue_answer.drag_to(zoe_slot)
+        sleep 0.5
+
+        # Guesser verifies: Alice empty, Zoe has Blue, Red still in pool
+        pool = find(".answer-pool")
+        assert_equal 1, pool.all(".answer-card").length
+        within(pool) { assert_text "Red" }
+        within(alice_row) { assert_equal 0, all(".answer-card").length }
+        within(zoe_row) { assert_selector ".answer-card", text: "Blue" }
+      end
+
+      # Verify Zoe (non-guesser) sees the same state
+      using_session("zoe") do
+        within("#guesses-display", wait: 5) do
+          # Non-guesser: Red is unassigned
+          assert_text "Unassigned Answers"
+          assert_text "Red"
+          # Non-guesser: Alice has no answer, Zoe has Blue
+          alice_row = find(".fw-bold", text: "Alice").find(:xpath, "..")
+          zoe_row = find(".fw-bold", text: "Zoe").find(:xpath, "..")
+          within(alice_row) { assert_text "No answer assigned" }
+          within(zoe_row) { assert_text "Blue" }
+        end
+        # Non-guesser should NOT see Complete Matching button
+        assert_no_button "Complete Matching"
+      end
+
+      # Setup for permutation 3: Guesser assigns Red to Alice so both have
+      # answers
+      using_session("default") do
+        pool = find(".answer-pool")
+        alice_row = find(".fw-bold", text: "Alice").find(:xpath, "..")
+        alice_slot = alice_row.find(".player-slot")
+
+        red_answer = pool.find(".answer-card", text: "Red")
+        red_answer.drag_to(alice_slot)
+        sleep 0.5
+
+        # Guesser verifies: Alice has Red, Zoe has Blue, pool empty
+        pool = find(".answer-pool")
+        zoe_row = find(".fw-bold", text: "Zoe").find(:xpath, "..")
+        assert_equal 0, pool.all(".answer-card").length
+        within(alice_row) { assert_selector ".answer-card", text: "Red" }
+        within(zoe_row) { assert_selector ".answer-card", text: "Blue" }
+      end
+
+      # Verify Alice (non-guesser) sees both assigned
+      using_session("alice") do
+        within("#guesses-display", wait: 5) do
+          # Non-guesser: no unassigned answers
+          assert_no_text "Unassigned Answers"
+          assert_no_text "No answer assigned"
+          # Non-guesser: Alice has Red, Zoe has Blue
+          alice_row = find(".fw-bold", text: "Alice").find(:xpath, "..")
+          zoe_row = find(".fw-bold", text: "Zoe").find(:xpath, "..")
+          within(alice_row) { assert_text "Red" }
+          within(zoe_row) { assert_text "Blue" }
+        end
+      end
+
+      # =========================================================
+      # PERMUTATION 3: Guesser drags answer from slot to slot with
+      # existing answer (displaced answer goes back to pool)
+      # =========================================================
+      using_session("default") do
+        alice_row = find(".fw-bold", text: "Alice").find(:xpath, "..")
+        zoe_row = find(".fw-bold", text: "Zoe").find(:xpath, "..")
+        alice_slot = alice_row.find(".player-slot")
+        zoe_slot = zoe_row.find(".player-slot")
+
+        # Guesser drags "Blue" from Zoe's slot to Alice's slot (which has Red)
+        # Expected: Red goes back to pool, Blue goes to Alice
+        blue_answer = zoe_slot.find(".answer-card", text: "Blue")
+        blue_answer.drag_to(alice_slot)
+        sleep 0.5
+
+        # Guesser verifies: Alice has Blue, Zoe empty, Red in pool
+        pool = find(".answer-pool")
+        assert_equal 1, pool.all(".answer-card").length
+        within(pool) { assert_text "Red" }
+        within(alice_row) { assert_selector ".answer-card", text: "Blue" }
+        within(zoe_row) { assert_equal 0, all(".answer-card").length }
+      end
+
+      # Verify Alice (non-guesser) sees the displaced answer in pool
+      using_session("alice") do
+        within("#guesses-display", wait: 5) do
+          # Non-guesser: Red is now unassigned (was displaced)
+          assert_text "Unassigned Answers"
+          assert_text "Red"
+          # Non-guesser: Alice has Blue, Zoe has none
+          alice_row = find(".fw-bold", text: "Alice").find(:xpath, "..")
+          zoe_row = find(".fw-bold", text: "Zoe").find(:xpath, "..")
+          within(alice_row) { assert_text "Blue" }
+          within(zoe_row) { assert_text "No answer assigned" }
+        end
+      end
+
+      # =========================================================
+      # PERMUTATION 4: Guesser drags answer from slot back to pool
+      # =========================================================
+      using_session("default") do
+        pool = find(".answer-pool")
+        alice_row = find(".fw-bold", text: "Alice").find(:xpath, "..")
+        alice_slot = alice_row.find(".player-slot")
+
+        # Guesser drags "Blue" from Alice's slot back to pool
+        blue_answer = alice_slot.find(".answer-card", text: "Blue")
+        blue_answer.drag_to(pool)
+        sleep 0.5
+
+        # Guesser verifies: both answers in pool, both slots empty
+        pool = find(".answer-pool")
+        zoe_row = find(".fw-bold", text: "Zoe").find(:xpath, "..")
+        assert_equal 2, pool.all(".answer-card").length
+        within(pool) { assert_text "Blue" }
+        within(pool) { assert_text "Red" }
+        within(alice_row) { assert_equal 0, all(".answer-card").length }
+        within(zoe_row) { assert_equal 0, all(".answer-card").length }
+      end
+
+      # Verify Zoe (non-guesser) sees both unassigned
+      using_session("zoe") do
+        within("#guesses-display", wait: 5) do
+          # Non-guesser: both answers unassigned
+          assert_text "Unassigned Answers"
+          assert_text "Blue"
+          assert_text "Red"
+          # Non-guesser: both players have no answer
+          alice_row = find(".fw-bold", text: "Alice").find(:xpath, "..")
+          zoe_row = find(".fw-bold", text: "Zoe").find(:xpath, "..")
+          within(alice_row) { assert_text "No answer assigned" }
+          within(zoe_row) { assert_text "No answer assigned" }
+        end
+      end
+
+      # =========================================================
+      # PERMUTATION 5: Guesser clicks X button to unassign answer
+      # =========================================================
+
+      # First assign Blue to Alice so we have something to unassign
+      using_session("default") do
+        pool = find(".answer-pool")
+        alice_row = find(".fw-bold", text: "Alice").find(:xpath, "..")
+        alice_slot = alice_row.find(".player-slot")
+
+        blue_answer = pool.find(".answer-card", text: "Blue")
+        blue_answer.drag_to(alice_slot)
+        sleep 0.5
+
+        # Guesser verifies: Blue in Alice's slot
+        within(alice_row) { assert_selector ".answer-card", text: "Blue" }
+      end
+
+      # Now click the X button to unassign
+      using_session("default") do
+        alice_row = find(".fw-bold", text: "Alice").find(:xpath, "..")
+        alice_slot = alice_row.find(".player-slot")
+
+        # Guesser clicks the X button on Blue answer in Alice's slot
+        within(alice_slot) do
+          find(".answer-card", text: "Blue").find(".unassign-btn").click
+        end
+        sleep 0.5
+
+        # Guesser verifies: Blue back in pool, Alice's slot empty
+        pool = find(".answer-pool")
+        assert_equal 2, pool.all(".answer-card").length
+        within(pool) { assert_text "Blue" }
+        within(pool) { assert_text "Red" }
+        within(alice_row) { assert_equal 0, all(".answer-card").length }
+      end
+
+      # Verify Alice (non-guesser) sees the unassignment
+      using_session("alice") do
+        within("#guesses-display", wait: 5) do
+          # Non-guesser: both answers back in unassigned
+          assert_text "Unassigned Answers"
+          assert_text "Blue"
+          assert_text "Red"
+          # Non-guesser: Alice has no answer
+          alice_row = find(".fw-bold", text: "Alice").find(:xpath, "..")
+          within(alice_row) { assert_text "No answer assigned" }
+        end
+      end
+
+      # =========================================================
+      # Guesser assigns correct answers and verifies persistence
+      # =========================================================
+      using_session("default") do
+        pool = find(".answer-pool")
+        alice_row = find(".fw-bold", text: "Alice").find(:xpath, "..")
+        zoe_row = find(".fw-bold", text: "Zoe").find(:xpath, "..")
+        alice_slot = alice_row.find(".player-slot")
+        zoe_slot = zoe_row.find(".player-slot")
+
+        # Guesser assigns correct answers: Alice wrote Blue, Zoe wrote Red
+        blue_answer = pool.find(".answer-card", text: "Blue")
+        blue_answer.drag_to(alice_slot)
+        sleep 0.5
+
+        pool = find(".answer-pool")
+        red_answer = pool.find(".answer-card", text: "Red")
+        red_answer.drag_to(zoe_slot)
+        sleep 0.5
+
+        # Guesser verifies correct assignments
+        within(alice_row) { assert_selector ".answer-card", text: "Blue" }
+        within(zoe_row) { assert_selector ".answer-card", text: "Red" }
+
+        # Refresh to verify assignments persisted
+        visit current_path
+        assert_text "Blue", wait: 5
+        assert_text "Red"
+
+        # Guesser verifies assignments are maintained after refresh
+        alice_row = find(".fw-bold", text: "Alice").find(:xpath, "..")
+        zoe_row = find(".fw-bold", text: "Zoe").find(:xpath, "..")
+        within(alice_row) { assert_selector ".answer-card", text: "Blue" }
+        within(zoe_row) { assert_selector ".answer-card", text: "Red" }
+      end
+
+      # Verify Alice (non-guesser) sees correct final state
+      using_session("alice") do
+        within("#guesses-display", wait: 5) do
+          assert_no_text "Unassigned Answers"
+          assert_no_text "No answer assigned"
+          alice_row = find(".fw-bold", text: "Alice").find(:xpath, "..")
+          zoe_row = find(".fw-bold", text: "Zoe").find(:xpath, "..")
+          within(alice_row) { assert_text "Blue" }
+          within(zoe_row) { assert_text "Red" }
+        end
+      end
+
+      # Verify Zoe (non-guesser) sees correct final state
+      using_session("zoe") do
+        within("#guesses-display", wait: 5) do
+          assert_no_text "Unassigned Answers"
+          assert_no_text "No answer assigned"
+          alice_row = find(".fw-bold", text: "Alice").find(:xpath, "..")
+          zoe_row = find(".fw-bold", text: "Zoe").find(:xpath, "..")
+          within(alice_row) { assert_text "Blue" }
+          within(zoe_row) { assert_text "Red" }
+        end
       end
 
       # Complete the matching round
@@ -803,6 +1045,83 @@ module LoadedQuestions
         assert_text "Inception"
         assert_button "Complete Matching"
 
+        # =========================================================
+        # Test: Backend 5xx error causes page reload and state reset
+        # =========================================================
+
+        # Verify initial state: both answers in pool, both slots empty
+        pool = find(".answer-pool")
+        assert_equal 2, pool.all(".answer-card").length
+        bob_row = find(".fw-bold", text: "Bob").find(:xpath, "..")
+        charlie_row = find(".fw-bold", text: "Charlie").find(:xpath, "..")
+        within(bob_row) { assert_equal 0, all(".answer-card").length }
+        within(charlie_row) { assert_equal 0, all(".answer-card").length }
+
+        # Patch Capybara to ignore our simulated error
+        # See: https://makandracards.com/makandra/496074
+        ignore_error_module = Module.new do
+          def raise_server_error!
+            super
+          rescue StandardError => e
+            raise e unless e.message.include?("Simulated backend error")
+          end
+        end
+        Capybara::Session.prepend(ignore_error_module)
+
+        begin
+          # Stub save! to raise an error (simulating backend 5xx)
+          LoadedQuestions::Game.any_instance
+            .stubs(:save!)
+            .raises(StandardError, "Simulated backend error")
+
+          # Attempt to drag an answer - this will trigger the 500 error
+          inception = pool.find(".answer-card", text: "Inception")
+          inception.drag_to(bob_row.find(".player-slot"))
+
+          # Wait for page reload to complete
+          # The Stimulus controller calls window.location.reload() on error
+          sleep 2
+
+          # Wait for the page to fully reload by checking for fresh elements
+          assert_selector ".answer-pool", wait: 10
+          assert_text "The Matrix", wait: 5
+          assert_text "Inception"
+        ensure
+          # Remove the stub
+          LoadedQuestions::Game.any_instance.unstub(:save!)
+        end
+
+        # Verify state is restored: both answers back in pool after reload
+        pool = find(".answer-pool")
+        assert_equal 2, pool.all(".answer-card").length
+        within(pool) { assert_text "Inception" }
+        within(pool) { assert_text "The Matrix" }
+
+        # Verify both slots are still empty
+        bob_row = find(".fw-bold", text: "Bob").find(:xpath, "..")
+        charlie_row = find(".fw-bold", text: "Charlie").find(:xpath, "..")
+        within(bob_row) { assert_equal 0, all(".answer-card").length }
+        within(charlie_row) { assert_equal 0, all(".answer-card").length }
+
+        # =========================================================
+        # Continue with normal flow: Assign answers to players
+        # =========================================================
+
+        # Players (non-guessers) sorted alphabetically: Bob, Charlie
+        # Answers sorted alphabetically: Inception, The Matrix
+        pool = find(".answer-pool")
+        bob_row = find(".fw-bold", text: "Bob").find(:xpath, "..")
+        charlie_row = find(".fw-bold", text: "Charlie").find(:xpath, "..")
+
+        inception = pool.find(".answer-card", text: "Inception")
+        inception.drag_to(bob_row.find(".player-slot"))
+        sleep 0.5
+
+        pool = find(".answer-pool")
+        the_matrix = pool.find(".answer-card", text: "The Matrix")
+        the_matrix.drag_to(charlie_row.find(".player-slot"))
+        sleep 0.5
+
         # Test Complete Matching modal cancel behaviors
         click_on "Complete Matching"
 
@@ -1130,11 +1449,9 @@ module LoadedQuestions
         assert_text "Red"
         assert_button "Complete Matching"
 
-        # Names should be in alphabetical order: Alice, Mia
-        within("#answers") do
-          guessed_answer_names = all("[data-player-name-id]").map(&:text)
-          assert_equal %w[Alice Mia], guessed_answer_names
-        end
+        # Guesser: player names should be in alphabetical order (Alice, Mia)
+        guessed_answer_names = all("[data-player-name-id]").map(&:text)
+        assert_equal %w[Alice Mia], guessed_answer_names
       end
 
       # Alice (non-guesser) changes her name to Zara during matching
@@ -1155,39 +1472,37 @@ module LoadedQuestions
         assert_text "Blue", wait: 5
         assert_text "Red"
 
-        # Verify name updated in guessed answers
-        within("#answers") do
+        # Non-guesser: verify name updated in guesses display
+        within("#guesses-display") do
           assert_selector "[data-player-name-id]", text: "Zara"
-          assert_no_text "Alice"
+          assert_no_selector "[data-player-name-id]", text: "Alice"
         end
       end
 
-      # Verify Bob sees Zara's name change in guessed answers
+      # Verify Bob (guesser) sees Zara's name change
       using_session("default") do
-        within("#answers") do
-          assert_selector "[data-player-name-id]", text: "Zara", wait: 5
-          assert_no_text "Alice"
+        assert_selector "[data-player-name-id]", text: "Zara", wait: 5
+        assert_no_selector "[data-player-name-id]", text: "Alice"
 
-          # Verify order has not changed - Zara is still first even though
-          # alphabetically she should be after Mia
-          guessed_answer_names = all("[data-player-name-id]").map(&:text)
-          assert_equal %w[Zara Mia], guessed_answer_names
-        end
+        # Guesser: verify order has not changed - Zara is still first even
+        # though alphabetically she should be after Mia
+        guessed_answer_names = all("[data-player-name-id]").map(&:text)
+        assert_equal %w[Zara Mia], guessed_answer_names
       end
 
-      # Verify Mia sees Zara's name change in guessed answers
+      # Verify Mia (non-guesser) sees Zara's name change
       using_session("zoe") do
-        within("#answers") do
-          assert_selector "[data-player-name-id]", text: "Zara", wait: 5
-          assert_no_text "Alice"
+        within("#guesses-display", wait: 5) do
+          assert_selector "[data-player-name-id]", text: "Zara"
+          assert_no_selector "[data-player-name-id]", text: "Alice"
 
-          # Verify order - Zara is still in first position
+          # Non-guesser: verify order - Zara is still in first position
           guessed_answer_names = all("[data-player-name-id]").map(&:text)
           assert_equal %w[Zara Mia], guessed_answer_names
         end
       end
 
-      # Refresh Bob's page and verify order is maintained
+      # Refresh Bob's (guesser) page and verify order is maintained
       using_session("default") do
         visit current_path
 
@@ -1195,28 +1510,32 @@ module LoadedQuestions
         assert_text "Blue", wait: 5
         assert_text "Red"
 
-        # Verify order is still the same after refresh - Zara before Mia
-        within("#answers") do
-          guessed_answer_names = all("[data-player-name-id]").map(&:text)
-          assert_equal %w[Zara Mia], guessed_answer_names
-        end
+        # Guesser: verify order after refresh
+        # (view sorts by name, so now Mia, Zara)
+        guessed_answer_names = all("[data-player-name-id]").map(&:text)
+        assert_equal %w[Mia Zara], guessed_answer_names
       end
 
-      # Purposely leave answers in wrong order (or swap if needed)
-      # Check current state and ensure answers are wrong
+      # Guesser assigns answers intentionally WRONG to test scoring
+      # After refresh: Mia is first slot, Zara is second slot
+      # Zara wrote Blue, Mia wrote Red
+      # Assign incorrectly: Mia gets Blue (wrong), Zara gets Red (wrong)
       using_session("default") do
-        swap_items = all(".swap-item")
-        answer1_text = swap_items[0].text
+        pool = find(".answer-pool")
+        player_slots = all(".player-slot")
+        mia_slot = player_slots[0] # Mia is alphabetically first
+        zara_slot = player_slots[1]
 
-        # Zara should match with Blue, Mia should match with Red
-        # If first answer is "Blue", it's correct - need to swap to make wrong
-        if answer1_text == "Blue"
-          # Swap to make them wrong
-          swap_items[0].drag_to(swap_items[1])
-          sleep 0.5
-        end
+        blue_answer = pool.find(".answer-card", text: "Blue")
+        blue_answer.drag_to(mia_slot)  # Wrong: Zara wrote Blue
+        sleep 0.5
 
-        # Complete the round
+        pool = find(".answer-pool")
+        red_answer = pool.find(".answer-card", text: "Red")
+        red_answer.drag_to(zara_slot)  # Wrong: Mia wrote Red
+        sleep 0.5
+
+        # Complete the round with wrong guesses
         click_on "Complete Matching"
         within("dialog[open]") do
           click_on "Yes, I am sure"

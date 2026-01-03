@@ -53,7 +53,9 @@ module LoadedQuestions
         end
       when Game::Status.guessing
         if current_player.guesser?
-          render :guessing_guesser, locals: { game:, current_player: }
+          completed_round_form = CompletedRoundForm.new(game:)
+          render :guessing_guesser,
+            locals: { game:, current_player:, completed_round_form: }
         else
           render :guessing_player, locals: { game:, current_player: }
         end
@@ -116,7 +118,8 @@ module LoadedQuestions
         Broadcast::RoundCompleted.new(game:).call
         render :completed, locals: { game:, current_player: }
       else
-        render :guessing_guesser, locals: { game:, current_player: },
+        render :guessing_guesser,
+          locals: { game:, current_player:, completed_round_form: },
           status: :unprocessable_content
       end
     end
@@ -132,7 +135,9 @@ module LoadedQuestions
         BeginGuessingRound.new(game:).call
         game.save!
         Broadcast::GuessingRoundStarted.new(game:).call
-        render :guessing_guesser, locals: { game:, current_player: }
+        completed_round_form = CompletedRoundForm.new(game:)
+        render :guessing_guesser,
+          locals: { game:, current_player:, completed_round_form: }
       else
         render :polling_guesser,
           locals: { game:, current_player:, guessing_round_form: },
@@ -140,19 +145,19 @@ module LoadedQuestions
       end
     end
 
-    # PATCH /loaded_questions/games/:id/swap_guesses
-    def swap_guesses
+    # PATCH /loaded_questions/games/:id/assign_guess
+    def assign_guess
       game = Game.find(params[:id])
       current_player = game.player_for!(current_user.id)
       return head :forbidden unless current_player.guesser?
       return head :forbidden unless game.status.guessing?
 
-      player_id1 = swap_params[:guess_id]
-      player_id2 = swap_params[:swap_guess_id]
+      player_id = assign_guess_params[:player_id]
+      answer_id = assign_guess_params[:answer_id].presence
 
-      game.swap_guesses(player_id1:, player_id2:)
+      game.assign_guess(player_id:, answer_id:)
       game.save!
-      Broadcast::AnswersSwapped.new(game:).call
+      Broadcast::GuessesUpdated.new(game:).call
 
       head :ok
     end
@@ -167,8 +172,8 @@ module LoadedQuestions
       params.expect(round: %w[question])
     end
 
-    def swap_params
-      params.expect(guess_swapper: %w[guess_id swap_guess_id])
+    def assign_guess_params
+      params.expect(guess_assignment: %w[player_id answer_id])
     end
   end
 end

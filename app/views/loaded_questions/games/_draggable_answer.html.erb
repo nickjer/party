@@ -1,0 +1,15 @@
+<%# locals: (answer:) %>
+
+<div class="answer-card card bg-white shadow-sm" style="cursor: grab;" data-answer-id="<%= answer.id %>">
+  <div class="card-body p-2">
+    <div class="d-flex align-items-center gap-2">
+      <div class="text-primary"><i class="bi bi-grip-vertical fs-5"></i></div>
+      <div class="answer-text"><%= answer %></div>
+      <button
+        type="button"
+        class="unassign-btn btn btn-sm btn-outline-danger"
+        data-action="click->guess-assignment#unassign"
+      ><i class="bi bi-x"></i></button>
+    </div>
+  </div>
+</div>

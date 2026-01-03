@@ -2,8 +2,8 @@
 
 module LoadedQuestions
   module Broadcast
-    # Broadcasts swapped answers to all non-guesser players in the game
-    class AnswersSwapped
+    # Broadcasts updated guesses to all non-guesser players in the game
+    class GuessesUpdated
       def initialize(game:)
         @game = game
       end
@@ -13,9 +13,9 @@ module LoadedQuestions
           next if current_player.guesser?
 
           ApplicationController.render(
-            "loaded_questions/games/answers_swapped",
+            "loaded_questions/games/guesses_updated",
             formats: [:turbo_stream],
-            locals: { guessed_answers: game.guesses }
+            locals: { guesses: game.guesses }
           )
         end
       end

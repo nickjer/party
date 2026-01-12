@@ -2,8 +2,8 @@
   "name": "app",
   "private": true,
   "devDependencies": {
-    "@herb-tools/formatter": "^0.8.5",
-    "@herb-tools/linter": "^0.8.5",
+    "@herb-tools/formatter": "^0.8.7",
+    "@herb-tools/linter": "^0.8.7",
     "esbuild": "^0.27.2"
   },
   "scripts": {
@@ -21,7 +21,7 @@
     "@stimulus-components/reveal": "^5.0.0",
     "bootstrap": "^5.3.8",
     "bootstrap-icons": "^1.13.1",
-    "sass": "^1.97.1",
+    "sass": "^1.97.2",
     "sortablejs": "^1.15.6"
   }
 }

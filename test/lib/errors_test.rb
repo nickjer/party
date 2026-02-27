@@ -234,7 +234,7 @@ class ErrorsTest < ActiveSupport::TestCase
     name_errors = errors[:name]
 
     assert_equal 2, name_errors.size
-    assert(name_errors.all? { |error| error.is_a?(Errors::Error) })
+    assert(name_errors.all?(Errors::Error))
     assert(name_errors.any? { |error| error.message == "can't be blank" })
     assert(name_errors.any? { |error| error.message == "is too short" })
   end

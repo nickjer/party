@@ -110,7 +110,7 @@ module BurnUnit
       candidates = game.candidates
 
       assert_equal 3, candidates.size
-      assert(candidates.all? { |c| c.is_a?(Game::Candidate) })
+      assert(candidates.all?(Game::Candidate))
       candidate_names = candidates.map { |c| c.player.name.to_s }
       assert_equal %w[Bob Charlie Judge], candidate_names
     end

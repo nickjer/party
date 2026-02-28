@@ -85,14 +85,16 @@ module LoadedQuestions
         assert_not_predicate alice_guess, :assigned?
       end
 
-      test "#for_completed_view attributes each player's answer to who the guesser placed it with" do
+      test "#for_completed_view attributes each player's answer to " \
+        "who the guesser placed it with" do
         game = build(:lq_matching_game, players: [
           { name: "Alice", answer: "Pizza" },
           { name: "Bob", answer: "Cats" },
           { name: "Charlie", answer: "Dogs" }
         ])
 
-        alice, bob, charlie = game.guesses.map(&:player).sort_by { |player| player.name.to_s }
+        alice, bob, charlie =
+          game.guesses.map(&:player).sort_by(&:name)
 
         # 3-cycle: Bob's "Cats" → Alice's slot, Charlie's "Dogs" → Bob's slot,
         #          Alice's "Pizza" → Charlie's slot
@@ -100,10 +102,10 @@ module LoadedQuestions
         game.assign_guess(player_id: bob.id, answer_id: charlie.answer.id)
         game.assign_guess(player_id: charlie.id, answer_id: alice.answer.id)
 
-        results = game.guesses.for_completed_view.index_by { |result| result.player.id }
+        results =
+          game.guesses.for_completed_view.index_by { |result| result.player.id }
 
-        # Alice's "Pizza" is in Charlie's slot → guesser said "Charlie wrote Pizza"
-        # completed view should show "(you guessed: Charlie)" in Alice's row
+        # Alice's "Pizza" landed in Charlie's slot, so attributed_to is Charlie
         assert_equal charlie.id, results[alice.id].attributed_to.id
         assert_equal alice.id,   results[bob.id].attributed_to.id
         assert_equal bob.id,     results[charlie.id].attributed_to.id

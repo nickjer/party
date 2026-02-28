@@ -10,7 +10,7 @@
   <div class="card-body p-0">
     <div id="answers" class="list-group list-group-flush">
       <%= render(partial: "loaded_questions/games/completed_answer",
-        collection: game.guesses, as: :completed_answer) %>
+        collection: game.guesses.for_completed_view, as: :completed_answer) %>
     </div>
   </div>
 

@@ -1,0 +1,11 @@
+version: 0.8.10
+
+linter:
+  enabled: true
+
+  rules:
+    erb-strict-locals-comment-syntax:
+      enabled: false
+
+formatter:
+  enabled: false

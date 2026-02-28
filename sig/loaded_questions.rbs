@@ -84,6 +84,17 @@ module LoadedQuestions
     def validate_between!: (::NormalizedString value, min: Integer, max: Integer, field: Symbol) -> void
 
     class Guesses
+      class CompletedGuess
+        attr_reader player: Player
+        attr_reader answer: Answer
+        attr_reader attributed_to: Player
+
+        @correct: bool
+
+        def initialize: (player: Player, answer: Answer, attributed_to: Player, correct: bool) -> void
+        def correct?: () -> bool
+      end
+
       def self.empty: () -> Guesses
       def self.parse: (
         Array[json_guessed_answer] guesses,
@@ -100,6 +111,7 @@ module LoadedQuestions
       def assigned: () -> Array[GuessedAnswer]
       def unassigned_answers: () -> Array[Answer]
       def complete?: () -> bool
+      def for_completed_view: () -> Array[CompletedGuess]
       def assign: (player_id: String, answer_id: String?) -> Guesses
       def as_json: () -> Array[json_guessed_answer]
       def score: () -> Integer

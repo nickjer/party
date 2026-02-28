@@ -4,6 +4,8 @@ module LoadedQuestions
   class Game
     # Collection of guessed answers with operations for assigning and scoring.
     class Guesses
+      # Value object returned by Guesses#for_completed_view, pairing each player
+      # with their actual answer and the player the guesser attributed it to.
       class CompletedGuess
         # @dynamic player, answer, attributed_to
         attr_reader :player, :answer, :attributed_to
@@ -78,7 +80,9 @@ module LoadedQuestions
       def for_completed_view
         inverse = {} #: Hash[String, Player]
         guesses.each do |guess|
-          inverse[guess.guessed_player.id] = guess.player if guess.guessed_player
+          next unless guess.guessed_player
+
+          inverse[guess.guessed_player.id] = guess.player
         end
 
         guesses.map do |guess|

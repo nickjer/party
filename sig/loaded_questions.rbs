@@ -87,11 +87,11 @@ module LoadedQuestions
       class CompletedGuess
         attr_reader player: Player
         attr_reader answer: Answer
-        attr_reader attributed_to: Player?
+        attr_reader attributed_to: Player
 
         @correct: bool
 
-        def initialize: (player: Player, answer: Answer, attributed_to: Player?, correct: bool) -> void
+        def initialize: (player: Player, answer: Answer, attributed_to: Player, correct: bool) -> void
         def correct?: () -> bool
       end
 

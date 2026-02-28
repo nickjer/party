@@ -80,16 +80,17 @@ module LoadedQuestions
       def for_completed_view
         inverse = {} #: Hash[String, Player]
         guesses.each do |guess|
-          next unless guess.guessed_player
+          guessed_player = guess.guessed_player
+          next unless guessed_player
 
-          inverse[guess.guessed_player.id] = guess.player
+          inverse[guessed_player.id] = guess.player
         end
 
         guesses.map do |guess|
           CompletedGuess.new(
             player: guess.player,
             answer: guess.answer,
-            attributed_to: inverse[guess.player.id],
+            attributed_to: inverse.fetch(guess.player.id),
             correct: guess.correct?
           )
         end

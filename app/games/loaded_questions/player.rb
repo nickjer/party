@@ -4,8 +4,7 @@ module LoadedQuestions
   # Wrapper around ::Player model that provides Loaded Questions-specific
   # behavior and document parsing.
   class Player
-    MIN_ANSWER_LENGTH = 3
-    MAX_ANSWER_LENGTH = 80
+    ANSWER_LENGTH = LengthValidator.new(min: 3, max: 80, field: :answer)
 
     class << self
       def build(game_id:, user_id:, name:, guesser: false)
@@ -30,12 +29,7 @@ module LoadedQuestions
     def answer = @answer ||= Answer.parse(json_document.fetch(:answer))
 
     def answer=(new_answer)
-      validate_between!(
-        new_answer.value,
-        min: MIN_ANSWER_LENGTH,
-        max: MAX_ANSWER_LENGTH,
-        field: :answer
-      )
+      ANSWER_LENGTH.validate!(new_answer.value)
 
       @answer = new_answer
       model.document = document.to_json
@@ -65,12 +59,7 @@ module LoadedQuestions
     def name = NormalizedString.new(model.name)
 
     def name=(new_name)
-      validate_between!(
-        new_name,
-        min: ::Player::MIN_NAME_LENGTH,
-        max: ::Player::MAX_NAME_LENGTH,
-        field: :name
-      )
+      ::Player::NAME_LENGTH.validate!(new_name)
       model.name = new_name.to_s
     end
 
@@ -106,12 +95,5 @@ module LoadedQuestions
     def document = { answer:, guesser: guesser?, score: }
 
     def json_document = model.parsed_document #: json_document
-
-    def validate_between!(value, min:, max:, field:)
-      return if value.length.between?(min, max)
-
-      raise ArgumentError, "#{field.to_s.humanize} length must be " \
-        "between #{min} and #{max} characters"
-    end
   end
 end

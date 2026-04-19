@@ -34,8 +34,7 @@ end
 class Player < ::ApplicationRecord
   extend ::ActiveRecord::Base::ClassMethods[::Player, ::Player::ActiveRecord_Relation, String]
 
-  MIN_NAME_LENGTH: Integer
-  MAX_NAME_LENGTH: Integer
+  NAME_LENGTH: LengthValidator
 
   def document: () -> String
   def document=: (String) -> String

@@ -26,10 +26,6 @@ module LoadedQuestions
 
     def show?: () -> bool
     def valid?: () -> bool
-
-    private
-
-    def validate_length: (::NormalizedString value, min: Integer, max: Integer) -> String?
   end
 
   class Game
@@ -45,8 +41,7 @@ module LoadedQuestions
       status: Status
     }
 
-    MIN_QUESTION_LENGTH: Integer
-    MAX_QUESTION_LENGTH: Integer
+    QUESTION_LENGTH: LengthValidator
 
     def self.build: (question: NormalizedString) -> Game
     def self.find: (String id) -> Game
@@ -63,7 +58,7 @@ module LoadedQuestions
     def id: () -> String
     def guesser: () -> Player
     def guesses=: (Guesses new_guesses) -> void
-    def find_player: (Integer id) -> Player
+    def find_player: (String id) -> Player
     def player_for!: (String user_id) -> Player
     def player_for: (String user_id) -> Player?
     def players: () -> Array[Player]
@@ -81,7 +76,6 @@ module LoadedQuestions
 
     def document: () -> document
     def json_document: () -> json_document
-    def validate_between!: (::NormalizedString value, min: Integer, max: Integer, field: Symbol) -> void
 
     class Guesses
       class CompletedGuess
@@ -351,10 +345,6 @@ module LoadedQuestions
     ) -> void
 
     def valid?: () -> bool
-
-    private
-
-    def validate_length: (::NormalizedString value, min: Integer, max: Integer) -> String?
   end
 
   class NewRoundForm
@@ -368,8 +358,6 @@ module LoadedQuestions
     private
 
     attr_reader game: Game
-
-    def validate_length: (::NormalizedString value, min: Integer, max: Integer) -> String?
   end
 
   class NewPlayerForm
@@ -381,10 +369,6 @@ module LoadedQuestions
     def initialize: (game: Game, user_id: String, ?name: _ToS?) -> void
 
     def valid?: () -> bool
-
-    private
-
-    def validate_length: (::NormalizedString value, min: Integer, max: Integer) -> String?
   end
 
   class EditPlayerForm
@@ -396,15 +380,10 @@ module LoadedQuestions
     def initialize: (game: Game, current_player: Player, ?name: _ToS?) -> void
 
     def valid?: () -> bool
-
-    private
-
-    def validate_length: (::NormalizedString value, min: Integer, max: Integer) -> String?
   end
 
   class Player
-    MIN_ANSWER_LENGTH: Integer
-    MAX_ANSWER_LENGTH: Integer
+    ANSWER_LENGTH: LengthValidator
 
     type json_document = {
       answer: Answer::json_answer,
@@ -451,7 +430,6 @@ module LoadedQuestions
 
     def document: () -> document
     def json_document: () -> json_document
-    def validate_between!: (::NormalizedString value, min: Integer, max: Integer, field: Symbol) -> void
   end
 
   class PlayersController < ::ApplicationController

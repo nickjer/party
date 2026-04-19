@@ -20,29 +20,15 @@ module LoadedQuestions
     end
 
     def valid?
-      min = ::Player::MIN_NAME_LENGTH
-      max = ::Player::MAX_NAME_LENGTH
-      if (error = validate_length(player_name, min:, max:))
+      if (error = ::Player::NAME_LENGTH.error_for(player_name))
         errors.add(:player_name, message: error)
       end
 
-      min = Game::MIN_QUESTION_LENGTH
-      max = Game::MAX_QUESTION_LENGTH
-      if (error = validate_length(question, min:, max:))
+      if (error = Game::QUESTION_LENGTH.error_for(question))
         errors.add(:question, message: error)
       end
 
       errors.empty?
-    end
-
-    private
-
-    def validate_length(value, min:, max:)
-      if value.length < min
-        "is too short (minimum is #{min} characters)"
-      elsif value.length > max
-        "is too long (maximum is #{max} characters)"
-      end
     end
   end
 end

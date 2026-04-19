@@ -41,13 +41,30 @@ class PlayerConnections
 
   def initialize: () -> void
 
-  def count: (Integer player_id) -> Integer
-  def increment: (Integer player_id) -> Integer
-  def decrement: (Integer player_id) -> Integer
+  def count: (String player_id) -> Integer
+  def increment: (String player_id) -> Integer
+  def decrement: (String player_id) -> Integer
 
   private
 
-  attr_reader connection_map: Concurrent::Map[Integer, Integer]
+  attr_reader connection_map: Concurrent::Map[String, Integer]
+end
+
+class LengthValidator
+  interface _HasLength
+    def length: () -> Integer
+  end
+
+  attr_reader min: Integer
+  attr_reader max: Integer
+
+  def initialize: (min: Integer, max: Integer, field: Symbol) -> void
+  def error_for: (_HasLength value) -> String?
+  def validate!: (_HasLength value) -> void
+
+  private
+
+  attr_reader field: Symbol
 end
 
 class Errors

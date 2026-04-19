@@ -4,8 +4,7 @@ module BurnUnit
   # Wrapper around ::Game model that provides Burn Unit-specific
   # behavior and document parsing.
   class Game
-    MIN_QUESTION_LENGTH = 3
-    MAX_QUESTION_LENGTH = 160
+    QUESTION_LENGTH = LengthValidator.new(min: 3, max: 160, field: :question)
 
     class << self
       def build(question:)
@@ -62,12 +61,7 @@ module BurnUnit
     end
 
     def question=(new_question)
-      validate_between!(
-        new_question,
-        min: MIN_QUESTION_LENGTH,
-        max: MAX_QUESTION_LENGTH,
-        field: :question
-      )
+      QUESTION_LENGTH.validate!(new_question)
 
       @question = new_question
       model.document = document.to_json
@@ -101,12 +95,5 @@ module BurnUnit
     def document = { question:, status: }
 
     def json_document = model.parsed_document #: json_document
-
-    def validate_between!(value, min:, max:, field:)
-      return if value.length.between?(min, max)
-
-      raise ArgumentError, "#{field.to_s.humanize} length must be " \
-        "between #{min} and #{max} characters"
-    end
   end
 end

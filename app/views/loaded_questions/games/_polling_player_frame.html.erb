@@ -38,11 +38,11 @@
               aria: { label: "Answer" },
               rows: 3,
               placeholder: "Type your answer here...",
-              maxlength: LoadedQuestions::Player::MAX_ANSWER_LENGTH %>
+              maxlength: LoadedQuestions::Player::ANSWER_LENGTH.max %>
             <div class="form-text">
-              <%= LoadedQuestions::Player::MIN_ANSWER_LENGTH %>
+              <%= LoadedQuestions::Player::ANSWER_LENGTH.min %>
               -
-              <%= LoadedQuestions::Player::MAX_ANSWER_LENGTH %>
+              <%= LoadedQuestions::Player::ANSWER_LENGTH.max %>
               characters
             </div>
           </div>

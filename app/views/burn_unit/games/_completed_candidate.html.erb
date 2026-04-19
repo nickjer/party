@@ -14,8 +14,8 @@
     </span>
   </div>
 
-  <% if candidate.voters.any? %>
-    <div class="text-muted small">
+  <div class="text-muted small">
+    <% if candidate.voters.any? %>
       <i class="bi bi-people-fill me-1"></i>
       Votes from:
       <% candidate.voters.each_with_index do |voter, index| %>
@@ -24,11 +24,9 @@
         <% end %>
         <span data-player-name-id="<%= voter.id %>"><%= voter.name %></span>
       <% end %>
-    </div>
-  <% else %>
-    <div class="text-muted small">
+    <% else %>
       <i class="bi bi-x-circle me-1"></i>
       No votes
-    </div>
-  <% end %>
+    <% end %>
+  </div>
 </div>

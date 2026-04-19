@@ -1,10 +1,12 @@
-version: 0.8.10
+version: 0.9.5
 
 linter:
   enabled: true
 
   rules:
     erb-strict-locals-comment-syntax:
+      enabled: false
+    actionview-strict-locals-partial-only:
       enabled: false
 
 formatter:

@@ -151,23 +151,11 @@ module BurnUnit
   end
 
   class Game
-    type json_document = {
-      question: String,
-      status: String
-    }
-    type document = {
-      question: NormalizedString,
-      status: Status
-    }
-
     QUESTION_LENGTH: LengthValidator
 
     def self.build: (question: NormalizedString) -> Game
     def self.find: (String id) -> Game
     private def self.scope: () -> ::Game::ActiveRecord_Relation
-
-    attr_reader question: NormalizedString
-    attr_reader status: Status
 
     def initialize: (::Game game) -> void
 
@@ -179,18 +167,40 @@ module BurnUnit
     def player_for: (String user_id) -> Player?
     def player_for!: (String user_id) -> Player
     def players: () -> Array[Player]
+    def question: () -> NormalizedString
     def question=: (NormalizedString new_question) -> void
     def save!: () -> void
+    def status: () -> Status
     def status=: (Status new_status) -> void
     def to_model: () -> ::Game
+
+    @document: Document
+    @cached_players: Array[Player]
 
     private
 
     attr_reader cached_players: Array[Player]
     attr_reader model: ::Game
 
-    def document: () -> document
-    def json_document: () -> json_document
+    def document: () -> Document
+
+    class Document
+      type json = {
+        question: String,
+        status: String
+      }
+
+      attr_reader question: NormalizedString
+      attr_reader status: Status
+
+      def self.parse: (json hash) -> Document
+
+      def initialize: (question: NormalizedString, status: Status) -> void
+
+      def with: (?question: NormalizedString, ?status: Status) -> Document
+
+      def as_json: () -> json
+    end
 
     class Candidate
       def self.from: (Array[Player] playing_players) -> Array[Candidate]
@@ -265,27 +275,7 @@ module BurnUnit
   end
 
   class Player
-    type json_document = {
-      judge: bool,
-      score: Integer,
-      vote: String?,
-      playing: bool
-    }
-    type document = {
-      judge: bool,
-      score: Integer,
-      vote: String?,
-      playing: bool
-    }
-
     def self.build: (game_id: String, user_id: String, name: ::NormalizedString, ?judge: bool, ?playing: bool) -> Player
-
-    @judge: bool
-    @playing: bool
-    @vote: String?
-
-    attr_reader name: ::NormalizedString
-    attr_reader score: Integer
 
     def initialize: (::Player model) -> void
 
@@ -297,11 +287,13 @@ module BurnUnit
     def id: () -> String
     def judge?: () -> bool
     def judge=: (bool is_judge) -> void
+    def name: () -> ::NormalizedString
     def name=: (::NormalizedString new_name) -> void
     def online?: () -> bool
     def playing?: () -> bool
     def playing=: (bool is_playing) -> void
     def save!: () -> void
+    def score: () -> Integer
     def score=: (Integer new_score) -> void
     def to_model: () -> ::Player
     def user_id: () -> String
@@ -309,12 +301,45 @@ module BurnUnit
     def vote=: (String? player_id) -> void
     def voted?: () -> bool
 
+    @document: Document
+
     private
 
     attr_reader model: ::Player
 
-    def document: () -> document
-    def json_document: () -> json_document
+    def document: () -> Document
+
+    class Document
+      type json = {
+        judge: bool,
+        score: Integer,
+        vote: String?,
+        playing: bool
+      }
+
+      attr_reader judge: bool
+      attr_reader score: Integer
+      attr_reader vote: String?
+      attr_reader playing: bool
+
+      def self.parse: (json hash) -> Document
+
+      def initialize: (
+        judge: bool,
+        score: Integer,
+        vote: String?,
+        playing: bool
+      ) -> void
+
+      def with: (
+        ?judge: bool,
+        ?score: Integer,
+        ?vote: String?,
+        ?playing: bool
+      ) -> Document
+
+      def as_json: () -> json
+    end
   end
 
   class VoteForm

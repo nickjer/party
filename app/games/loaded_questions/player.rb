@@ -8,13 +8,16 @@ module LoadedQuestions
 
     class << self
       def build(game_id:, user_id:, name:, guesser: false)
-        document = {
+        document = Document.new(
           answer: Answer.empty,
-          guesser:,
+          guesser: guesser,
           score: 0
-        } #: document
-        player =
-          new(::Player.new(game_id:, user_id:, document: document.to_json))
+        )
+        player = new(
+          ::Player.new(
+            game_id: game_id, user_id: user_id, document: document.to_json
+          )
+        )
         player.name = name
         player
       end
@@ -26,13 +29,11 @@ module LoadedQuestions
 
     def ==(other) = self.class == other.class && id == other.id
 
-    def answer = @answer ||= Answer.parse(json_document.fetch(:answer))
+    def answer = document.answer
 
     def answer=(new_answer)
       ANSWER_LENGTH.validate!(new_answer.value)
-
-      @answer = new_answer
-      model.document = document.to_json
+      @document = document.with(answer: new_answer)
     end
 
     def answered? = answer.present?
@@ -41,15 +42,10 @@ module LoadedQuestions
 
     def game_id = model.game_id
 
-    def guesser?
-      return @guesser if defined?(@guesser)
-
-      @guesser = json_document.fetch(:guesser)
-    end
+    def guesser? = document.guesser
 
     def guesser=(is_guesser)
-      @guesser = is_guesser
-      model.document = document.to_json
+      @document = document.with(guesser: is_guesser)
     end
 
     def hash = id.hash
@@ -66,21 +62,18 @@ module LoadedQuestions
     def online? = model.online?
 
     def reset_answer
-      @answer = Answer.empty
-      model.document = document.to_json
+      @document = document.with(answer: Answer.empty)
     end
 
     def save!
+      model.document = document.to_json
       model.save! if model.changed?
     end
 
-    def score = @score ||= json_document.fetch(:score)
+    def score = document.score
 
     def score=(new_score)
-      raise ArgumentError, "Score cannot be negative" if new_score.negative?
-
-      @score = new_score
-      model.document = document.to_json
+      @document = document.with(score: new_score)
     end
 
     def to_model = model
@@ -92,8 +85,9 @@ module LoadedQuestions
     # @dynamic model
     attr_reader :model
 
-    def document = { answer:, guesser: guesser?, score: }
-
-    def json_document = model.parsed_document #: json_document
+    def document
+      parsed_document = model.parsed_document #: Document::json
+      @document ||= Document.parse(parsed_document)
+    end
   end
 end

@@ -30,16 +30,6 @@ module LoadedQuestions
 
   class Game
     type json_guessed_answer = { player_id: String, guessed_player_id: String? }
-    type json_document = {
-      question: String,
-      guesses: Array[json_guessed_answer],
-      status: String
-    }
-    type document = {
-      question: NormalizedString,
-      guesses: Guesses,
-      status: Status
-    }
 
     QUESTION_LENGTH: LengthValidator
 
@@ -47,35 +37,63 @@ module LoadedQuestions
     def self.find: (String id) -> Game
     private def self.scope: () -> ::Game::ActiveRecord_Relation
 
-    @players: Array[Player]
-
-    attr_reader guesses: Guesses
-    attr_reader question: NormalizedString
-    attr_reader status: Status
-
     def initialize: (::Game game) -> void
 
     def id: () -> String
     def guesser: () -> Player
+    def guesses: () -> Guesses
     def guesses=: (Guesses new_guesses) -> void
     def find_player: (String id) -> Player
     def player_for!: (String user_id) -> Player
     def player_for: (String user_id) -> Player?
     def players: () -> Array[Player]
+    def question: () -> NormalizedString
     def question=: (NormalizedString new_question) -> void
     def save!: () -> void
+    def status: () -> Status
     def status=: (Status new_status) -> void
     def add_player: (user_id: String, name: ::NormalizedString, ?guesser: bool) -> Player
     def assign_guess: (player_id: String, answer_id: String?) -> void
     def to_model: () -> ::Game
+
+    @document: Document
+    @guesses: Guesses
+    @cached_players: Array[Player]
 
     private
 
     attr_reader cached_players: Array[Player]
     attr_reader model: ::Game
 
-    def document: () -> document
-    def json_document: () -> json_document
+    def document: () -> Document
+
+    class Document
+      type json = {
+        question: String,
+        status: String,
+        guesses: Array[json_guessed_answer]
+      }
+
+      attr_reader question: NormalizedString
+      attr_reader status: Status
+      attr_reader guesses_data: Array[json_guessed_answer]
+
+      def self.parse: (json hash) -> Document
+
+      def initialize: (
+        question: NormalizedString,
+        status: Status,
+        guesses_data: Array[json_guessed_answer]
+      ) -> void
+
+      def with: (
+        ?question: NormalizedString,
+        ?status: Status,
+        ?guesses_data: Array[json_guessed_answer]
+      ) -> Document
+
+      def as_json: () -> json
+    end
 
     class Guesses
       class CompletedGuess
@@ -385,29 +403,13 @@ module LoadedQuestions
   class Player
     ANSWER_LENGTH: LengthValidator
 
-    type json_document = {
-      answer: Answer::json_answer,
-      guesser: bool,
-      score: Integer
-    }
-    type document = {
-      answer: Answer,
-      guesser: bool,
-      score: Integer
-    }
-
     def self.build: (game_id: String, user_id: String, name: ::NormalizedString, ?guesser: bool) -> Player
-
-    @guesser: bool
-
-    attr_reader answer: Answer
-    attr_reader name: ::NormalizedString
-    attr_reader score: Integer
 
     def initialize: (::Player model) -> void
 
     def <=>: (Player other) -> Integer
     def ==: (Player other) -> bool
+    def answer: () -> Answer
     def answer=: (Answer new_answer) -> void
     def answered?: () -> bool
     def eql?: (Player other) -> bool
@@ -416,20 +418,51 @@ module LoadedQuestions
     def guesser=: (bool is_guesser) -> void
     def hash: () -> Integer
     def id: () -> String
+    def name: () -> ::NormalizedString
     def name=: (::NormalizedString new_name) -> void
     def online?: () -> bool
     def reset_answer: () -> void
     def save!: () -> void
+    def score: () -> Integer
     def score=: (Integer new_score) -> void
     def to_model: () -> ::Player
     def user_id: () -> String
+
+    @document: Document
 
     private
 
     attr_reader model: ::Player
 
-    def document: () -> document
-    def json_document: () -> json_document
+    def document: () -> Document
+
+    class Document
+      type json = {
+        answer: Answer::json_answer,
+        guesser: bool,
+        score: Integer
+      }
+
+      attr_reader answer: Answer
+      attr_reader guesser: bool
+      attr_reader score: Integer
+
+      def self.parse: (json hash) -> Document
+
+      def initialize: (
+        answer: Answer,
+        guesser: bool,
+        score: Integer
+      ) -> void
+
+      def with: (
+        ?answer: Answer,
+        ?guesser: bool,
+        ?score: Integer
+      ) -> Document
+
+      def as_json: () -> json
+    end
   end
 
   class PlayersController < ::ApplicationController

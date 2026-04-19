@@ -43,7 +43,9 @@ Games live under `/app/games/{game_name}/`:
 
 ### Real-time Communication
 
-**PlayerChannel**: GlobalID-based streams with connection tracking, first/last connection optimization. Custom `PlayerChannel.broadcast_to(players)` iterates online players and renders Turbo Streams.
+**PlayerChannel**: GlobalID-based streams with connection tracking, first/last connection optimization.
+
+**PlayerBroadcaster**: Collaborator (`app/lib/`) that iterates a player collection, sends Turbo Stream content to each online player via `Turbo::StreamsChannel`, and skips when the block returns nil.
 
 **Broadcast Patterns**:
 1. **Player-Specific** (`player_id:`): Individual actions (joins, answers, connects)
@@ -97,10 +99,11 @@ Use `Errors.new` (not `{}` or `[]`), call `errors.add(attribute, message:)` wher
 
 ### Creating Broadcast Service Objects
 
-Initialize with IDs (`player_id:` or `game_id:`), load wrapper with `.find`, use `PlayerChannel.broadcast_to(game.players)` with block yielding `current_player`. Skip players with `next` if needed. Render turbo_stream templates with locals.
+Initialize with IDs (`player_id:` or `game_id:`), load wrapper with `.find`, compose a `PlayerBroadcaster` and call `broadcast` with a block yielding `current_player`. Skip players with `next` if needed. Render turbo_stream templates with locals.
 
 ```ruby
-PlayerChannel.broadcast_to(game.players) do |current_player|
+players = game.players
+PlayerBroadcaster.new(players:).broadcast do |current_player|
   next if current_player.guesser?
   ApplicationController.render("path/to/template", formats: [:turbo_stream], locals: { game:, current_player: })
 end

@@ -10,13 +10,14 @@ module BurnUnit
       end
 
       def call
-        PlayerChannel.broadcast_to(game.players) do |current_player|
+        players = game.players
+        PlayerBroadcaster.new(players:).broadcast do |current_player|
           next if current_player.id == player.id
 
           ApplicationController.render(
             "burn_unit/players/create",
             formats: [:turbo_stream],
-            locals: { players: game.players, current_player: }
+            locals: { players:, current_player: }
           )
         end
       end

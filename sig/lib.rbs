@@ -50,6 +50,15 @@ class PlayerConnections
   attr_reader connection_map: Concurrent::Map[String, Integer]
 end
 
+class PlayerBroadcaster[T < _Online & _ToModel]
+  def initialize: (players: Array[T]) -> void
+  def broadcast: () { (T) -> String? } -> void
+
+  private
+
+  attr_reader players: Array[T]
+end
+
 class LengthValidator
   interface _HasLength
     def length: () -> Integer

@@ -18,9 +18,7 @@ module LoadedQuestions
         errors.add(:game, message: "Game is not completed")
       end
 
-      min = Game::MIN_QUESTION_LENGTH
-      max = Game::MAX_QUESTION_LENGTH
-      if (error = validate_length(question, min:, max:))
+      if (error = Game::QUESTION_LENGTH.error_for(question))
         errors.add(:question, message: error)
       end
 
@@ -31,13 +29,5 @@ module LoadedQuestions
 
     # @dynamic game
     attr_reader :game
-
-    def validate_length(value, min:, max:)
-      if value.length < min
-        "is too short (minimum is #{min} characters)"
-      elsif value.length > max
-        "is too long (maximum is #{max} characters)"
-      end
-    end
   end
 end

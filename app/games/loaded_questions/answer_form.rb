@@ -17,23 +17,11 @@ module LoadedQuestions
     def show? = answer.blank? || !errors.empty?
 
     def valid?
-      min = Player::MIN_ANSWER_LENGTH
-      max = Player::MAX_ANSWER_LENGTH
-      if (error = validate_length(answer.value, min:, max:))
+      if (error = Player::ANSWER_LENGTH.error_for(answer.value))
         errors.add(:answer, message: error)
       end
 
       errors.empty?
-    end
-
-    private
-
-    def validate_length(value, min:, max:)
-      if value.length < min
-        "is too short (minimum is #{min} characters)"
-      elsif value.length > max
-        "is too long (maximum is #{max} characters)"
-      end
     end
   end
 end

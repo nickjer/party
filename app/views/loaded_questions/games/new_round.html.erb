@@ -21,13 +21,13 @@
               <div class="mb-3">
                 <%= form.label :question, "Your Question" %>
                 <%= form.text_area :question,
-                    maxlength: LoadedQuestions::Game::MAX_QUESTION_LENGTH,
+                    maxlength: LoadedQuestions::Game::QUESTION_LENGTH.max,
                     rows: 3,
                     placeholder: "Ask a question that will get interesting answers..." %>
                 <div class="form-text">
-                  <%= LoadedQuestions::Game::MIN_QUESTION_LENGTH %>
+                  <%= LoadedQuestions::Game::QUESTION_LENGTH.min %>
                   -
-                  <%= LoadedQuestions::Game::MAX_QUESTION_LENGTH %>
+                  <%= LoadedQuestions::Game::QUESTION_LENGTH.max %>
                   characters
                 </div>
               </div>

@@ -23,22 +23,22 @@
           <div class="mb-4">
             <%= form.label :player_name, "Your Name" %>
             <%= form.text_field :player_name,
-                maxlength: Player::MAX_NAME_LENGTH,
+                maxlength: Player::NAME_LENGTH.max,
                 placeholder: "Enter your name",
                 autofocus: true %>
             <div class="form-text">
-              <%= Player::MIN_NAME_LENGTH %>-<%= Player::MAX_NAME_LENGTH %> characters
+              <%= Player::NAME_LENGTH.min %>-<%= Player::NAME_LENGTH.max %> characters
             </div>
           </div>
 
           <div class="mb-4">
             <%= form.label :question, "First Question" %>
             <%= form.text_area :question,
-                maxlength: BurnUnit::Game::MAX_QUESTION_LENGTH,
+                maxlength: BurnUnit::Game::QUESTION_LENGTH.max,
                 rows: 3,
                 placeholder: "e.g., Who is most likely to survive a zombie apocalypse?" %>
             <div class="form-text">
-              <%= BurnUnit::Game::MIN_QUESTION_LENGTH %> - <%= BurnUnit::Game::MAX_QUESTION_LENGTH %> characters
+              <%= BurnUnit::Game::QUESTION_LENGTH.min %> - <%= BurnUnit::Game::QUESTION_LENGTH.max %> characters
             </div>
           </div>
 

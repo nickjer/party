@@ -24,11 +24,11 @@
                 <%= form.label :question, "Question" %>
                 <%= form.text_area :question,
                     rows: 3,
-                    maxlength: BurnUnit::Game::MAX_QUESTION_LENGTH,
+                    maxlength: BurnUnit::Game::QUESTION_LENGTH.max,
                     placeholder: "Enter a question for the next round...",
                     autofocus: true %>
                 <div class="form-text">
-                  <%= BurnUnit::Game::MIN_QUESTION_LENGTH %>-<%= BurnUnit::Game::MAX_QUESTION_LENGTH %> characters
+                  <%= BurnUnit::Game::QUESTION_LENGTH.min %>-<%= BurnUnit::Game::QUESTION_LENGTH.max %> characters
                 </div>
               </div>
 

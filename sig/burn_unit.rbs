@@ -148,10 +148,6 @@ module BurnUnit
     def initialize: (game: Game, current_player: Player, ?name: _ToS?) -> void
 
     def valid?: () -> bool
-
-    private
-
-    def validate_length: (::NormalizedString value, min: Integer, max: Integer) -> String?
   end
 
   class Game
@@ -164,8 +160,7 @@ module BurnUnit
       status: Status
     }
 
-    MIN_QUESTION_LENGTH: Integer
-    MAX_QUESTION_LENGTH: Integer
+    QUESTION_LENGTH: LengthValidator
 
     def self.build: (question: NormalizedString) -> Game
     def self.find: (String id) -> Game
@@ -196,7 +191,6 @@ module BurnUnit
 
     def document: () -> document
     def json_document: () -> json_document
-    def validate_between!: (::NormalizedString value, min: Integer, max: Integer, field: Symbol) -> void
 
     class Candidate
       def self.from: (Array[Player] playing_players) -> Array[Candidate]
@@ -244,10 +238,6 @@ module BurnUnit
     ) -> void
 
     def valid?: () -> bool
-
-    private
-
-    def validate_length: (::NormalizedString value, min: Integer, max: Integer) -> String?
   end
 
   class NewPlayerForm
@@ -259,10 +249,6 @@ module BurnUnit
     def initialize: (game: Game, user_id: String, ?name: _ToS?) -> void
 
     def valid?: () -> bool
-
-    private
-
-    def validate_length: (::NormalizedString value, min: Integer, max: Integer) -> String?
   end
 
   class NewRoundForm
@@ -276,8 +262,6 @@ module BurnUnit
     private
 
     attr_reader game: Game
-
-    def validate_length: (::NormalizedString value, min: Integer, max: Integer) -> String?
   end
 
   class Player
@@ -331,7 +315,6 @@ module BurnUnit
 
     def document: () -> document
     def json_document: () -> json_document
-    def validate_between!: (::NormalizedString value, min: Integer, max: Integer, field: Symbol) -> void
   end
 
   class VoteForm

@@ -47,12 +47,7 @@ module BurnUnit
     def name = NormalizedString.new(model.name)
 
     def name=(new_name)
-      validate_between!(
-        new_name,
-        min: ::Player::MIN_NAME_LENGTH,
-        max: ::Player::MAX_NAME_LENGTH,
-        field: :name
-      )
+      ::Player::NAME_LENGTH.validate!(new_name)
       model.name = new_name.to_s
     end
 
@@ -107,12 +102,5 @@ module BurnUnit
     def document = { judge: judge?, score:, vote:, playing: playing? }
 
     def json_document = model.parsed_document #: json_document
-
-    def validate_between!(value, min:, max:, field:)
-      return if value.length.between?(min, max)
-
-      raise ArgumentError, "#{field.to_s.humanize} length must be " \
-        "between #{min} and #{max} characters"
-    end
   end
 end

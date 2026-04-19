@@ -1,6 +1,6 @@
 <%# locals: (completed_answer:) %>
 
-<div class="list-group-item list-group-item-<%= completed_answer.correct? ? "success" : "danger" %> py-2">
+<div class="list-group-item <%= completed_answer.correct? ? "list-group-item-success" : "list-group-item-danger" %> py-2">
   <div class="d-flex align-items-end mb-2">
     <div
       class="fw-bold"

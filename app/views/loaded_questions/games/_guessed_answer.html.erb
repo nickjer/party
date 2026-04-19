@@ -10,7 +10,7 @@
   <div
     class="card swap-item <%= "shadow-sm border-primary" if gripper %> <%= "bg-white" if gripper %> <%= "bg-light" unless gripper %>"
     data-id="<%= guessed_answer.player.id %>"
-    <%= 'style="cursor: grab;"' if gripper %>
+    <% if gripper %>style="cursor: grab;"<% end %>
   >
     <div class="card-body p-2">
       <div class="d-flex align-items-center gap-2">

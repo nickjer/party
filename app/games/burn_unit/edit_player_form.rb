@@ -23,15 +23,9 @@ module BurnUnit
     end
 
     def valid?
-      if (error = ::Player::NAME_LENGTH.error_for(name))
-        errors.add(:name, message: error)
-      end
-
-      other_players = game.players.reject { |player| player == current_player }
-      if other_players.any? { |player| player.name == name }
-        errors.add(:name, message: "has already been taken")
-      end
-
+      ::PlayerNameValidator.new(
+        game:, name:, current_name: current_player.name
+      ).apply_to(errors)
       errors.empty?
     end
   end

@@ -15,7 +15,7 @@ module LoadedQuestions
 
     def valid?
       unless game.status.completed?
-        errors.add(:game, message: "Game is not completed")
+        errors.add(:base, message: "Game is not completed")
       end
 
       if (error = Game::QUESTION_LENGTH.error_for(question))

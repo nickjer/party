@@ -8,6 +8,7 @@ target :app do
   check "app/channels"
   check "app/games"
   check "app/lib"
+  check "app/validators"
 
   library "json"
   library "yaml"

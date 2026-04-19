@@ -1,9 +1,7 @@
 # frozen_string_literal: true
 
-# Validates a player name's length and uniqueness within a game. Pass
-# `current_name:` when validating a rename so a no-op rename (or a
-# normalized-equal variant of the current name) doesn't trigger a
-# self-collision.
+# Checks a PlayerName is not already taken by another player in the game.
+# Pass `current_name:` on a rename so a no-op rename doesn't self-collide.
 class PlayerNameValidator
   def initialize(game:, name:, current_name: nil)
     @game = game
@@ -12,10 +10,6 @@ class PlayerNameValidator
   end
 
   def apply_to(errors)
-    if (error = ::Player::NAME_LENGTH.error_for(name))
-      errors.add(:name, message: error)
-    end
-
     errors.add(:name, message: "has already been taken") if name_taken?
   end
 

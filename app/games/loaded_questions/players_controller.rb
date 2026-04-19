@@ -26,7 +26,7 @@ module LoadedQuestions
       if new_player.valid?
         player = game.add_player(
           user_id: current_user.id,
-          name: new_player.name
+          name: ::PlayerName.new(new_player.name)
         )
         game.save!
 
@@ -57,7 +57,7 @@ module LoadedQuestions
       edit_player = EditPlayerForm.new(game:, current_player:,
         name: update_player_params[:name])
       if edit_player.valid?
-        current_player.name = edit_player.name
+        current_player.name = ::PlayerName.new(edit_player.name)
         current_player.save!
         Broadcast::PlayerNameUpdated.new(game:, player: current_player).call
         redirect_to_game(game)

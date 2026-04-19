@@ -9,7 +9,7 @@ module BurnUnit
       question = NormalizedString.new("What is your favorite color?")
 
       game = CreateNewGame.new(user_id: user.id,
-        player_name: NormalizedString.new("Alice"), question:).call
+        player_name: PlayerName.parse("Alice"), question:).call
 
       assert_equal "What is your favorite color?", game.question.to_s
       assert_predicate game.status, :polling?
@@ -20,7 +20,7 @@ module BurnUnit
       question = NormalizedString.new("What is your favorite color?")
 
       game = CreateNewGame.new(user_id: user.id,
-        player_name: NormalizedString.new("Alice"), question:).call
+        player_name: PlayerName.parse("Alice"), question:).call
 
       assert_equal 1, game.players.size
       judge = game.judge
@@ -38,7 +38,7 @@ module BurnUnit
       question = NormalizedString.new("What is your favorite color?")
 
       game = CreateNewGame.new(user_id: user.id,
-        player_name: NormalizedString.new("Alice"), question:).call
+        player_name: PlayerName.parse("Alice"), question:).call
 
       assert_predicate game.to_model, :new_record?
       assert_predicate game.judge.to_model, :new_record?
@@ -49,7 +49,7 @@ module BurnUnit
       question = NormalizedString.new("What is your favorite color?")
 
       game = CreateNewGame.new(user_id: user.id,
-        player_name: NormalizedString.new("Alice"), question:).call
+        player_name: PlayerName.parse("Alice"), question:).call
       game.save!
 
       assert_not_predicate game.to_model, :new_record?
@@ -69,7 +69,7 @@ module BurnUnit
     test "#call normalizes player name" do
       user = build(:user)
       question = NormalizedString.new("What is your favorite color?")
-      name = NormalizedString.new("  Alice  ")
+      name = PlayerName.parse("  Alice  ")
 
       game = CreateNewGame.new(user_id: user.id, player_name: name,
         question:).call
@@ -81,12 +81,12 @@ module BurnUnit
       user = build(:user)
 
       min_game = CreateNewGame.new(user_id: user.id,
-        player_name: NormalizedString.new("Alice"),
+        player_name: PlayerName.parse("Alice"),
         question: NormalizedString.new("Why")).call
       assert_equal "Why", min_game.question.to_s
 
       max_game = CreateNewGame.new(user_id: user.id,
-        player_name: NormalizedString.new("Bob"),
+        player_name: PlayerName.parse("Bob"),
         question: NormalizedString.new("a" * 160)).call
       assert_equal 160, max_game.question.to_s.length
     end
@@ -97,7 +97,7 @@ module BurnUnit
 
       error = assert_raises(ArgumentError) do
         CreateNewGame.new(user_id: user.id,
-          player_name: NormalizedString.new("Alice"),
+          player_name: PlayerName.parse("Alice"),
           question: short_question).call
       end
 
@@ -111,39 +111,11 @@ module BurnUnit
 
       error = assert_raises(ArgumentError) do
         CreateNewGame.new(user_id: user.id,
-          player_name: NormalizedString.new("Alice"),
+          player_name: PlayerName.parse("Alice"),
           question: long_question).call
       end
 
       assert_match(/Question length must be between 3 and 160 characters/,
-        error.message)
-    end
-
-    test "#call raises error with player name too short" do
-      user = build(:user)
-      question = NormalizedString.new("What is your favorite color?")
-      short_name = NormalizedString.new("AB")
-
-      error = assert_raises(ArgumentError) do
-        CreateNewGame.new(user_id: user.id, player_name: short_name,
-          question:).call
-      end
-
-      assert_match(/Name length must be between 3 and 25 characters/,
-        error.message)
-    end
-
-    test "#call raises error with player name too long" do
-      user = build(:user)
-      question = NormalizedString.new("What is your favorite color?")
-      long_name = NormalizedString.new("a" * 26)
-
-      error = assert_raises(ArgumentError) do
-        CreateNewGame.new(user_id: user.id, player_name: long_name,
-          question:).call
-      end
-
-      assert_match(/Name length must be between 3 and 25 characters/,
         error.message)
     end
   end

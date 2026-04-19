@@ -23,9 +23,13 @@ module LoadedQuestions
     end
 
     def valid?
-      ::PlayerNameValidator.new(
-        game:, name:, current_name: current_player.name
-      ).apply_to(errors)
+      if (error = ::PlayerName::LENGTH.error_for(name))
+        errors.add(:name, message: error)
+      else
+        ::PlayerNameValidator.new(
+          game:, name: ::PlayerName.new(name), current_name: current_player.name
+        ).apply_to(errors)
+      end
       errors.empty?
     end
   end

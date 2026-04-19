@@ -4,32 +4,6 @@ require "test_helper"
 
 module BurnUnit
   class PlayerTest < ActiveSupport::TestCase
-    test ".build raises error when name is too long" do
-      game = build(:bu_game)
-      user = build(:user)
-      long_name = NormalizedString.new("a" * 26)
-
-      error = assert_raises(ArgumentError) do
-        Player.build(game_id: game.id, user_id: user.id, name: long_name)
-      end
-
-      assert_match(/Name length must be between 3 and 25 characters/,
-        error.message)
-    end
-
-    test ".build raises error when name is too short" do
-      game = build(:bu_game)
-      user = build(:user)
-      short_name = NormalizedString.new("AB")
-
-      error = assert_raises(ArgumentError) do
-        Player.build(game_id: game.id, user_id: user.id, name: short_name)
-      end
-
-      assert_match(/Name length must be between 3 and 25 characters/,
-        error.message)
-    end
-
     test "#judge= persists to database after save" do
       game = create(:bu_game)
       player = create(:bu_player, game:)
@@ -48,41 +22,14 @@ module BurnUnit
     test "#name= persists to database after save" do
       game = create(:bu_game)
       player = create(:bu_player, game:)
-      new_name = NormalizedString.new("NewName")
 
-      player.name = new_name
+      player.name = PlayerName.parse("NewName")
       player.save!
 
       reloaded_game = reload(game:)
       reloaded_player = reloaded_game.players.find { |p| p.id == player.id }
 
       assert_equal "NewName", reloaded_player.name.to_s
-    end
-
-    test "#name= raises error when name is too long" do
-      game = build(:bu_game)
-      player = build(:bu_player, game:)
-      long_name = NormalizedString.new("a" * 26)
-
-      error = assert_raises(ArgumentError) do
-        player.name = long_name
-      end
-
-      assert_match(/Name length must be between 3 and 25 characters/,
-        error.message)
-    end
-
-    test "#name= raises error when name is too short" do
-      game = build(:bu_game)
-      player = build(:bu_player, game:)
-      short_name = NormalizedString.new("AB")
-
-      error = assert_raises(ArgumentError) do
-        player.name = short_name
-      end
-
-      assert_match(/Name length must be between 3 and 25 characters/,
-        error.message)
     end
 
     test "#playing= persists to database after save" do

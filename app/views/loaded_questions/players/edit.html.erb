@@ -22,11 +22,11 @@
               <div class="mb-3">
                 <%= form.label :name, "Your Name" %>
                 <%= form.text_field :name,
-                    maxlength: Player::NAME_LENGTH.max,
+                    maxlength: PlayerName::LENGTH.max,
                     placeholder: "Enter your name",
                     autofocus: true %>
                 <div class="form-text">
-                  <%= Player::NAME_LENGTH.min %>-<%= Player::NAME_LENGTH.max %> characters
+                  <%= PlayerName::LENGTH.min %>-<%= PlayerName::LENGTH.max %> characters
                 </div>
               </div>
 

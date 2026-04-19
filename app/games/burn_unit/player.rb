@@ -39,10 +39,12 @@ module BurnUnit
       @document = document.with(judge: is_judge)
     end
 
-    def name = NormalizedString.new(model.name)
+    def name
+      @name ||= PlayerName.parse(model.name)
+    end
 
     def name=(new_name)
-      ::Player::NAME_LENGTH.validate!(new_name)
+      @name = new_name
       model.name = new_name.to_s
     end
 

@@ -20,7 +20,7 @@ module BurnUnit
     end
 
     def valid?
-      if (error = ::Player::NAME_LENGTH.error_for(player_name))
+      if (error = ::PlayerName::LENGTH.error_for(player_name))
         errors.add(:player_name, message: error)
       end
 

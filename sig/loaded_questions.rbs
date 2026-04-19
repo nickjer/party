@@ -53,7 +53,7 @@ module LoadedQuestions
     def save!: () -> void
     def status: () -> Status
     def status=: (Status new_status) -> void
-    def add_player: (user_id: String, name: ::NormalizedString, ?guesser: bool) -> Player
+    def add_player: (user_id: String, name: ::PlayerName, ?guesser: bool) -> Player
     def assign_guess: (player_id: String, answer_id: String?) -> void
     def to_model: () -> ::Game
 
@@ -298,7 +298,7 @@ module LoadedQuestions
   class CreateNewGame
     def initialize: (
       user_id: String,
-      player_name: ::NormalizedString,
+      player_name: ::PlayerName,
       question: ::NormalizedString
     ) -> void
 
@@ -307,7 +307,7 @@ module LoadedQuestions
     private
 
     attr_reader user_id: String
-    attr_reader player_name: ::NormalizedString
+    attr_reader player_name: ::PlayerName
     attr_reader question: ::NormalizedString
   end
 
@@ -398,7 +398,9 @@ module LoadedQuestions
   class Player
     ANSWER_LENGTH: LengthValidator
 
-    def self.build: (game_id: String, user_id: String, name: ::NormalizedString, ?guesser: bool) -> Player
+    attr_reader name: ::PlayerName
+
+    def self.build: (game_id: String, user_id: String, name: ::PlayerName, ?guesser: bool) -> Player
 
     def initialize: (::Player model) -> void
 
@@ -413,8 +415,7 @@ module LoadedQuestions
     def guesser=: (bool is_guesser) -> void
     def hash: () -> Integer
     def id: () -> String
-    def name: () -> ::NormalizedString
-    def name=: (::NormalizedString new_name) -> void
+    def name=: (::PlayerName new_name) -> void
     def online?: () -> bool
     def reset_answer: () -> void
     def save!: () -> void

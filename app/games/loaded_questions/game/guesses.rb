@@ -112,8 +112,6 @@ module LoadedQuestions
         Guesses.new(guesses: new_guesses)
       end
 
-      def as_json = guesses.map(&:as_json)
-
       def score = guesses.count(&:correct?)
 
       private

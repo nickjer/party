@@ -28,18 +28,13 @@ module BurnUnit
         end
       end
 
-      def with(
-        judge: @judge,
-        score: @score,
-        vote: @vote,
-        playing: @playing
-      )
+      def with(judge: @judge, score: @score, vote: @vote, playing: @playing)
         self.class.new(judge:, score:, vote:, playing:)
       end
 
-      def as_json
-        { judge:, score:, vote:, playing: }.as_json
-      end
+      def to_h = { judge:, score:, vote:, playing: }
+
+      def to_json(state = nil) = to_h.to_json(state)
     end
   end
 end

@@ -28,8 +28,8 @@ module LoadedQuestions
 
     def to_s = value.to_s
 
-    def as_json
-      { id:, value: }.as_json
+    def to_h
+      { id:, value: value.to_s }
     end
   end
 end

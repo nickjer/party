@@ -29,9 +29,11 @@ module BurnUnit
         self.class.new(question:, status:)
       end
 
-      def as_json
-        { question:, status: }.as_json
+      def to_h
+        { question: question.to_s, status: status.to_s }
       end
+
+      def to_json(state = nil) = to_h.to_json(state)
     end
   end
 end

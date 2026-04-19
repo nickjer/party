@@ -32,9 +32,9 @@ module LoadedQuestions
         self.class.new(answer:, guesser:, score:)
       end
 
-      def as_json
-        { answer:, guesser:, score: }.as_json
-      end
+      def to_h = { answer: answer.to_h, guesser:, score: }
+
+      def to_json(state = nil) = to_h.to_json(state)
     end
   end
 end

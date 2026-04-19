@@ -195,7 +195,7 @@ module BurnUnit
 
       def with: (?question: NormalizedString, ?status: Status) -> Document
 
-      def as_json: () -> json
+      def to_h: () -> json
     end
 
     class Candidate
@@ -331,7 +331,7 @@ module BurnUnit
         ?playing: bool
       ) -> Document
 
-      def as_json: () -> json
+      def to_h: () -> json
     end
   end
 

@@ -15,7 +15,7 @@ module LoadedQuestions
     def ==: (Answer other) -> bool
     def blank?: () -> bool
     def to_s: () -> String
-    def as_json: () -> json_answer
+    def to_h: () -> json_answer
   end
 
   class AnswerForm
@@ -88,7 +88,7 @@ module LoadedQuestions
         ?guesses_data: Array[json_guessed_answer]
       ) -> Document
 
-      def as_json: () -> json
+      def to_h: () -> json
     end
 
     class Guesses
@@ -121,7 +121,6 @@ module LoadedQuestions
       def complete?: () -> bool
       def for_completed_view: () -> Array[CompletedGuess]
       def assign: (player_id: String, answer_id: String?) -> Guesses
-      def as_json: () -> Array[json_guessed_answer]
       def score: () -> Integer
 
       private
@@ -143,7 +142,7 @@ module LoadedQuestions
       def guessed_answer: () -> Answer?
       def assigned?: () -> bool
       def correct?: () -> bool
-      def as_json: () -> json_guessed_answer
+      def to_h: () -> json_guessed_answer
     end
 
     class Status
@@ -454,7 +453,7 @@ module LoadedQuestions
         ?score: Integer
       ) -> Document
 
-      def as_json: () -> json
+      def to_h: () -> json
     end
   end
 

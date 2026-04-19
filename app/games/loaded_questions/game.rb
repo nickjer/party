@@ -45,7 +45,7 @@ module LoadedQuestions
 
     def guesses=(new_guesses)
       @guesses = new_guesses
-      @document = document.with(guesses_data: new_guesses.as_json)
+      @document = document.with(guesses_data: new_guesses.map(&:to_h))
     end
 
     def id = model.id

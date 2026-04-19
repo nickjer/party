@@ -34,8 +34,6 @@ end
 class Player < ::ApplicationRecord
   extend ::ActiveRecord::Base::ClassMethods[::Player, ::Player::ActiveRecord_Relation, String]
 
-  NAME_LENGTH: LengthValidator
-
   def document: () -> String
   def document=: (String) -> String
   def document?: () -> bool

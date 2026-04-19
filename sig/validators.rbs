@@ -16,7 +16,7 @@ class LengthValidator
 end
 
 interface _PlayerForNameValidation
-  def name: () -> ::NormalizedString
+  def name: () -> ::PlayerName
 end
 
 interface _GameForNameValidation
@@ -30,8 +30,8 @@ end
 class PlayerNameValidator
   def initialize: (
     game: _GameForNameValidation,
-    name: ::NormalizedString,
-    ?current_name: ::NormalizedString?
+    name: ::PlayerName,
+    ?current_name: ::PlayerName?
   ) -> void
 
   def apply_to: (::Errors errors) -> void
@@ -39,8 +39,8 @@ class PlayerNameValidator
   private
 
   attr_reader game: _GameForNameValidation
-  attr_reader name: ::NormalizedString
-  attr_reader current_name: ::NormalizedString?
+  attr_reader name: ::PlayerName
+  attr_reader current_name: ::PlayerName?
 
   def name_taken?: () -> bool
 end

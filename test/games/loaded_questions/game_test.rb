@@ -20,7 +20,7 @@ module LoadedQuestions
       game = build(:lq_game)
 
       player = game.add_player(user_id: user.id,
-        name: NormalizedString.new("Alice"))
+        name: PlayerName.parse("Alice"))
 
       assert_equal user.id, player.user_id
       assert_equal "Alice", player.name.to_s
@@ -33,7 +33,7 @@ module LoadedQuestions
       question = NormalizedString.new("What is your favorite color?")
       game = Game.build(question:)
       player = game.add_player(user_id: user.id,
-        name: NormalizedString.new("Alice"), guesser: true)
+        name: PlayerName.parse("Alice"), guesser: true)
 
       assert_predicate player, :guesser?
       assert_equal player, game.guesser
@@ -44,7 +44,7 @@ module LoadedQuestions
         guesser_name: "David")
       user = build(:user)
 
-      game.add_player(user_id: user.id, name: NormalizedString.new("Bob"))
+      game.add_player(user_id: user.id, name: PlayerName.parse("Bob"))
 
       player_names = game.players.map(&:name).map(&:to_s)
       assert_equal %w[Alice Bob Charlie David], player_names
@@ -55,7 +55,7 @@ module LoadedQuestions
       game = create(:lq_game)
 
       player = game.add_player(user_id: user.id,
-        name: NormalizedString.new("Alice"))
+        name: PlayerName.parse("Alice"))
       game.save!
 
       game_after = reload(game:)
@@ -70,10 +70,10 @@ module LoadedQuestions
       user = build(:user)
       game = build(:lq_game)
 
-      game.add_player(user_id: user.id, name: NormalizedString.new("Alice"))
+      game.add_player(user_id: user.id, name: PlayerName.parse("Alice"))
 
       error = assert_raises(RuntimeError) do
-        game.add_player(user_id: user.id, name: NormalizedString.new("Bob"))
+        game.add_player(user_id: user.id, name: PlayerName.parse("Bob"))
       end
 
       assert_equal "Player already exists for user", error.message
@@ -85,7 +85,7 @@ module LoadedQuestions
       user_id = existing_player.user_id
 
       error = assert_raises(RuntimeError) do
-        game.add_player(user_id:, name: NormalizedString.new("Bob"))
+        game.add_player(user_id:, name: PlayerName.parse("Bob"))
       end
 
       assert_equal "Player already exists for user", error.message
@@ -119,7 +119,7 @@ module LoadedQuestions
 
       # Update a player's name without saving
       alice = game.players.first
-      alice.name = NormalizedString.new("Zoe")
+      alice.name = PlayerName.parse("Zoe")
 
       # Verify players are still sorted dynamically
       player_names_after = game.players.map(&:name).map(&:to_s)

@@ -34,6 +34,22 @@ class NormalizedString
   def normalize: (_ToS value) -> String
 end
 
+class PlayerName
+  LENGTH: LengthValidator
+
+  def self.parse: (_ToS raw) -> PlayerName
+
+  def initialize: (NormalizedString normalized) -> void
+
+  def <=>: (PlayerName other) -> Integer
+  def ==: (PlayerName other) -> bool
+  def eql?: (PlayerName other) -> bool
+  def hash: () -> Integer
+  def to_s: () -> String
+
+  attr_reader normalized: NormalizedString
+end
+
 class PlayerConnections
   include Singleton
 

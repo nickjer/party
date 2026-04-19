@@ -110,7 +110,7 @@ module BurnUnit
   class CreateNewGame
     def initialize: (
       user_id: String,
-      player_name: ::NormalizedString,
+      player_name: ::PlayerName,
       question: ::NormalizedString
     ) -> void
 
@@ -119,7 +119,7 @@ module BurnUnit
     private
 
     attr_reader user_id: String
-    attr_reader player_name: ::NormalizedString
+    attr_reader player_name: ::PlayerName
     attr_reader question: ::NormalizedString
   end
 
@@ -159,7 +159,7 @@ module BurnUnit
 
     def initialize: (::Game game) -> void
 
-    def add_player: (user_id: String, name: ::NormalizedString, ?judge: bool, ?playing: bool) -> Player
+    def add_player: (user_id: String, name: ::PlayerName, ?judge: bool, ?playing: bool) -> Player
     def candidates: () -> Array[Candidate]
     def find_player: (String id) -> Player
     def id: () -> String
@@ -209,7 +209,7 @@ module BurnUnit
       def initialize: (player: Player, voters: Array[Player], winner: bool) -> void
 
       def id: () -> String
-      def name: () -> ::NormalizedString
+      def name: () -> ::PlayerName
       def vote_count: () -> Integer
       def winner?: () -> bool
     end
@@ -271,7 +271,9 @@ module BurnUnit
   end
 
   class Player
-    def self.build: (game_id: String, user_id: String, name: ::NormalizedString, ?judge: bool, ?playing: bool) -> Player
+    attr_reader name: ::PlayerName
+
+    def self.build: (game_id: String, user_id: String, name: ::PlayerName, ?judge: bool, ?playing: bool) -> Player
 
     def initialize: (::Player model) -> void
 
@@ -283,8 +285,7 @@ module BurnUnit
     def id: () -> String
     def judge?: () -> bool
     def judge=: (bool is_judge) -> void
-    def name: () -> ::NormalizedString
-    def name=: (::NormalizedString new_name) -> void
+    def name=: (::PlayerName new_name) -> void
     def online?: () -> bool
     def playing?: () -> bool
     def playing=: (bool is_playing) -> void

@@ -3,22 +3,8 @@
 # Player-level ActionCable channel for real-time game updates
 # and connection tracking.
 class PlayerChannel < ApplicationCable::Channel
-  extend Turbo::Streams::Broadcasts
   extend Turbo::Streams::StreamName
   include Turbo::Streams::StreamName::ClassMethods
-
-  class << self
-    def broadcast_to(players, &block)
-      players.each do |player|
-        next unless player.online?
-
-        content = block.call(player)
-        next unless content
-
-        ::Turbo::StreamsChannel.broadcast_stream_to(player.to_model, content:)
-      end
-    end
-  end
 
   def subscribed
     stream_name = verified_stream_name_from_params

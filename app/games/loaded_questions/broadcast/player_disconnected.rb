@@ -11,8 +11,9 @@ module LoadedQuestions
       def call
         game = Game.find(disconnected_player.game_id)
         player = game.find_player(disconnected_player.id)
+        players = game.players
 
-        PlayerChannel.broadcast_to(game.players) do |current_player|
+        PlayerBroadcaster.new(players:).broadcast do |current_player|
           next if current_player.id == player.id
 
           ApplicationController.render(

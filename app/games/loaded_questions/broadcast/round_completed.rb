@@ -9,7 +9,8 @@ module LoadedQuestions
       end
 
       def call
-        PlayerChannel.broadcast_to(game.players) do |current_player|
+        players = game.players
+        PlayerBroadcaster.new(players:).broadcast do |current_player|
           next if current_player.guesser?
 
           ApplicationController.render(

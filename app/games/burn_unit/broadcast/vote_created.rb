@@ -10,7 +10,8 @@ module BurnUnit
       end
 
       def call
-        PlayerChannel.broadcast_to(game.players) do |current_player|
+        players = game.players
+        PlayerBroadcaster.new(players:).broadcast do |current_player|
           ApplicationController.render(
             "burn_unit/players/vote_created",
             formats: [:turbo_stream],

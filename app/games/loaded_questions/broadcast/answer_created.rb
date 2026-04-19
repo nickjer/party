@@ -10,7 +10,8 @@ module LoadedQuestions
       end
 
       def call
-        PlayerChannel.broadcast_to(game.players) do |current_player|
+        players = game.players
+        PlayerBroadcaster.new(players:).broadcast do |current_player|
           ApplicationController.render(
             "loaded_questions/players/answer_created",
             formats: [:turbo_stream],

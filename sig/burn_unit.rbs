@@ -173,7 +173,7 @@ module BurnUnit
 
     def add_player: (user_id: String, name: ::NormalizedString, ?judge: bool, ?playing: bool) -> Player
     def candidates: () -> Array[Candidate]
-    def find_player: (Integer id) -> Player
+    def find_player: (String id) -> Player
     def id: () -> String
     def judge: () -> Player
     def player_for: (String user_id) -> Player?

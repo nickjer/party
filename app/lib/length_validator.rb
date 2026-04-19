@@ -24,8 +24,8 @@ class LengthValidator
   def validate!(value)
     return if value.length.between?(min, max)
 
-    raise ArgumentError, "#{field.to_s.humanize} length must be " \
-      "between #{min} and #{max} characters"
+    raise ArgumentError, "#{ActiveSupport::Inflector.humanize(field.to_s)} " \
+      "length must be between #{min} and #{max} characters"
   end
 
   private

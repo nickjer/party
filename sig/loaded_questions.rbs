@@ -58,7 +58,7 @@ module LoadedQuestions
     def id: () -> String
     def guesser: () -> Player
     def guesses=: (Guesses new_guesses) -> void
-    def find_player: (Integer id) -> Player
+    def find_player: (String id) -> Player
     def player_for!: (String user_id) -> Player
     def player_for: (String user_id) -> Player?
     def players: () -> Array[Player]

@@ -1,0 +1,60 @@
+class LengthValidator
+  interface _HasLength
+    def length: () -> Integer
+  end
+
+  attr_reader min: Integer
+  attr_reader max: Integer
+
+  def initialize: (min: Integer, max: Integer, field: Symbol) -> void
+  def error_for: (_HasLength value) -> String?
+  def validate!: (_HasLength value) -> void
+
+  private
+
+  attr_reader field: Symbol
+end
+
+interface _PlayerForNameValidation
+  def name: () -> ::NormalizedString
+end
+
+interface _GameForNameValidation
+  def players: () -> Array[_PlayerForNameValidation]
+end
+
+interface _GameForUniquePlayerValidation
+  def player_for: (String user_id) -> _PlayerForNameValidation?
+end
+
+class PlayerNameValidator
+  def initialize: (
+    game: _GameForNameValidation,
+    name: ::NormalizedString,
+    ?current_name: ::NormalizedString?
+  ) -> void
+
+  def apply_to: (::Errors errors) -> void
+
+  private
+
+  attr_reader game: _GameForNameValidation
+  attr_reader name: ::NormalizedString
+  attr_reader current_name: ::NormalizedString?
+
+  def name_taken?: () -> bool
+end
+
+class UniquePlayerValidator
+  def initialize: (
+    game: _GameForUniquePlayerValidation,
+    user_id: String
+  ) -> void
+
+  def apply_to: (::Errors errors) -> void
+
+  private
+
+  attr_reader game: _GameForUniquePlayerValidation
+  attr_reader user_id: String
+end

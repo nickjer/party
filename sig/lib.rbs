@@ -59,23 +59,6 @@ class PlayerBroadcaster[T < _Online & _ToModel]
   attr_reader players: Array[T]
 end
 
-class LengthValidator
-  interface _HasLength
-    def length: () -> Integer
-  end
-
-  attr_reader min: Integer
-  attr_reader max: Integer
-
-  def initialize: (min: Integer, max: Integer, field: Symbol) -> void
-  def error_for: (_HasLength value) -> String?
-  def validate!: (_HasLength value) -> void
-
-  private
-
-  attr_reader field: Symbol
-end
-
 class Errors
   class Error
     attr_reader attribute: Symbol

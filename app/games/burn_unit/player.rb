@@ -6,14 +6,14 @@ module BurnUnit
   class Player
     class << self
       def build(game_id:, user_id:, name:, judge: false, playing: false)
-        document = {
-          judge:,
-          score: 0,
-          vote: nil,
-          playing:
-        } #: document
-        player =
-          new(::Player.new(game_id:, user_id:, document: document.to_json))
+        document = Document.new(
+          judge: judge, score: 0, vote: nil, playing: playing
+        )
+        player = new(
+          ::Player.new(
+            game_id: game_id, user_id: user_id, document: document.to_json
+          )
+        )
         player.name = name
         player
       end
@@ -33,15 +33,10 @@ module BurnUnit
 
     def id = model.id
 
-    def judge?
-      return @judge if defined?(@judge)
-
-      @judge = json_document.fetch(:judge)
-    end
+    def judge? = document.judge
 
     def judge=(is_judge)
-      @judge = is_judge
-      model.document = document.to_json
+      @document = document.with(judge: is_judge)
     end
 
     def name = NormalizedString.new(model.name)
@@ -53,43 +48,31 @@ module BurnUnit
 
     def online? = model.online?
 
-    def playing?
-      return @playing if defined?(@playing)
-
-      @playing = json_document.fetch(:playing)
-    end
+    def playing? = document.playing
 
     def playing=(is_playing)
-      @playing = is_playing
-      model.document = document.to_json
+      @document = document.with(playing: is_playing)
     end
 
     def save!
+      model.document = document.to_json
       model.save! if model.changed?
     end
 
-    def score = @score ||= json_document.fetch(:score)
+    def score = document.score
 
     def score=(new_score)
-      raise ArgumentError, "Score cannot be negative" if new_score.negative?
-
-      @score = new_score
-      model.document = document.to_json
+      @document = document.with(score: new_score)
     end
 
     def to_model = model
 
     def user_id = model.user_id
 
-    def vote
-      return @vote if defined?(@vote)
-
-      @vote = json_document.fetch(:vote)
-    end
+    def vote = document.vote
 
     def vote=(player_id)
-      @vote = player_id
-      model.document = document.to_json
+      @document = document.with(vote: player_id)
     end
 
     def voted? = vote.present?
@@ -99,8 +82,9 @@ module BurnUnit
     # @dynamic model
     attr_reader :model
 
-    def document = { judge: judge?, score:, vote:, playing: playing? }
-
-    def json_document = model.parsed_document #: json_document
+    def document
+      parsed_document = model.parsed_document #: Document::json
+      @document ||= Document.parse(parsed_document)
+    end
   end
 end

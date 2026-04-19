@@ -22,8 +22,8 @@ module LoadedQuestions
 
       def correct? = assigned? && guessed_answer == answer
 
-      def as_json
-        { player_id: player.id, guessed_player_id: guessed_player&.id }.as_json
+      def to_h
+        { player_id: player.id, guessed_player_id: guessed_player&.id }
       end
     end
   end

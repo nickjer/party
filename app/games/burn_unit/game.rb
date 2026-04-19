@@ -8,14 +8,10 @@ module BurnUnit
 
     class << self
       def build(question:)
-        document = {
-          question: NormalizedString.new(""),
-          status: Status.polling
-        } #: document
-        game =
-          new(::Game.new(kind: :burn_unit, document: document.to_json))
-        game.question = question
-        game
+        document = Document.new(question: question, status: Status.polling)
+        new(
+          ::Game.new(kind: :burn_unit, document: document.to_json)
+        )
       end
 
       def find(id) = new(scope.find(id))
@@ -56,29 +52,24 @@ module BurnUnit
 
     def players = cached_players.sort
 
-    def question
-      @question ||= NormalizedString.new(json_document.fetch(:question))
-    end
+    def question = document.question
 
     def question=(new_question)
-      QUESTION_LENGTH.validate!(new_question)
-
-      @question = new_question
-      model.document = document.to_json
+      @document = document.with(question: new_question)
     end
 
     def save!
       ::Game.transaction do
+        model.document = document.to_json
         model.save! if model.changed?
         players.each(&:save!)
       end
     end
 
-    def status = @status ||= Status.parse(json_document.fetch(:status))
+    def status = document.status
 
     def status=(new_status)
-      @status = new_status
-      model.document = document.to_json
+      @document = document.with(status: new_status)
     end
 
     def to_model = model
@@ -92,8 +83,9 @@ module BurnUnit
       @cached_players ||= model.players.map { |player| Player.new(player) }
     end
 
-    def document = { question:, status: }
-
-    def json_document = model.parsed_document #: json_document
+    def document
+      parsed_document = model.parsed_document #: Document::json
+      @document ||= Document.parse(parsed_document)
+    end
   end
 end

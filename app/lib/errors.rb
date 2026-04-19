@@ -13,10 +13,9 @@ class Errors
     end
 
     def full_message
-      if attribute == :base
-        message
-      else
-        "#{ActiveSupport::Inflector.humanize(attribute)} #{message}"
+      case attribute
+      when :base then message
+      else "#{ActiveSupport::Inflector.humanize(attribute)} #{message}"
       end
     end
 

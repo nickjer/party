@@ -8,15 +8,14 @@ module LoadedQuestions
 
     class << self
       def build(question:)
-        document = {
-          question: NormalizedString.new(""),
-          guesses: Guesses.empty,
-          status: Status.polling
-        } #: document
-        game =
-          new(::Game.new(kind: :loaded_questions, document: document.to_json))
-        game.question = question
-        game
+        document = Document.new(
+          question: question,
+          status: Status.polling,
+          guesses_data: []
+        )
+        new(
+          ::Game.new(kind: :loaded_questions, document: document.to_json)
+        )
       end
 
       def find(id) = new(scope.find(id))
@@ -41,12 +40,12 @@ module LoadedQuestions
     end
 
     def guesses
-      @guesses ||= Guesses.parse(json_document.fetch(:guesses), players:)
+      @guesses ||= Guesses.parse(document.guesses_data, players:)
     end
 
     def guesses=(new_guesses)
       @guesses = new_guesses
-      model.document = document.to_json
+      @document = document.with(guesses_data: new_guesses.map(&:to_h))
     end
 
     def id = model.id
@@ -62,31 +61,24 @@ module LoadedQuestions
 
     def players = cached_players.sort
 
-    def question
-      @question ||= NormalizedString.new(json_document.fetch(:question))
-    end
+    def question = document.question
 
     def question=(new_question)
-      QUESTION_LENGTH.validate!(new_question)
-
-      @question = new_question
-      model.document = document.to_json
+      @document = document.with(question: new_question)
     end
 
     def save!
       ::Game.transaction do
+        model.document = document.to_json
         model.save! if model.changed?
         players.each(&:save!)
       end
     end
 
-    def status
-      @status ||= Status.parse(json_document.fetch(:status))
-    end
+    def status = document.status
 
     def status=(new_status)
-      @status = new_status
-      model.document = document.to_json
+      @document = document.with(status: new_status)
     end
 
     def to_model = model
@@ -112,8 +104,9 @@ module LoadedQuestions
       @cached_players ||= model.players.map { |player| Player.new(player) }
     end
 
-    def document = { question:, guesses:, status: }
-
-    def json_document = model.parsed_document #: json_document
+    def document
+      parsed_document = model.parsed_document #: Document::json
+      @document ||= Document.parse(parsed_document)
+    end
   end
 end

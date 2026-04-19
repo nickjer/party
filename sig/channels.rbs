@@ -15,6 +15,7 @@ module ApplicationCable
 end
 
 class PlayerChannel < ::ApplicationCable::Channel
+  extend Turbo::Streams::StreamName
   include Turbo::Streams::StreamName::ClassMethods
 
   def subscribed: () -> void

@@ -3,6 +3,7 @@
 # Player-level ActionCable channel for real-time game updates
 # and connection tracking.
 class PlayerChannel < ApplicationCable::Channel
+  extend Turbo::Streams::StreamName
   include Turbo::Streams::StreamName::ClassMethods
 
   def subscribed

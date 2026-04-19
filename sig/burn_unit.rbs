@@ -174,15 +174,11 @@ module BurnUnit
     def status=: (Status new_status) -> void
     def to_model: () -> ::Game
 
-    @document: Document
-    @cached_players: Array[Player]
-
     private
 
     attr_reader cached_players: Array[Player]
     attr_reader model: ::Game
-
-    def document: () -> Document
+    attr_reader document: Document
 
     class Document
       type json = {
@@ -301,13 +297,10 @@ module BurnUnit
     def vote=: (String? player_id) -> void
     def voted?: () -> bool
 
-    @document: Document
-
     private
 
     attr_reader model: ::Player
-
-    def document: () -> Document
+    attr_reader document: Document
 
     class Document
       type json = {

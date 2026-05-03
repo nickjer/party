@@ -41,7 +41,6 @@ class Player < ::ApplicationRecord
   def game=: (::Game) -> ::Game
   def game_id: () -> String
   def game_id=: (String) -> String
-  def online?: () -> bool
   def name: () -> ::NormalizedString
   def name=: (_ToS) -> String
   def name?: () -> bool
@@ -49,6 +48,7 @@ class Player < ::ApplicationRecord
   def user: () -> ::User
   def user=: (::User) -> ::User
   def user_id: () -> String
+  def user_id=: (String) -> String
 
   class ActiveRecord_Relation < ::ActiveRecord::Relation
     include ::_ActiveRecord_Relation[::Player, String]

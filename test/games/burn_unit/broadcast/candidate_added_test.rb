@@ -18,7 +18,7 @@ module BurnUnit
         ::PlayerConnections.instance.increment(bob.id)
 
         # Alice becoming candidate should broadcast to Bob
-        assert_turbo_stream_broadcasts bob.to_model, count: 1 do
+        assert_turbo_stream_broadcasts bob, count: 1 do
           CandidateAdded.new(game:, player: alice).call
         end
       end
@@ -30,7 +30,7 @@ module BurnUnit
         ::PlayerConnections.instance.increment(alice.id)
 
         # Alice becoming candidate should not broadcast to herself
-        assert_turbo_stream_broadcasts alice.to_model, count: 0 do
+        assert_turbo_stream_broadcasts alice, count: 0 do
           CandidateAdded.new(game:, player: alice).call
         end
       end
@@ -44,7 +44,7 @@ module BurnUnit
         ::PlayerConnections.instance.increment(alice.id)
 
         # Alice becoming candidate should not broadcast to offline Bob
-        assert_turbo_stream_broadcasts bob.to_model, count: 0 do
+        assert_turbo_stream_broadcasts bob, count: 0 do
           CandidateAdded.new(game:, player: alice).call
         end
       end
@@ -61,8 +61,8 @@ module BurnUnit
         ::PlayerConnections.instance.increment(charlie.id)
 
         # Alice becoming candidate should broadcast to Bob and Charlie
-        assert_turbo_stream_broadcasts bob.to_model, count: 1 do
-          assert_turbo_stream_broadcasts charlie.to_model, count: 1 do
+        assert_turbo_stream_broadcasts bob, count: 1 do
+          assert_turbo_stream_broadcasts charlie, count: 1 do
             CandidateAdded.new(game:, player: alice).call
           end
         end
@@ -75,7 +75,7 @@ module BurnUnit
 
         ::PlayerConnections.instance.increment(bob.id)
 
-        turbo_streams = capture_turbo_stream_broadcasts bob.to_model do
+        turbo_streams = capture_turbo_stream_broadcasts bob do
           CandidateAdded.new(game:, player: alice).call
         end
 

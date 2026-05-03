@@ -17,7 +17,7 @@ module BurnUnit
         ::PlayerConnections.instance.increment(non_judge.id)
 
         # Should broadcast to non-judge (round_frame + players div)
-        assert_turbo_stream_broadcasts non_judge.to_model, count: 2 do
+        assert_turbo_stream_broadcasts non_judge, count: 2 do
           RoundCompleted.new(game:).call
         end
       end
@@ -30,7 +30,7 @@ module BurnUnit
         ::PlayerConnections.instance.increment(judge.id)
 
         # Should not broadcast to judge
-        assert_turbo_stream_broadcasts judge.to_model, count: 0 do
+        assert_turbo_stream_broadcasts judge, count: 0 do
           RoundCompleted.new(game:).call
         end
       end
@@ -42,7 +42,7 @@ module BurnUnit
         # Non-judge is offline
 
         # Should not broadcast to offline player
-        assert_turbo_stream_broadcasts non_judge.to_model, count: 0 do
+        assert_turbo_stream_broadcasts non_judge, count: 0 do
           RoundCompleted.new(game:).call
         end
       end
@@ -56,8 +56,8 @@ module BurnUnit
         non_judges.each { |p| ::PlayerConnections.instance.increment(p.id) }
 
         # Should broadcast to all non-judges (round_frame + players div)
-        assert_turbo_stream_broadcasts non_judges.first.to_model, count: 2 do
-          assert_turbo_stream_broadcasts non_judges.second.to_model,
+        assert_turbo_stream_broadcasts non_judges.first, count: 2 do
+          assert_turbo_stream_broadcasts non_judges.second,
             count: 2 do
             RoundCompleted.new(game:).call
           end
@@ -70,7 +70,7 @@ module BurnUnit
 
         ::PlayerConnections.instance.increment(non_judge.id)
 
-        turbo_streams = capture_turbo_stream_broadcasts non_judge.to_model do
+        turbo_streams = capture_turbo_stream_broadcasts non_judge do
           RoundCompleted.new(game:).call
         end
 

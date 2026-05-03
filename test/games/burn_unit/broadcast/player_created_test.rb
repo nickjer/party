@@ -18,7 +18,7 @@ module BurnUnit
         ::PlayerConnections.instance.increment(bob.id)
 
         # Bob being created should broadcast to Alice
-        assert_turbo_stream_broadcasts alice.to_model, count: 1 do
+        assert_turbo_stream_broadcasts alice, count: 1 do
           PlayerCreated.new(game:, player: bob).call
         end
       end
@@ -33,7 +33,7 @@ module BurnUnit
         ::PlayerConnections.instance.increment(bob.id)
 
         # Bob being created should not broadcast to Bob himself
-        assert_turbo_stream_broadcasts bob.to_model, count: 0 do
+        assert_turbo_stream_broadcasts bob, count: 0 do
           PlayerCreated.new(game:, player: bob).call
         end
       end
@@ -47,7 +47,7 @@ module BurnUnit
         ::PlayerConnections.instance.increment(bob.id)
 
         # Bob being created should not broadcast to offline Alice
-        assert_turbo_stream_broadcasts alice.to_model, count: 0 do
+        assert_turbo_stream_broadcasts alice, count: 0 do
           PlayerCreated.new(game:, player: bob).call
         end
       end
@@ -65,8 +65,8 @@ module BurnUnit
 
         # Charlie being created should broadcast to Alice and Bob
         # but not to Charlie
-        assert_turbo_stream_broadcasts alice.to_model, count: 1 do
-          assert_turbo_stream_broadcasts bob.to_model, count: 1 do
+        assert_turbo_stream_broadcasts alice, count: 1 do
+          assert_turbo_stream_broadcasts bob, count: 1 do
             PlayerCreated.new(game:, player: charlie).call
           end
         end
@@ -79,7 +79,7 @@ module BurnUnit
 
         ::PlayerConnections.instance.increment(alice.id)
 
-        turbo_streams = capture_turbo_stream_broadcasts alice.to_model do
+        turbo_streams = capture_turbo_stream_broadcasts alice do
           PlayerCreated.new(game:, player: bob).call
         end
 

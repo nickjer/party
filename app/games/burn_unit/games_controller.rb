@@ -21,7 +21,7 @@ module BurnUnit
           player_name:,
           question: new_game.question
         ).call
-        game.save!
+        repo.save(game)
         redirect_to burn_unit_game_path(game.id)
       else
         render :new, locals: { new_game: }, status: :unprocessable_content
@@ -29,7 +29,7 @@ module BurnUnit
     end
 
     def show
-      game = Game.find(params[:id])
+      game = repo.find(params[:id])
       current_player = game.player_for(current_user.id)
 
       if current_player.nil?
@@ -60,7 +60,7 @@ module BurnUnit
     end
 
     def new_round
-      game = Game.find(params[:id])
+      game = repo.find(params[:id])
       current_player = game.player_for!(current_user.id)
       return head :forbidden if current_player.judge?
 
@@ -69,7 +69,7 @@ module BurnUnit
     end
 
     def create_round
-      game = Game.find(params[:id])
+      game = repo.find(params[:id])
       current_player = game.player_for!(current_user.id)
       return head :forbidden if current_player.judge?
 
@@ -84,7 +84,7 @@ module BurnUnit
           judge: current_player,
           question: new_round.question
         ).call
-        game.save!
+        repo.save(game)
         Broadcast::RoundCreated.new(game:).call
 
         vote_form = VoteForm.new(game:, current_player:,
@@ -99,14 +99,14 @@ module BurnUnit
     end
 
     def completed_round
-      game = Game.find(params[:id])
+      game = repo.find(params[:id])
       current_player = game.player_for!(current_user.id)
       return head :forbidden unless current_player.judge?
 
       completed_round_form = CompletedRoundForm.new(game:)
       if completed_round_form.valid?
         CompleteRound.new(game:).call
-        game.save!
+        repo.save(game)
         Broadcast::RoundCompleted.new(game:).call
         render :completed, locals: { game:, current_player: }
       else
@@ -133,8 +133,10 @@ module BurnUnit
       return if player.playing?
 
       player.playing = true
-      player.save!
+      repo.save(game)
       Broadcast::CandidateAdded.new(game:, player:).call
     end
+
+    def repo = @repo ||= GameRepo.new
   end
 end

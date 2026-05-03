@@ -13,5 +13,9 @@ FactoryBot.define do
         user_id: user.id, name: PlayerName.parse(name), judge:, playing:
       )
     end
+
+    to_create do |_player, evaluator|
+      BurnUnit::GameRepo.new.save(evaluator.game)
+    end
   end
 end

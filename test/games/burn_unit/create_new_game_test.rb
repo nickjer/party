@@ -40,8 +40,8 @@ module BurnUnit
       game = CreateNewGame.new(user_id: user.id,
         player_name: PlayerName.parse("Alice"), question:).call
 
-      assert_predicate game.to_model, :new_record?
-      assert_predicate game.judge.to_model, :new_record?
+      assert_raises(ActiveRecord::RecordNotFound) { GameRepo.new.find(game.id) }
+      assert_not ::Player.exists?(game_id: game.id)
     end
 
     test "#call persists game and player data after save" do
@@ -50,12 +50,9 @@ module BurnUnit
 
       game = CreateNewGame.new(user_id: user.id,
         player_name: PlayerName.parse("Alice"), question:).call
-      game.save!
+      GameRepo.new.save(game)
 
-      assert_not_predicate game.to_model, :new_record?
-      assert_not_predicate game.judge.to_model, :new_record?
-
-      reloaded_game = Game.find(game.id)
+      reloaded_game = GameRepo.new.find(game.id)
       assert_equal "What is your favorite color?", reloaded_game.question.to_s
       assert_predicate reloaded_game.status, :polling?
 

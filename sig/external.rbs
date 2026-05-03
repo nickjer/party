@@ -61,3 +61,9 @@ module ActiveRecord
     include GlobalID::Identification
   end
 end
+
+module URI
+  class GID
+    def self.build: (Hash[Symbol, untyped] components) -> URI::GID
+  end
+end

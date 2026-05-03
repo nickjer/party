@@ -45,7 +45,11 @@ module ActiveSupport
     end
 
     def reload(game:)
-      game.class.find(game.id)
+      case game
+      when LoadedQuestions::Game then LoadedQuestions::GameRepo.new.find(game.id)
+      when BurnUnit::Game        then BurnUnit::GameRepo.new.find(game.id)
+      else raise ArgumentError, "Unsupported game type: #{game.class}"
+      end
     end
   end
 end

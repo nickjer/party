@@ -17,7 +17,7 @@ module LoadedQuestions
         ::PlayerConnections.instance.increment(non_guesser.id)
 
         # Should broadcast to non-guesser
-        turbo_streams = capture_turbo_stream_broadcasts non_guesser.to_model do
+        turbo_streams = capture_turbo_stream_broadcasts non_guesser do
           RoundCreated.new(game:).call
         end
 
@@ -36,7 +36,7 @@ module LoadedQuestions
         ::PlayerConnections.instance.increment(guesser.id)
 
         # Should not broadcast to guesser
-        assert_turbo_stream_broadcasts guesser.to_model, count: 0 do
+        assert_turbo_stream_broadcasts guesser, count: 0 do
           RoundCreated.new(game:).call
         end
       end
@@ -48,7 +48,7 @@ module LoadedQuestions
         # Non-guesser is offline
 
         # Should not broadcast to offline player
-        assert_turbo_stream_broadcasts non_guesser.to_model, count: 0 do
+        assert_turbo_stream_broadcasts non_guesser, count: 0 do
           RoundCreated.new(game:).call
         end
       end
@@ -63,8 +63,8 @@ module LoadedQuestions
 
         # Should broadcast to all non-guessers
         # (2 turbo-stream actions per player)
-        assert_turbo_stream_broadcasts non_guessers.first.to_model, count: 2 do
-          assert_turbo_stream_broadcasts non_guessers.second.to_model,
+        assert_turbo_stream_broadcasts non_guessers.first, count: 2 do
+          assert_turbo_stream_broadcasts non_guessers.second,
             count: 2 do
             RoundCreated.new(game:).call
           end

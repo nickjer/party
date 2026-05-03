@@ -6,10 +6,6 @@ interface _ToGidParam
   def to_gid_param: () -> String
 end
 
-interface _ToModel
-  def to_model: () -> ActiveRecord::Base
-end
-
 interface _ToParam
   def to_param: () -> String
 end
@@ -67,7 +63,7 @@ class PlayerConnections
   attr_reader connection_map: Concurrent::Map[String, Integer]
 end
 
-class PlayerBroadcaster[T < _Online & _ToModel]
+class PlayerBroadcaster[T < _Online & _ToGidParam]
   def initialize: (players: Array[T]) -> void
   def broadcast: () { (T) -> String? } -> void
 

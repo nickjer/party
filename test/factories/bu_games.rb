@@ -8,6 +8,10 @@ FactoryBot.define do
       BurnUnit::Game.build(question:)
     end
 
+    to_create do |game|
+      BurnUnit::GameRepo.new.save(game)
+    end
+
     trait :with_judge do
       transient do
         judge_user { association :user }

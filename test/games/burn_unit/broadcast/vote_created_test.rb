@@ -18,8 +18,8 @@ module BurnUnit
         ::PlayerConnections.instance.increment(bob.id)
 
         # Alice creating vote should broadcast to both Alice and Bob
-        assert_turbo_stream_broadcasts alice.to_model, count: 1 do
-          assert_turbo_stream_broadcasts bob.to_model, count: 1 do
+        assert_turbo_stream_broadcasts alice, count: 1 do
+          assert_turbo_stream_broadcasts bob, count: 1 do
             VoteCreated.new(game:, player: alice).call
           end
         end
@@ -34,7 +34,7 @@ module BurnUnit
         ::PlayerConnections.instance.increment(alice.id)
 
         # Alice creating vote should not broadcast to offline Bob
-        assert_turbo_stream_broadcasts bob.to_model, count: 0 do
+        assert_turbo_stream_broadcasts bob, count: 0 do
           VoteCreated.new(game:, player: alice).call
         end
       end
@@ -46,7 +46,7 @@ module BurnUnit
 
         ::PlayerConnections.instance.increment(bob.id)
 
-        turbo_streams = capture_turbo_stream_broadcasts bob.to_model do
+        turbo_streams = capture_turbo_stream_broadcasts bob do
           VoteCreated.new(game:, player: alice).call
         end
 

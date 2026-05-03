@@ -76,7 +76,7 @@ module BurnUnit
 
       player = game.add_player(user_id: user.id,
         name: PlayerName.parse("Alice"))
-      game.save!
+      GameRepo.new.save(game)
 
       game_after = reload(game:)
       reloaded_player = game_after.player_for(user.id)
@@ -206,7 +206,7 @@ module BurnUnit
       new_question = NormalizedString.new("What is your favorite animal?")
 
       game.question = new_question
-      game.save!
+      GameRepo.new.save(game)
 
       reloaded_game = reload(game:)
 
@@ -243,7 +243,7 @@ module BurnUnit
       assert_predicate game.status, :polling?
 
       game.status = Game::Status.completed
-      game.save!
+      GameRepo.new.save(game)
 
       reloaded_game = reload(game:)
 

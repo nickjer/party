@@ -39,7 +39,7 @@ module BurnUnit
       game = build(:bu_game)
 
       player = game.add_player(user_id: user.id,
-        name: NormalizedString.new("Alice"))
+        name: PlayerName.parse("Alice"))
 
       assert_equal user.id, player.user_id
       assert_equal "Alice", player.name.to_s
@@ -53,7 +53,7 @@ module BurnUnit
       question = NormalizedString.new("What is your favorite color?")
       game = Game.build(question:)
       player = game.add_player(user_id: user.id,
-        name: NormalizedString.new("Alice"), judge: true, playing: true)
+        name: PlayerName.parse("Alice"), judge: true, playing: true)
 
       assert_predicate player, :judge?
       assert_equal player, game.judge
@@ -64,7 +64,7 @@ module BurnUnit
         judge_name: "David")
       user = build(:user)
 
-      game.add_player(user_id: user.id, name: NormalizedString.new("Bob"))
+      game.add_player(user_id: user.id, name: PlayerName.parse("Bob"))
 
       player_names = game.players.map(&:name).map(&:to_s)
       assert_equal %w[Alice Bob Charlie David], player_names
@@ -75,7 +75,7 @@ module BurnUnit
       game = create(:bu_game)
 
       player = game.add_player(user_id: user.id,
-        name: NormalizedString.new("Alice"))
+        name: PlayerName.parse("Alice"))
       game.save!
 
       game_after = reload(game:)
@@ -92,7 +92,7 @@ module BurnUnit
       user_id = existing_player.user_id
 
       error = assert_raises(RuntimeError) do
-        game.add_player(user_id:, name: NormalizedString.new("Bob"))
+        game.add_player(user_id:, name: PlayerName.parse("Bob"))
       end
 
       assert_equal "Player already exists for user", error.message
@@ -155,7 +155,7 @@ module BurnUnit
     test "#player_for returns player for given user_id" do
       user = build(:user)
       game = build(:bu_game)
-      game.add_player(user_id: user.id, name: NormalizedString.new("Alice"))
+      game.add_player(user_id: user.id, name: PlayerName.parse("Alice"))
 
       player = game.player_for(user.id)
 
@@ -166,7 +166,7 @@ module BurnUnit
     test "#player_for! returns player for given user_id" do
       user = build(:user)
       game = build(:bu_game)
-      game.add_player(user_id: user.id, name: NormalizedString.new("Alice"))
+      game.add_player(user_id: user.id, name: PlayerName.parse("Alice"))
 
       player = game.player_for!(user.id)
 
@@ -194,7 +194,7 @@ module BurnUnit
 
       # Update a player's name without saving
       alice = game.players.first
-      alice.name = NormalizedString.new("Zoe")
+      alice.name = PlayerName.parse("Zoe")
 
       # Verify players are still sorted dynamically
       player_names_after = game.players.map(&:name).map(&:to_s)

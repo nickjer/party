@@ -1,30 +1,31 @@
 # frozen_string_literal: true
 
 module LoadedQuestions
-  # Aggregate for a Loaded Questions game. AR-ignorant; persistence flows
-  # through GameRepo.
+  # Aggregate for a Loaded Questions game. Persistence goes through GameRepo.
+  # Identity methods delegate to ::Game for Rails interop (dom_id, GlobalID).
   class Game
     QUESTION_LENGTH = LengthValidator.new(min: 3, max: 160, field: :question)
 
     class << self
-      def build(question:, id: GameRepo.generate_id)
+      def build(question:, id: nil)
+        id ||= GameRepo.generate_id
         document = Document.new(
           question: question,
           status: Status.polling,
           guesses_data: []
         )
-        new(id:, document:, players: [], guesses: Guesses.empty)
+        new(id:, document:, players: [])
       end
     end
 
     # @dynamic id
     attr_reader :id
 
-    def initialize(id:, document:, players:, guesses: nil)
+    def initialize(id:, document:, players:)
       @id = id
       @document = document
       @players = players
-      @guesses = guesses || Guesses.parse(document.guesses_data, players:)
+      @guesses = Guesses.parse(document.guesses_data, players:)
     end
 
     def find_player(id)

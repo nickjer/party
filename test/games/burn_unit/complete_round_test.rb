@@ -116,9 +116,9 @@ module BurnUnit
       alice_id = game.players.find { |p| p.name.to_s == "Alice" }.id
 
       CompleteRound.new(game:).call
-      GameRepo.save(game)
+      GameRepo.new.save(game)
 
-      reloaded_game = GameRepo.find(game.id)
+      reloaded_game = GameRepo.new.find(game.id)
       assert_predicate reloaded_game.status, :completed?
 
       bob = reloaded_game.players.find { |p| p.id == bob_id }

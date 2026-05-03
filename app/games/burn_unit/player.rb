@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 module BurnUnit
-  # Aggregate for a Burn Unit player. AR-ignorant; persistence flows through
-  # GameRepo (via the parent game).
+  # Aggregate for a Burn Unit player. Persistence goes through GameRepo
+  # (via the parent game). Identity methods delegate to ::Player for Rails.
   class Player
     class << self
       def build(game_id:, user_id:, name:, judge: false, playing: false,

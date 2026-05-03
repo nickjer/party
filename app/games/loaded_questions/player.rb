@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 module LoadedQuestions
-  # Aggregate for a Loaded Questions player. AR-ignorant; persistence flows
-  # through GameRepo (via the parent game).
+  # Aggregate for a Loaded Questions player. Persistence goes through GameRepo
+  # (via the parent game). Identity methods delegate to ::Player for Rails.
   class Player
     ANSWER_LENGTH = LengthValidator.new(min: 3, max: 80, field: :answer)
 

@@ -33,7 +33,7 @@ module LoadedQuestions
 
     QUESTION_LENGTH: LengthValidator
 
-    def self.build: (question: NormalizedString, ?id: String) -> Game
+    def self.build: (question: NormalizedString, ?id: String?) -> Game
 
     attr_reader id: String
     attr_reader guesses: Guesses
@@ -42,8 +42,7 @@ module LoadedQuestions
     def initialize: (
       id: String,
       document: Document,
-      players: Array[Player],
-      ?guesses: Guesses?
+      players: Array[Player]
     ) -> void
 
     def guesser: () -> Player
@@ -270,6 +269,8 @@ module LoadedQuestions
 
     private
 
+    attr_reader repo: GameRepo
+
     def new_game_params: () -> ::ActionController::Parameters
     def new_round_params: () -> ::ActionController::Parameters
     def assign_guess_params: () -> ::ActionController::Parameters
@@ -303,18 +304,23 @@ module LoadedQuestions
 
   class GameRepo
     def self.generate_id: () -> String
-    def self.find: (String id) -> Game
-    def self.save: (Game game) -> void
+
+    def initialize: () -> void
+    def find: (String id) -> Game
+    def save: (Game game) -> void
 
     private
 
-    def self.scope: () -> ::Game::ActiveRecord_Relation
-    def self.save_players: (Game game) -> void
+    attr_reader player_repo: PlayerRepo
+
+    def scope: () -> ::Game::ActiveRecord_Relation
+    def save_players: (Game game) -> void
   end
 
   class PlayerRepo
     def self.generate_id: () -> String
-    def self.hydrate: (::Player record) -> Player
+
+    def hydrate: (::Player record) -> Player
   end
 
   class CreateNewGame
@@ -507,6 +513,8 @@ module LoadedQuestions
     def answer: () -> untyped
 
     private
+
+    attr_reader repo: GameRepo
 
     def answer_params: () -> ::ActionController::Parameters
     def new_player_params: () -> ::ActionController::Parameters

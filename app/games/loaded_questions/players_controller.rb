@@ -6,7 +6,7 @@ module LoadedQuestions
   class PlayersController < ApplicationController
     # GET /games/:game_id/player/new
     def new
-      game = GameRepo.find(params[:game_id])
+      game = repo.find(params[:game_id])
       current_player = game.player_for(current_user.id)
 
       if current_player
@@ -19,7 +19,7 @@ module LoadedQuestions
 
     # POST /games/:game_id/player
     def create
-      game = GameRepo.find(params[:game_id])
+      game = repo.find(params[:game_id])
       new_player = NewPlayerForm.new(game:, user_id: current_user.id,
         name: new_player_params[:name])
 
@@ -29,7 +29,7 @@ module LoadedQuestions
           user_id: current_user.id,
           name:
         )
-        GameRepo.save(game)
+        repo.save(game)
 
         Broadcast::PlayerCreated.new(game:, player:).call
 
@@ -41,7 +41,7 @@ module LoadedQuestions
 
     # GET /games/:game_id/player/edit
     def edit
-      game = GameRepo.find(params[:game_id])
+      game = repo.find(params[:game_id])
       current_player = game.player_for(current_user.id)
       return redirect_to_new_player(game) if current_player.nil?
 
@@ -51,7 +51,7 @@ module LoadedQuestions
 
     # PATCH/PUT /games/:game_id/player
     def update
-      game = GameRepo.find(params[:game_id])
+      game = repo.find(params[:game_id])
       current_player = game.player_for(current_user.id)
       return redirect_to_new_player(game) if current_player.nil?
 
@@ -60,7 +60,7 @@ module LoadedQuestions
       if edit_player.valid?
         new_name = edit_player.player_name #: ::PlayerName
         current_player.name = new_name
-        GameRepo.save(game)
+        repo.save(game)
         Broadcast::PlayerNameUpdated.new(game:, player: current_player).call
         redirect_to_game(game)
       else
@@ -71,7 +71,7 @@ module LoadedQuestions
 
     # PATCH /games/:game_id/player/answer
     def answer
-      game = GameRepo.find(params[:game_id])
+      game = repo.find(params[:game_id])
       current_player = game.player_for(current_user.id)
       return redirect_to_new_player(game) if current_player.nil?
 
@@ -79,7 +79,7 @@ module LoadedQuestions
       if answer_form.valid?
         had_answer = current_player.answered?
         current_player.answer = answer_form.answer
-        GameRepo.save(game)
+        repo.save(game)
         unless had_answer
           Broadcast::AnswerCreated.new(game:,
             player: current_player).call
@@ -113,5 +113,7 @@ module LoadedQuestions
     def redirect_to_new_player(game)
       redirect_to(new_loaded_questions_game_player_path(game.id))
     end
+
+    def repo = @repo ||= GameRepo.new
   end
 end

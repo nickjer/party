@@ -1,13 +1,14 @@
 # frozen_string_literal: true
 
 module BurnUnit
-  # Aggregate for a Burn Unit game. AR-ignorant; persistence flows through
-  # GameRepo.
+  # Aggregate for a Burn Unit game. Persistence goes through GameRepo.
+  # Identity methods delegate to ::Game for Rails interop (dom_id, GlobalID).
   class Game
     QUESTION_LENGTH = LengthValidator.new(min: 3, max: 160, field: :question)
 
     class << self
-      def build(question:, id: GameRepo.generate_id)
+      def build(question:, id: nil)
+        id ||= GameRepo.generate_id
         document = Document.new(question: question, status: Status.polling)
         new(id:, document:, players: [])
       end

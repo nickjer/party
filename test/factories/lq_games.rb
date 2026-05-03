@@ -9,7 +9,7 @@ FactoryBot.define do
     end
 
     to_create do |game|
-      LoadedQuestions::GameRepo.save(game)
+      LoadedQuestions::GameRepo.new.save(game)
     end
 
     trait :with_guesser do

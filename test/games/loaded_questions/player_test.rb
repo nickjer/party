@@ -10,7 +10,7 @@ module LoadedQuestions
       new_answer = Answer.build(value: "Blue")
 
       player.answer = new_answer
-      GameRepo.save(game)
+      GameRepo.new.save(game)
 
       reloaded_game = reload(game:)
       reloaded_player = reloaded_game.find_player(player.id)
@@ -51,7 +51,7 @@ module LoadedQuestions
       assert_not_predicate player, :guesser?
 
       player.guesser = true
-      GameRepo.save(game)
+      GameRepo.new.save(game)
 
       reloaded_game = reload(game:)
       reloaded_player = reloaded_game.find_player(player.id)
@@ -64,7 +64,7 @@ module LoadedQuestions
       player = create(:lq_player, game:)
 
       player.name = PlayerName.parse("NewName")
-      GameRepo.save(game)
+      GameRepo.new.save(game)
 
       reloaded_game = reload(game:)
       reloaded_player = reloaded_game.find_player(player.id)
@@ -79,7 +79,7 @@ module LoadedQuestions
       assert_predicate player, :answered?
 
       player.reset_answer
-      GameRepo.save(game)
+      GameRepo.new.save(game)
 
       reloaded_game = reload(game:)
       reloaded_player = reloaded_game.find_player(player.id)
@@ -95,7 +95,7 @@ module LoadedQuestions
       assert_equal 0, player.score
 
       player.score = 5
-      GameRepo.save(game)
+      GameRepo.new.save(game)
 
       reloaded_game = reload(game:)
       reloaded_player = reloaded_game.find_player(player.id)

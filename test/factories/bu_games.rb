@@ -9,7 +9,7 @@ FactoryBot.define do
     end
 
     to_create do |game|
-      BurnUnit::GameRepo.save(game)
+      BurnUnit::GameRepo.new.save(game)
     end
 
     trait :with_judge do

@@ -120,7 +120,7 @@ end
    - Controllers (games_controller.rb, players_controller.rb)
 4. Add namespaced routes in `config/routes.rb`
 5. Create broadcast service objects in `broadcast/` directory
-6. Add case branch in `PlayerChannel#subscribed` and `#unsubscribed` for new game kind
+6. Create `adapter.rb` implementing the `_GameAdapter` interface (`on_player_connected`/`on_player_disconnected`) and add a branch in `PlayerChannel#adapter` for the new game kind
 7. Create RBS signatures in `sig/{game_name}.rbs`
 8. Create test files mirroring structure in `test/games/{game_name}/`
 9. Add factory definitions in `test/factories/`

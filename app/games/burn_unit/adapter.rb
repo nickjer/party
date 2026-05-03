@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module BurnUnit
-  # Implements the _GameAdapter interface for PlayerChannel dispatch.
+  # Game-side handler invoked by PlayerChannel on subscribe/unsubscribe.
   class Adapter
     def on_player_connected(player_id)
       Broadcast::PlayerConnected.new(player_id:).call

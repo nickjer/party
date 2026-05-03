@@ -3,6 +3,9 @@
 module LoadedQuestions
   # Form object for validating new game creation with player name and question.
   class NewGameForm
+    # @dynamic player_name_input
+    attr_reader :player_name_input
+
     # @dynamic player_name
     attr_reader :player_name
 
@@ -13,16 +16,15 @@ module LoadedQuestions
     attr_reader :errors
 
     def initialize(player_name: nil, question: nil)
-      @player_name = ::NormalizedString.new(player_name)
+      @player_name_input = ::NormalizedString.new(player_name)
       question ||= Questions.instance.question
       @question = ::NormalizedString.new(question)
       @errors = Errors.new
     end
 
     def valid?
-      if (error = ::PlayerName::LENGTH.error_for(player_name))
-        errors.add(:player_name, message: error)
-      end
+      @player_name = ::PlayerName.build(player_name_input, errors:,
+        attribute: :player_name)
 
       if (error = Game::QUESTION_LENGTH.error_for(question))
         errors.add(:question, message: error)

@@ -38,6 +38,7 @@ class PlayerName
   LENGTH: LengthValidator
 
   def self.parse: (_ToS raw) -> PlayerName
+  def self.build: (NormalizedString normalized, errors: Errors, ?attribute: Symbol) -> PlayerName?
 
   def initialize: (NormalizedString normalized) -> void
 

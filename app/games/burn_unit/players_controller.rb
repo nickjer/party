@@ -21,9 +21,10 @@ module BurnUnit
         name: new_player_params[:name])
 
       if new_player.valid?
+        name = new_player.player_name #: ::PlayerName
         player = game.add_player(
           user_id: current_user.id,
-          name: ::PlayerName.new(new_player.name)
+          name:
         )
         game.save!
 
@@ -52,7 +53,8 @@ module BurnUnit
       edit_player = EditPlayerForm.new(game:, current_player:,
         name: update_player_params[:name])
       if edit_player.valid?
-        current_player.name = ::PlayerName.new(edit_player.name)
+        new_name = edit_player.player_name #: ::PlayerName
+        current_player.name = new_name
         current_player.save!
         Broadcast::PlayerNameUpdated.new(game:, player: current_player).call
         redirect_to_game(game)

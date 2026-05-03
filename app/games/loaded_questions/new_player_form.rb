@@ -9,6 +9,9 @@ module LoadedQuestions
     # @dynamic name
     attr_reader :name
 
+    # @dynamic player_name
+    attr_reader :player_name
+
     # @dynamic errors
     attr_reader :errors
 
@@ -23,10 +26,8 @@ module LoadedQuestions
     end
 
     def valid?
-      if (error = ::PlayerName::LENGTH.error_for(name))
-        errors.add(:name, message: error)
-      else
-        player_name = ::PlayerName.new(name)
+      @player_name = ::PlayerName.build(name, errors:)
+      if player_name
         ::PlayerNameValidator.new(game:, name: player_name).apply_to(errors)
       end
       ::UniquePlayerValidator.new(game:, user_id:).apply_to(errors)

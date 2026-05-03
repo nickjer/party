@@ -349,7 +349,8 @@ module LoadedQuestions
 
   class NewGameForm
     attr_reader errors: ::Errors
-    attr_reader player_name: ::NormalizedString
+    attr_reader player_name_input: ::NormalizedString
+    attr_reader player_name: ::PlayerName?
     attr_reader question: ::NormalizedString
 
     def initialize: (
@@ -377,6 +378,7 @@ module LoadedQuestions
     attr_reader errors: ::Errors
     attr_reader game: Game
     attr_reader name: ::NormalizedString
+    attr_reader player_name: ::PlayerName?
     attr_reader user_id: String
 
     def initialize: (game: Game, user_id: String, ?name: _ToS?) -> void
@@ -389,6 +391,7 @@ module LoadedQuestions
     attr_reader game: Game
     attr_reader current_player: Player
     attr_reader name: ::NormalizedString
+    attr_reader player_name: ::PlayerName?
 
     def initialize: (game: Game, current_player: Player, ?name: _ToS?) -> void
 

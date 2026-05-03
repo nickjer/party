@@ -23,6 +23,7 @@
           <div class="mb-4">
             <%= form.label :player_name, "Your Name" %>
             <%= form.text_field :player_name,
+                value: new_game.player_name_input,
                 maxlength: PlayerName::LENGTH.max,
                 placeholder: "Enter your name",
                 autofocus: true %>

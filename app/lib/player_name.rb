@@ -6,6 +6,16 @@ class PlayerName
 
   class << self
     def parse(raw) = new(NormalizedString.new(raw))
+
+    # Returns a PlayerName, or adds a length error to `errors` and returns nil.
+    def build(normalized, errors:, attribute: :name)
+      if (error = LENGTH.error_for(normalized))
+        errors.add(attribute, message: error)
+        nil
+      else
+        new(normalized)
+      end
+    end
   end
 
   def initialize(normalized)

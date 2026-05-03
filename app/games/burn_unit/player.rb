@@ -70,7 +70,16 @@ module BurnUnit
     def model_name = ::Player.model_name
     def to_key = [id]
     def to_param = id
-    def to_global_id(options = {}) = ::Player.new(id:).to_global_id(options)
+
+    def to_global_id(options = {})
+      GlobalID.new(URI::GID.build(
+        app: options.fetch(:app) { GlobalID.app },
+        model_name: "Player",
+        model_id: id,
+        params: options.except(:app, :verifier, :for)
+      ))
+    end
+
     def to_gid_param(options = {}) = to_global_id(options).to_param
 
     private

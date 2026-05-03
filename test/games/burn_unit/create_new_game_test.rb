@@ -41,6 +41,7 @@ module BurnUnit
         player_name: PlayerName.parse("Alice"), question:).call
 
       assert_raises(ActiveRecord::RecordNotFound) { GameRepo.new.find(game.id) }
+      assert_not ::Player.exists?(game_id: game.id)
     end
 
     test "#call persists game and player data after save" do

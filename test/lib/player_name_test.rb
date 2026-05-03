@@ -45,6 +45,12 @@ class PlayerNameTest < ActiveSupport::TestCase
     assert_not_equal PlayerName.parse("Alice"), PlayerName.parse("Bob")
   end
 
+  test "#== returns false for non-PlayerName values" do
+    assert_not_equal PlayerName.parse("Alice"), "Alice"
+    assert_not_equal PlayerName.parse("Alice"), NormalizedString.new("Alice")
+    assert_not_equal PlayerName.parse("Alice"), nil
+  end
+
   test "#<=> orders alphabetically case-insensitively" do
     names = [
       PlayerName.parse("Charlie"),

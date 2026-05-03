@@ -25,7 +25,7 @@ class PlayerName
 
   def <=>(other) = normalized <=> other.normalized
 
-  def ==(other) = normalized == other.normalized
+  def ==(other) = other.is_a?(PlayerName) && normalized == other.normalized
 
   def eql?(other) = self == other
 

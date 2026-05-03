@@ -5,17 +5,17 @@ This file provides guidance to Claude Code when working with code in this reposi
 ## Quick Start
 
 ```bash
-bin/rails db:setup    # Create database and load schema
-bin/dev               # Start dev server (Procfile.dev)
-bin/rails test        # Run all tests (parallelized)
-bin/steep check       # Type check with RBS (run before committing)
+bin/setup              # Install deps, prepare DB, start dev server
+bin/dev                # Start dev server (Procfile.dev)
+bin/rails test         # Run all tests (parallelized)
+bin/steep check        # Type check with RBS (run before committing)
 ```
 
 ## Project Overview
 
 **Party** is a Rails 8 application - a composable, multi-game platform using document-oriented architecture where game-specific state is stored in JSON documents, allowing different game types to coexist without schema changes.
 
-**Tech Stack**: Rails 8, Hotwire (Turbo & Stimulus), SQLite, RBS + Steep, Tailwind CSS, Solid Cache/Queue/Cable, Kamal
+**Tech Stack**: Rails 8, Hotwire (Turbo & Stimulus), Bootstrap 5, SQLite, RBS + Steep, Solid Cache/Queue/Cable, Kamal
 
 **Testing**: Parallelized test suite with SimpleCov coverage, Mocha for stubbing.
 
@@ -29,83 +29,102 @@ Document-oriented design: **Games** have `kind` enum and `document` json for all
 
 Games live under `/app/games/{game_name}/`:
 
-**Wrapper Classes** (game.rb, player.rb): Encapsulate models, provide domain methods, use `parsed_document` memoization, implement `.build` pattern
-**Controllers**: Namespaced, handle Turbo Frame responses, use form objects, trigger broadcasts
-**Service Objects**: Builders for construction, state transitions for phase changes, broadcasts for real-time updates
-**Form Objects**: Validation with `Errors` collection, return `#valid?`
-**Domain Models**: Value objects for status and collections
+**Aggregate Wrappers** (`game.rb`, `player.rb`): AR-ignorant domain objects. Hold an immutable `Document` value object plus identity (`id`); mutations call `document.with(...)`. Implement `.build` for construction; identity methods (`to_param`, `to_global_id`, `model_name`) delegate to `::Game`/`::Player` for Rails interop.
+**Repos** (`game_repo.rb`, `player_repo.rb`): The only place that touches `::Game`/`::Player` ActiveRecord models. Provide `find(id)` and `save(aggregate)`.
+**Controllers**: Namespaced, instantiate `GameRepo` per request, handle Turbo Frame responses, use form objects, trigger broadcasts.
+**Form Objects**: Validation with `Errors` collection, return `#valid?`.
+**Broadcasts** (`broadcast/*.rb`): Per-event service objects that fan out Turbo Streams to online players.
+**Adapter** (`adapter.rb`): Implements the `_GameAdapter` interface; `PlayerChannel` dispatches connection events through it.
+**Domain Models** (`game/`, `player/`): Value objects for `Document`, `Status`, and game-specific collections.
 
 ### Shared Infrastructure (`/app/lib/`)
 
 **NormalizedString**: Immutable value object for text (NFKC normalization, case-insensitive comparison)
 **PlayerConnections**: Thread-safe singleton tracking online players with `increment/decrement/count`
 **Errors**: Lightweight error container with `#add(attribute, message:)`, `#added?`, `#empty?`, `#[]`
+**PlayerBroadcaster**: Iterates a player collection, sends Turbo Stream content to each online player via `Turbo::StreamsChannel`, and skips when the block returns `nil`.
+**LengthValidator**: Field-aware min/max length validator used by aggregates and forms.
 
 ### Real-time Communication
 
-**PlayerChannel**: GlobalID-based streams with connection tracking, first/last connection optimization.
+**PlayerChannel**: GlobalID-based streams with connection tracking and first/last connection optimization. Dispatches `on_player_connected` / `on_player_disconnected` to a per-game adapter (`LoadedQuestions::Adapter`, `BurnUnit::Adapter`) selected via `player.game.kind`.
 
-**PlayerBroadcaster**: Collaborator (`app/lib/`) that iterates a player collection, sends Turbo Stream content to each online player via `Turbo::StreamsChannel`, and skips when the block returns nil.
-
-**Broadcast Patterns**:
-1. **Player-Specific** (`player_id:`): Individual actions (joins, answers, connects)
-2. **Game-Wide** (`game_id:`): Phase transitions (round starts/ends), typically skip guesser
+**Broadcast Patterns**: Each broadcast is a small class under `{game}/broadcast/`. Initialize with the wrapper aggregates it needs (`game:`, optionally `player:`), build the player set, and use `PlayerBroadcaster` to render a turbo_stream template per online recipient. Skip with `next` (e.g., the guesser, or the originating player).
 
 ```ruby
-Broadcast::PlayerCreated.new(player_id:).call
-Broadcast::RoundCreated.new(game_id:).call
+Broadcast::PlayerCreated.new(game:, player:).call
+Broadcast::RoundCreated.new(game:).call
 ```
 
 ### Type System (RBS)
 
-Type signatures in `/sig/`: `models.rbs`, `lib.rbs`, `loaded_questions.rbs`, `controllers.rbs`, `external.rbs`
+Type signatures in `/sig/`: `models.rbs`, `lib.rbs`, `controllers.rbs`, `channels.rbs`, `validators.rbs`, `external.rbs`, `loaded_questions.rbs`, `burn_unit.rbs`.
 
 **Always run `bin/steep check` before committing.**
 
 ## Loaded Questions Game
 
-**Phases**: Polling (submit answers) → Guessing (match via drag-drop) → Completed (scored, new round)
+**Phases**: Polling (submit answers) → Guessing (drag-and-drop assignment) → Completed (scored, new round)
 
-**Documents**: Game has `{ question, status, guesses }`, Player has `{ answer, guesser, score }`
+**Documents**: Game has `{ question, status, guesses_data }`, Player has `{ answer, guesser, score }`
 
 **Key Classes**:
-- Wrappers: Game (`.build`, `.find`, `question`, `status`, `guesses`, `players`, `swap_guesses`), Player (`answer`, `guesser?`, `online?`, `score`)
-- Value Objects: Status (`polling?`, `guessing?`, `completed?`), Guesses (`swap`, `score`), GuessedAnswer (`correct?`)
-- Service Objects: CreateNewGame, CreateNewRound, BeginGuessingRound, CompleteRound
-- Forms: NewGameForm, NewPlayerForm, AnswerForm, EditPlayerForm, NewRoundForm, GuessingRoundForm, CompletedRoundForm
-- Broadcasts (9): PlayerCreated/Connected/Disconnected/NameUpdated/AnswerUpdated, RoundCreated/GuessingRoundStarted/AnswersSwapped/RoundCompleted
+- Aggregates: `Game` (`.build`, `question`, `status`, `guesses`, `players`, `add_player`, `assign_guess`, `begin_guessing`, `complete_round`, `start_new_round`), `Player` (`answer`, `guesser?`, `online?`, `score`)
+- Persistence: `GameRepo` (`find`, `save`, `generate_id`), `PlayerRepo` (`hydrate`, `generate_id`)
+- Value Objects: `Game::Document`, `Game::Status` (`polling?`, `guessing?`, `completed?`), `Game::Guesses` (`assign`, `score`, `complete?`, `for_completed_view`), `Game::GuessedAnswer`, `Game::Guesses::CompletedGuess` (`correct?`)
+- Forms: `NewGameForm`, `NewPlayerForm`, `EditPlayerForm`, `AnswerForm`, `NewRoundForm`, `GuessingRoundForm`, `CompletedRoundForm`
+- Broadcasts (9): `PlayerCreated`, `PlayerConnected`, `PlayerDisconnected`, `PlayerNameUpdated`, `AnswerCreated`, `RoundCreated`, `GuessingRoundStarted`, `GuessesUpdated`, `RoundCompleted`
 - Questions: Loaded from `config/loaded_questions/questions.yml` singleton
+
+## Burn Unit Game
+
+**Phases**: Polling (players submit candidates for the prompt) → Completed (judge picked a winner, scores updated)
+
+**Roles**: One **judge** per round (rotates), other players are **playing**.
+
+**Key Classes**:
+- Aggregates: `Game` (`.build`, `question`, `status`, `judge`, `players`, `add_player`, `start_new_round`, ...), `Player` (`judge?`, `playing?`, `vote`, `online?`, `score`)
+- Persistence: `GameRepo`, `PlayerRepo`
+- Forms: `NewGameForm`, `NewPlayerForm`, `EditPlayerForm`, `VoteForm`, `NewRoundForm`, `CompletedRoundForm`
+- Broadcasts: `PlayerCreated`, `PlayerConnected`, `PlayerDisconnected`, `PlayerNameUpdated`, `CandidateAdded`, `VoteCreated`, `RoundCreated`, `RoundCompleted`
+- Questions: Loaded from `config/burn_unit/questions.yml` singleton
 
 ## Development Patterns
 
-### Working with Wrapper Classes
+### Working with Aggregate Wrappers
 
 ```ruby
-game = LoadedQuestions::Game.build(question:)  # Build with .build
-game.question = new_question  # Setters update @ivar and model.document
-game.save!  # Saves model and all cached players in transaction
-game = LoadedQuestions::Game.find(id)  # Reload with .strict_loading
+repo = LoadedQuestions::GameRepo.new
+game = LoadedQuestions::Game.build(question:)        # Construct with .build
+game.add_player(user_id:, name:, guesser: true)     # Mutations live on the aggregate
+game.begin_guessing                                  # Phase transitions are aggregate methods
+repo.save(game)                                      # Repo persists game + all players in a transaction
+game = repo.find(id)                                 # Reload via repo (uses .strict_loading)
 ```
+
+Aggregates do **not** expose plain attribute setters for document fields — state changes flow through named operations (`start_new_round`, `assign_guess`, `complete_round`) that swap in a new `Document` via `document.with(...)`. Aggregates never touch ActiveRecord; only `GameRepo`/`PlayerRepo` do.
 
 ### Form Objects
 
 Use `Errors.new` (not `{}` or `[]`), call `errors.add(attribute, message:)` where attribute is positional and message is keyword. Use `:base` for non-field errors. Return `#valid?` checking `errors.empty?`.
 
-### Service Objects
+### Phase Transitions
 
-**Builders**: Initialize with params, return built (unsaved) wrappers, caller saves. Example: `CreateNewGame.new(user_id:, player_name:, question:).call`
-
-**State Transitions**: Initialize with wrapper, validate state, modify state, return wrapper (caller saves). Example: `BeginGuessingRound.new(game:).call`
+Single-method service objects have been collapsed into aggregate methods. To transition phases, call the method on the `Game` aggregate (`begin_guessing`, `complete_round`, `start_new_round`, `assign_guess`) and then `repo.save(game)`. Controllers handle that orchestration; broadcasts fire after the save.
 
 ### Creating Broadcast Service Objects
 
-Initialize with IDs (`player_id:` or `game_id:`), load wrapper with `.find`, compose a `PlayerBroadcaster` and call `broadcast` with a block yielding `current_player`. Skip players with `next` if needed. Render turbo_stream templates with locals.
+Initialize with the wrapper aggregates the broadcast needs (`game:`, optionally `player:`). Compose a `PlayerBroadcaster` with `game.players` and call `broadcast` with a block yielding `current_player`. Skip recipients with `next`. Render turbo_stream templates with locals.
 
 ```ruby
 players = game.players
 PlayerBroadcaster.new(players:).broadcast do |current_player|
   next if current_player.guesser?
-  ApplicationController.render("path/to/template", formats: [:turbo_stream], locals: { game:, current_player: })
+  ApplicationController.render(
+    "loaded_questions/games/round_created",
+    formats: [:turbo_stream],
+    locals: { game:, current_player: }
+  )
 end
 ```
 
@@ -114,13 +133,14 @@ end
 1. Add enum value to `Game::kind` in `app/models/game.rb`
 2. Create namespace under `app/games/{game_name}/`
 3. Implement core classes:
-   - Wrapper classes (game.rb, player.rb) with `.build` and `.find`
-   - Form objects for validation (*_form.rb)
-   - Service objects for building and state transitions
-   - Controllers (games_controller.rb, players_controller.rb)
+   - Aggregate wrappers (`game.rb`, `player.rb`) with `.build` and document-mutation methods
+   - Value objects in `game/` and `player/` (Document, Status, etc.)
+   - Repos (`game_repo.rb`, `player_repo.rb`) — the only place that touches `::Game`/`::Player`
+   - Form objects for validation (`*_form.rb`)
+   - Controllers (`games_controller.rb`, `players_controller.rb`)
 4. Add namespaced routes in `config/routes.rb`
 5. Create broadcast service objects in `broadcast/` directory
-6. Create `adapter.rb` implementing the `_GameAdapter` interface (`on_player_connected`/`on_player_disconnected`) and add a branch in `PlayerChannel#adapter` for the new game kind
+6. Create `adapter.rb` implementing the `_GameAdapter` interface (`on_player_connected` / `on_player_disconnected`) and add a branch in `PlayerChannel#adapter` for the new game kind
 7. Create RBS signatures in `sig/{game_name}.rbs`
 8. Create test files mirroring structure in `test/games/{game_name}/`
 9. Add factory definitions in `test/factories/`
@@ -147,11 +167,11 @@ bin/rails test path/to/file_test.rb:10  # Specific line
 
 ### Testing Broadcast Service Objects
 
-Include `Turbo::Broadcastable::TestHelper`, mark players online with `PlayerConnections.instance.increment(player_id)`. Use assertions:
+Include `Turbo::Broadcastable::TestHelper`, mark players online with `PlayerConnections.instance.increment(player_id)`. Pass the wrapper aggregate directly to the assertion (no `.to_model` — the wrapper itself is broadcastable):
 
 ```ruby
-assert_turbo_stream_broadcasts player.to_model, count: 1 do
-  Broadcast::SomeEvent.new(player_id:).call
+assert_turbo_stream_broadcasts alice, count: 1 do
+  Broadcast::SomeEvent.new(game:, player: alice).call
 end
 ```
 
@@ -168,13 +188,16 @@ end
 
 ### Factories
 
-`lq_game` factory builds wrappers. Nested factories: `lq_polling_game` (with players), `lq_matching_game` (guessing phase), `lq_completed_game` (scored). Traits: `:with_guesser`, `:with_players`, `:with_answers`.
+Per-game prefixes: `lq_*` for Loaded Questions, `bu_*` for Burn Unit. Factories build aggregate wrappers; persist with `repo.save(game)`.
+
+Loaded Questions: `lq_game` (base), `lq_polling_game`, `lq_matching_game` (guessing phase), `lq_completed_game`. Traits: `:with_guesser`, `:with_players`, `:with_answers`.
+
+Burn Unit: `bu_game` (base), `bu_polling_game`, `bu_completed_game`. Traits: `:with_judge`, `:with_players`.
 
 ```ruby
-create(:lq_polling_game, player_names: %w[Alice Bob])
-create(:lq_matching_game, player_names: %w[Alice Bob])
-game.players.find(&:guesser?)  # Find guesser
-game.save!  # Saves wrapper and cached players
+game = create(:lq_polling_game, player_names: %w[Alice Bob])
+game.players.find(&:guesser?)             # Find guesser
+LoadedQuestions::GameRepo.new.save(game)  # Persist mutations
 ```
 
 ## Coding Conventions

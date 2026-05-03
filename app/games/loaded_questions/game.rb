@@ -91,6 +91,8 @@ module LoadedQuestions
     end
 
     def start_new_round(question:, guesser:)
+      raise "Game must be in completed status" unless status.completed?
+
       @guesses = Guesses.empty
       @document = document.with(
         question:,

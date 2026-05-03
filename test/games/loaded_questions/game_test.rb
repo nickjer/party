@@ -295,5 +295,32 @@ module LoadedQuestions
       assert_match(/Question length must be between 3 and 160 characters/,
         error.message)
     end
+
+    test "#start_new_round raises error when question is too short" do
+      game = build(:lq_completed_game, player_names: %w[Alice Bob])
+      new_guesser = game.players.reject(&:guesser?).first
+      short_question = NormalizedString.new("AB")
+
+      error = assert_raises(ArgumentError) do
+        game.start_new_round(question: short_question, guesser: new_guesser)
+      end
+
+      assert_match(/Question length must be between 3 and 160 characters/,
+        error.message)
+    end
+
+    test "#start_new_round raises error when game is not in completed status" do
+      game = build(:lq_polling_game, player_names: %w[Alice Bob])
+      new_guesser = game.players.reject(&:guesser?).first
+      question = NormalizedString.new("What is your favorite animal?")
+
+      assert_predicate game.status, :polling?
+
+      error = assert_raises(RuntimeError) do
+        game.start_new_round(question:, guesser: new_guesser)
+      end
+
+      assert_equal "Game must be in completed status", error.message
+    end
   end
 end

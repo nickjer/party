@@ -65,6 +65,8 @@ module BurnUnit
     end
 
     def start_new_round(question:, judge:)
+      raise "Game must be in completed status" unless status.completed?
+
       @document = document.with(question:, status: Status.polling)
       players.each do |player|
         player.vote = nil

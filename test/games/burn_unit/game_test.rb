@@ -387,7 +387,7 @@ module BurnUnit
     end
 
     test "#start_new_round clears all player votes" do
-      game = build(:bu_polling_game,
+      game = build(:bu_completed_game,
         judge_name: "Judge",
         players: [
           { name: "Alice", vote_for: "Bob" },
@@ -525,6 +525,21 @@ module BurnUnit
 
       assert_match(/Question length must be between 3 and 160 characters/,
         error.message)
+    end
+
+    test "#start_new_round raises error when game is not in completed status" do
+      game = build(:bu_polling_game, judge_name: "Alice",
+        player_names: %w[Bob])
+      judge = game.judge
+      question = NormalizedString.new("What is your favorite animal?")
+
+      assert_predicate game.status, :polling?
+
+      error = assert_raises(RuntimeError) do
+        game.start_new_round(question:, judge:)
+      end
+
+      assert_equal "Game must be in completed status", error.message
     end
   end
 end

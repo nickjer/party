@@ -14,6 +14,11 @@ module ApplicationCable
   end
 end
 
+interface _GameAdapter
+  def on_player_connected: (String player_id) -> void
+  def on_player_disconnected: (String player_id) -> void
+end
+
 class PlayerChannel < ::ApplicationCable::Channel
   extend Turbo::Streams::StreamName
   include Turbo::Streams::StreamName::ClassMethods
@@ -23,6 +28,6 @@ class PlayerChannel < ::ApplicationCable::Channel
 
   private
 
-  attr_reader game_kind: Symbol
   attr_reader player: ::Player
+  attr_reader adapter: _GameAdapter
 end

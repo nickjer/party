@@ -1,4 +1,9 @@
 module BurnUnit
+  class Adapter
+    def on_player_connected: (String player_id) -> void
+    def on_player_disconnected: (String player_id) -> void
+  end
+
   module Broadcast
     class PlayerConnected
       def initialize: (player_id: String) -> void

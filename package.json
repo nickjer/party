@@ -2,8 +2,8 @@
   "name": "app",
   "private": true,
   "devDependencies": {
-    "@herb-tools/formatter": "^0.9.7",
-    "@herb-tools/linter": "^0.9.7",
+    "@herb-tools/formatter": "^0.10.1",
+    "@herb-tools/linter": "^0.10.1",
     "esbuild": "^0.28.0"
   },
   "scripts": {

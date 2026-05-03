@@ -16,11 +16,9 @@ module BurnUnit
 
       if new_game.valid?
         player_name = new_game.player_name #: ::PlayerName
-        game = CreateNewGame.new(
-          user_id: current_user.id,
-          player_name:,
-          question: new_game.question
-        ).call
+        game = Game.build(question: new_game.question)
+        game.add_player(user_id: current_user.id, name: player_name,
+          judge: true, playing: true)
         repo.save(game)
         redirect_to burn_unit_game_path(game.id)
       else
@@ -79,11 +77,8 @@ module BurnUnit
       )
 
       if new_round.valid?
-        CreateNewRound.new(
-          game:,
-          judge: current_player,
-          question: new_round.question
-        ).call
+        game.start_new_round(question: new_round.question,
+          judge: current_player)
         repo.save(game)
         Broadcast::RoundCreated.new(game:).call
 
@@ -105,7 +100,7 @@ module BurnUnit
 
       completed_round_form = CompletedRoundForm.new(game:)
       if completed_round_form.valid?
-        CompleteRound.new(game:).call
+        game.complete_round
         repo.save(game)
         Broadcast::RoundCompleted.new(game:).call
         render :completed, locals: { game:, current_player: }

@@ -39,11 +39,6 @@ module LoadedQuestions
     # @dynamic guesses
     attr_reader :guesses
 
-    def guesses=(new_guesses)
-      @guesses = new_guesses
-      @document = document.with(guesses_data: new_guesses.map(&:to_h))
-    end
-
     def player_for!(user_id)
       player_for(user_id) ||
         raise(ActiveRecord::RecordNotFound, "Couldn't find Player")
@@ -57,15 +52,7 @@ module LoadedQuestions
 
     def question = document.question
 
-    def question=(new_question)
-      @document = document.with(question: new_question)
-    end
-
     def status = document.status
-
-    def status=(new_status)
-      @document = document.with(status: new_status)
-    end
 
     def add_player(user_id:, name:, guesser: false)
       raise "Player already exists for user" if player_for(user_id)
@@ -76,7 +63,45 @@ module LoadedQuestions
     end
 
     def assign_guess(player_id:, answer_id:)
-      self.guesses = guesses.assign(player_id:, answer_id:)
+      @guesses = guesses.assign(player_id:, answer_id:)
+      @document = document.with(guesses_data: @guesses.map(&:to_h))
+    end
+
+    def begin_guessing
+      raise "Game must be in polling status" unless status.polling?
+
+      answered = players.select(&:answered?)
+      new_guesses = answered.map do |player|
+        GuessedAnswer.new(player:, guessed_player: nil)
+      end
+      @guesses = Guesses.new(guesses: new_guesses)
+      @document = document.with(
+        status: Status.guessing,
+        guesses_data: @guesses.map(&:to_h)
+      )
+      self
+    end
+
+    def complete_round
+      raise "Game must be in guessing status" unless status.guessing?
+
+      guesser.score += guesses.score
+      @document = document.with(status: Status.completed)
+      self
+    end
+
+    def start_new_round(question:, guesser:)
+      @guesses = Guesses.empty
+      @document = document.with(
+        question:,
+        status: Status.polling,
+        guesses_data: @guesses.map(&:to_h)
+      )
+      players.each do |player|
+        player.reset_answer
+        player.guesser = (player.id == guesser.id)
+      end
+      self
     end
 
     def document_json = document.to_json

@@ -46,16 +46,16 @@ module LoadedQuestions
     ) -> void
 
     def guesser: () -> Player
-    def guesses=: (Guesses new_guesses) -> void
     def find_player: (String id) -> Player
     def player_for!: (String user_id) -> Player
     def player_for: (String user_id) -> Player?
     def question: () -> NormalizedString
-    def question=: (NormalizedString new_question) -> void
     def status: () -> Status
-    def status=: (Status new_status) -> void
     def add_player: (user_id: String, name: ::PlayerName, ?guesser: bool) -> Player
     def assign_guess: (player_id: String, answer_id: String?) -> void
+    def begin_guessing: () -> self
+    def complete_round: () -> self
+    def start_new_round: (question: NormalizedString, guesser: Player) -> self
     def document_json: () -> String
 
     def model_name: () -> ::ActiveModel::Name
@@ -321,58 +321,6 @@ module LoadedQuestions
     def self.generate_id: () -> String
 
     def hydrate: (::Player record) -> Player
-  end
-
-  class CreateNewGame
-    def initialize: (
-      user_id: String,
-      player_name: ::PlayerName,
-      question: ::NormalizedString
-    ) -> void
-
-    def call: () -> Game
-
-    private
-
-    attr_reader user_id: String
-    attr_reader player_name: ::PlayerName
-    attr_reader question: ::NormalizedString
-  end
-
-  class BeginGuessingRound
-    def initialize: (game: Game) -> void
-
-    def call: () -> Game
-
-    private
-
-    attr_reader game: Game
-  end
-
-  class CompleteRound
-    def initialize: (game: Game) -> void
-
-    def call: () -> Game
-
-    private
-
-    attr_reader game: Game
-  end
-
-  class CreateNewRound
-    def initialize: (
-      game: Game,
-      guesser: Player,
-      question: ::NormalizedString
-    ) -> void
-
-    def call: () -> Game
-
-    private
-
-    attr_reader game: Game
-    attr_reader guesser: Player
-    attr_reader question: ::NormalizedString
   end
 
   class NewGameForm

@@ -15,9 +15,10 @@ module BurnUnit
       )
 
       if new_game.valid?
+        player_name = new_game.player_name #: ::PlayerName
         game = CreateNewGame.new(
           user_id: current_user.id,
-          player_name: new_game.player_name,
+          player_name:,
           question: new_game.question
         ).call
         game.save!

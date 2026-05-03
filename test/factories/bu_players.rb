@@ -9,7 +9,9 @@ FactoryBot.define do
     game { association :bu_game }
 
     initialize_with do
-      game.add_player(user_id: user.id, name:, judge:, playing:)
+      game.add_player(
+        user_id: user.id, name: PlayerName.parse(name), judge:, playing:
+      )
     end
   end
 end

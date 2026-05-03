@@ -76,8 +76,8 @@ module BurnUnit
       user_id = "user1"
       form = NewPlayerForm.new(game:, user_id:, name: "Bob")
 
-      assert(game.players.any? { |player| player.name == form.name })
       assert_not_predicate form, :valid?
+      assert(game.players.any? { |player| player.name == form.player_name })
       assert form.errors.added?(:name, message: "has already been taken")
     end
 
@@ -87,8 +87,8 @@ module BurnUnit
       user_id = "user1"
       form = NewPlayerForm.new(game:, user_id:, name: "bob")
 
-      assert(game.players.any? { |player| player.name == form.name })
       assert_not_predicate form, :valid?
+      assert(game.players.any? { |player| player.name == form.player_name })
       assert form.errors.added?(:name, message: "has already been taken")
     end
 

@@ -97,16 +97,6 @@ module BurnUnit
     attr_reader game: Game
   end
 
-  class CompleteRound
-    def initialize: (game: Game) -> void
-
-    def call: () -> Game
-
-    private
-
-    attr_reader game: Game
-  end
-
   class GameRepo
     def self.generate_id: () -> String
 
@@ -126,38 +116,6 @@ module BurnUnit
     def self.generate_id: () -> String
 
     def hydrate: (::Player record) -> Player
-  end
-
-  class CreateNewGame
-    def initialize: (
-      user_id: String,
-      player_name: ::PlayerName,
-      question: ::NormalizedString
-    ) -> void
-
-    def call: () -> Game
-
-    private
-
-    attr_reader user_id: String
-    attr_reader player_name: ::PlayerName
-    attr_reader question: ::NormalizedString
-  end
-
-  class CreateNewRound
-    def initialize: (
-      game: Game,
-      judge: Player,
-      question: ::NormalizedString
-    ) -> void
-
-    def call: () -> Game
-
-    private
-
-    attr_reader game: Game
-    attr_reader judge: Player
-    attr_reader question: ::NormalizedString
   end
 
   class EditPlayerForm
@@ -193,9 +151,9 @@ module BurnUnit
     def player_for: (String user_id) -> Player?
     def player_for!: (String user_id) -> Player
     def question: () -> NormalizedString
-    def question=: (NormalizedString new_question) -> void
     def status: () -> Status
-    def status=: (Status new_status) -> void
+    def complete_round: () -> self
+    def start_new_round: (question: NormalizedString, judge: Player) -> self
     def document_json: () -> String
 
     def model_name: () -> ::ActiveModel::Name

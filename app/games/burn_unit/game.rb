@@ -52,14 +52,28 @@ module BurnUnit
 
     def question = document.question
 
-    def question=(new_question)
-      @document = document.with(question: new_question)
-    end
-
     def status = document.status
 
-    def status=(new_status)
-      @document = document.with(status: new_status)
+    def complete_round
+      raise "Game must be in polling status" unless status.polling?
+
+      candidates.each do |candidate|
+        candidate.player.score += 1 if candidate.winner?
+      end
+      @document = document.with(status: Status.completed)
+      self
+    end
+
+    def start_new_round(question:, judge:)
+      raise "Game must be in completed status" unless status.completed?
+
+      @document = document.with(question:, status: Status.polling)
+      players.each do |player|
+        player.vote = nil
+        player.judge = (player == judge)
+        player.playing = player.online? || player.judge?
+      end
+      self
     end
 
     def document_json = document.to_json

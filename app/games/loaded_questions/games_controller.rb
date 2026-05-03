@@ -19,11 +19,9 @@ module LoadedQuestions
 
       if new_game.valid?
         player_name = new_game.player_name #: ::PlayerName
-        game = CreateNewGame.new(
-          user_id: current_user.id,
-          player_name:,
-          question: new_game.question
-        ).call
+        game = Game.build(question: new_game.question)
+        game.add_player(user_id: current_user.id, name: player_name,
+          guesser: true)
         repo.save(game)
         redirect_to loaded_questions_game_path(game.id)
       else
@@ -89,11 +87,8 @@ module LoadedQuestions
       )
 
       if new_round.valid?
-        CreateNewRound.new(
-          game:,
-          guesser: current_player,
-          question: new_round.question
-        ).call
+        game.start_new_round(question: new_round.question,
+          guesser: current_player)
         repo.save(game)
         Broadcast::RoundCreated.new(game:).call
 
@@ -114,7 +109,7 @@ module LoadedQuestions
 
       completed_round_form = CompletedRoundForm.new(game:)
       if completed_round_form.valid?
-        CompleteRound.new(game:).call
+        game.complete_round
         repo.save(game)
         Broadcast::RoundCompleted.new(game:).call
         render :completed, locals: { game:, current_player: }
@@ -133,7 +128,7 @@ module LoadedQuestions
 
       guessing_round_form = GuessingRoundForm.new(game:)
       if guessing_round_form.valid?
-        BeginGuessingRound.new(game:).call
+        game.begin_guessing
         repo.save(game)
         Broadcast::GuessingRoundStarted.new(game:).call
         completed_round_form = CompletedRoundForm.new(game:)

@@ -201,53 +201,345 @@ module BurnUnit
       assert_equal %w[Bob Charlie Zoe], player_names_after
     end
 
-    test "#question= persists to database after save" do
-      game = create(:bu_game)
-      new_question = NormalizedString.new("What is your favorite animal?")
-
-      game.question = new_question
-      GameRepo.new.save(game)
-
-      reloaded_game = reload(game:)
-
-      assert_equal "What is your favorite animal?", reloaded_game.question.to_s
-    end
-
-    test "#question= raises error when question is too long" do
-      game = build(:bu_game)
-      long_question = NormalizedString.new("a" * 161)
-
-      error = assert_raises(ArgumentError) do
-        game.question = long_question
-      end
-
-      assert_match(/Question length must be between 3 and 160 characters/,
-        error.message)
-    end
-
-    test "#question= raises error when question is too short" do
-      game = build(:bu_game)
-      short_question = NormalizedString.new("AB")
-
-      error = assert_raises(ArgumentError) do
-        game.question = short_question
-      end
-
-      assert_match(/Question length must be between 3 and 160 characters/,
-        error.message)
-    end
-
-    test "#status= persists to database after save" do
-      game = create(:bu_game)
+    test "#complete_round changes game status from polling to completed" do
+      game = build(:bu_polling_game, judge_name: "Alice",
+        player_names: %w[Bob])
 
       assert_predicate game.status, :polling?
 
-      game.status = Game::Status.completed
+      game.complete_round
+
+      assert_predicate game.status, :completed?
+    end
+
+    test "#complete_round awards point to single winner" do
+      game = build(:bu_polling_game,
+        judge_name: "Judge",
+        players: [
+          { name: "Alice", vote_for: "Bob" },
+          { name: "Bob", vote_for: "Charlie" },
+          { name: "Charlie", vote_for: "Bob" }
+        ])
+      bob = game.players.find { |p| p.name.to_s == "Bob" }
+      alice = game.players.find { |p| p.name.to_s == "Alice" }
+      charlie = game.players.find { |p| p.name.to_s == "Charlie" }
+      judge = game.judge
+
+      assert_equal 0, bob.score
+
+      game.complete_round
+
+      # Bob has 2 votes (from Alice and Charlie), everyone else has fewer
+      assert_equal 1, bob.score
+      assert_equal 0, alice.score
+      assert_equal 0, charlie.score
+      assert_equal 0, judge.score
+    end
+
+    test "#complete_round awards points to multiple winners when tied" do
+      game = build(:bu_polling_game,
+        judge_name: "Judge",
+        players: [
+          { name: "Alice", vote_for: "Bob" },
+          { name: "Bob", vote_for: "Alice" },
+          { name: "Charlie", vote_for: "Judge" }
+        ])
+      alice = game.players.find { |p| p.name.to_s == "Alice" }
+      bob = game.players.find { |p| p.name.to_s == "Bob" }
+      charlie = game.players.find { |p| p.name.to_s == "Charlie" }
+      judge = game.judge
+
+      game.complete_round
+
+      # Alice, Bob, and Judge all have 1 vote - all tied for winner
+      assert_equal 1, alice.score
+      assert_equal 1, bob.score
+      assert_equal 0, charlie.score
+      assert_equal 1, judge.score
+    end
+
+    test "#complete_round awards no points when no one has votes" do
+      game = build(:bu_polling_game, judge_name: "Judge",
+        player_names: %w[Alice Bob Charlie])
+
+      game.complete_round
+
+      game.players.each do |player|
+        assert_equal 0, player.score
+      end
+    end
+
+    test "#complete_round preserves existing scores" do
+      game = build(:bu_polling_game,
+        judge_name: "Judge",
+        players: [
+          { name: "Alice", vote_for: "Bob" },
+          { name: "Bob", vote_for: "Alice" }
+        ])
+      alice = game.players.find { |p| p.name.to_s == "Alice" }
+      bob = game.players.find { |p| p.name.to_s == "Bob" }
+      judge = game.judge
+
+      # Set initial scores
+      alice.score = 5
+      bob.score = 3
+      judge.score = 2
+
+      game.complete_round
+
+      # Alice and Bob tied with 1 vote each, so both get +1
+      assert_equal 6, alice.score
+      assert_equal 4, bob.score
+      assert_equal 2, judge.score
+    end
+
+    test "#complete_round returns the game" do
+      game = build(:bu_polling_game, judge_name: "Alice",
+        player_names: %w[Bob])
+
+      assert_equal game, game.complete_round
+    end
+
+    test "#complete_round persists changes after save" do
+      game = create(:bu_polling_game,
+        judge_name: "Judge",
+        players: [
+          { name: "Alice", vote_for: "Bob" },
+          { name: "Bob", vote_for: "Alice" }
+        ])
+      bob_id = game.players.find { |p| p.name.to_s == "Bob" }.id
+      alice_id = game.players.find { |p| p.name.to_s == "Alice" }.id
+
+      game.complete_round
       GameRepo.new.save(game)
 
-      reloaded_game = reload(game:)
-
+      reloaded_game = GameRepo.new.find(game.id)
       assert_predicate reloaded_game.status, :completed?
+
+      bob = reloaded_game.players.find { |p| p.id == bob_id }
+      alice = reloaded_game.players.find { |p| p.id == alice_id }
+      assert_equal 1, bob.score
+      assert_equal 1, alice.score
+    end
+
+    test "#complete_round raises error when game is not in polling status" do
+      game = build(:bu_completed_game, judge_name: "Alice",
+        player_names: %w[Bob])
+
+      assert_predicate game.status, :completed?
+
+      error = assert_raises(RuntimeError) { game.complete_round }
+
+      assert_equal "Game must be in polling status", error.message
+    end
+
+    test "#complete_round only awards points to playing players" do
+      game = build(:bu_polling_game,
+        judge_name: "Judge",
+        players: [
+          { name: "Alice", vote_for: "Bob", not_playing: true },
+          { name: "Bob", vote_for: "Judge" },
+          { name: "Charlie", vote_for: "Judge" }
+        ])
+      alice = game.players.find { |p| p.name.to_s == "Alice" }
+      bob = game.players.find { |p| p.name.to_s == "Bob" }
+      charlie = game.players.find { |p| p.name.to_s == "Charlie" }
+      judge = game.judge
+
+      assert_not_predicate alice, :playing?
+      assert_predicate judge, :playing?
+
+      game.complete_round
+
+      # Judge has 2 votes and is the only winner
+      # Alice is not playing so doesn't count as a candidate
+      assert_equal 0, alice.score
+      assert_equal 0, bob.score
+      assert_equal 0, charlie.score
+      assert_equal 1, judge.score
+    end
+
+    test "#start_new_round updates game with new question and polling status" do
+      game = build(:bu_completed_game, player_names: %w[Alice Bob],
+        judge_name: "Charlie")
+      new_judge = game.players.find { |p| p.name.to_s == "Alice" }
+      question = NormalizedString.new("What is your favorite animal?")
+
+      game.start_new_round(question:, judge: new_judge)
+
+      assert_equal "What is your favorite animal?", game.question.to_s
+      assert_predicate game.status, :polling?
+    end
+
+    test "#start_new_round sets new judge correctly" do
+      game = build(:bu_completed_game, player_names: %w[Alice Bob],
+        judge_name: "Charlie")
+      new_judge = game.players.find { |p| p.name.to_s == "Alice" }
+      question = NormalizedString.new("What is your favorite animal?")
+
+      game.start_new_round(question:, judge: new_judge)
+
+      assert_equal new_judge, game.judge
+      assert_predicate new_judge, :judge?
+      game.players.reject { |p| p == new_judge }.each do |player|
+        assert_not_predicate player, :judge?
+      end
+    end
+
+    test "#start_new_round clears all player votes" do
+      game = build(:bu_completed_game,
+        judge_name: "Judge",
+        players: [
+          { name: "Alice", vote_for: "Bob" },
+          { name: "Bob", vote_for: "Alice" }
+        ])
+      judge = game.judge
+      question = NormalizedString.new("New question?")
+
+      game.start_new_round(question:, judge:)
+
+      game.players.each do |player|
+        assert_nil player.vote
+        assert_not_predicate player, :voted?
+      end
+    end
+
+    test "#start_new_round sets online players as playing" do
+      game = build(:bu_completed_game, player_names: %w[Alice Bob Charlie],
+        judge_name: "David")
+      new_judge = game.players.find { |p| p.name.to_s == "Alice" }
+      bob = game.players.find { |p| p.name.to_s == "Bob" }
+      charlie = game.players.find { |p| p.name.to_s == "Charlie" }
+
+      # Mark Bob as online (not old or new judge)
+      PlayerConnections.instance.increment(bob.id)
+      question = NormalizedString.new("What is your favorite animal?")
+
+      game.start_new_round(question:, judge: new_judge)
+
+      assert_predicate bob, :playing?
+      assert_not_predicate charlie, :playing?
+    end
+
+    test "#start_new_round always sets judge as playing even if offline" do
+      game = build(:bu_completed_game, player_names: %w[Alice Bob],
+        judge_name: "Charlie")
+      alice = game.players.find { |p| p.name.to_s == "Alice" }
+      question = NormalizedString.new("What is your favorite animal?")
+
+      # Alice is offline but should be playing because she's the judge
+      game.start_new_round(question:, judge: alice)
+
+      assert_predicate alice, :playing?
+      assert_not_predicate alice, :online?
+    end
+
+    test "#start_new_round returns the game" do
+      game = build(:bu_completed_game, player_names: %w[Alice],
+        judge_name: "Bob")
+      alice = game.players.find { |p| p.name.to_s == "Alice" }
+      question = NormalizedString.new("What is your favorite animal?")
+
+      assert_equal game, game.start_new_round(question:, judge: alice)
+    end
+
+    test "#start_new_round preserves player scores from previous round" do
+      game = build(:bu_completed_game, player_names: %w[Alice Bob],
+        judge_name: "Charlie")
+      alice = game.players.find { |p| p.name.to_s == "Alice" }
+      bob = game.players.find { |p| p.name.to_s == "Bob" }
+      charlie = game.players.find { |p| p.name.to_s == "Charlie" }
+
+      # Set different scores
+      alice.score = 5
+      bob.score = 3
+      charlie.score = 7
+
+      question = NormalizedString.new("What is your favorite animal?")
+      game.start_new_round(question:, judge: alice)
+
+      assert_equal 5, alice.score
+      assert_equal 3, bob.score
+      assert_equal 7, charlie.score
+    end
+
+    test "#start_new_round persists changes after save" do
+      game = create(:bu_completed_game, player_names: %w[Alice Bob],
+        judge_name: "Charlie")
+      alice = game.players.find { |p| p.name.to_s == "Alice" }
+      question = NormalizedString.new("What is your favorite animal?")
+
+      game.start_new_round(question:, judge: alice)
+      GameRepo.new.save(game)
+
+      reloaded_game = GameRepo.new.find(game.id)
+      assert_equal "What is your favorite animal?", reloaded_game.question.to_s
+      assert_predicate reloaded_game.status, :polling?
+      assert_equal alice.id, reloaded_game.judge.id
+      reloaded_game.players.each do |player|
+        assert_nil player.vote
+      end
+    end
+
+    test "#start_new_round accepts minimum valid question length" do
+      game = build(:bu_completed_game, judge_name: "Alice")
+      judge = game.judge
+      question = NormalizedString.new("Why")
+
+      game.start_new_round(question:, judge:)
+
+      assert_equal "Why", game.question.to_s
+    end
+
+    test "#start_new_round accepts maximum valid question length" do
+      game = build(:bu_completed_game, judge_name: "Alice")
+      judge = game.judge
+      question = NormalizedString.new("a" * 160)
+
+      game.start_new_round(question:, judge:)
+
+      assert_equal 160, game.question.to_s.length
+    end
+
+    test "#start_new_round raises error with question too short" do
+      game = build(:bu_completed_game, judge_name: "Alice")
+      judge = game.judge
+      short_question = NormalizedString.new("AB")
+
+      error = assert_raises(ArgumentError) do
+        game.start_new_round(question: short_question, judge:)
+      end
+
+      assert_match(/Question length must be between 3 and 160 characters/,
+        error.message)
+    end
+
+    test "#start_new_round raises error with question too long" do
+      game = build(:bu_completed_game, judge_name: "Alice")
+      judge = game.judge
+      long_question = NormalizedString.new("a" * 161)
+
+      error = assert_raises(ArgumentError) do
+        game.start_new_round(question: long_question, judge:)
+      end
+
+      assert_match(/Question length must be between 3 and 160 characters/,
+        error.message)
+    end
+
+    test "#start_new_round raises error when game is not in completed status" do
+      game = build(:bu_polling_game, judge_name: "Alice",
+        player_names: %w[Bob])
+      judge = game.judge
+      question = NormalizedString.new("What is your favorite animal?")
+
+      assert_predicate game.status, :polling?
+
+      error = assert_raises(RuntimeError) do
+        game.start_new_round(question:, judge:)
+      end
+
+      assert_equal "Game must be in completed status", error.message
     end
   end
 end

@@ -4,19 +4,6 @@ require "test_helper"
 
 module LoadedQuestions
   class PlayerTest < ActiveSupport::TestCase
-    test ".build raises error when name is too short" do
-      game = build(:lq_game)
-      user = build(:user)
-      short_name = NormalizedString.new("AB")
-
-      error = assert_raises(ArgumentError) do
-        Player.build(game_id: game.id, user_id: user.id, name: short_name)
-      end
-
-      assert_match(/Name length must be between 3 and 25 characters/,
-        error.message)
-    end
-
     test "#answer= persists to database after save" do
       game = create(:lq_game)
       player = create(:lq_player, game:)
@@ -75,41 +62,14 @@ module LoadedQuestions
     test "#name= persists to database after save" do
       game = create(:lq_game)
       player = create(:lq_player, game:)
-      new_name = NormalizedString.new("NewName")
 
-      player.name = new_name
+      player.name = PlayerName.parse("NewName")
       player.save!
 
       reloaded_game = reload(game:)
       reloaded_player = reloaded_game.find_player(player.id)
 
       assert_equal "NewName", reloaded_player.name.to_s
-    end
-
-    test "#name= raises error when name is too long" do
-      game = build(:lq_game)
-      player = build(:lq_player, game:)
-      long_name = NormalizedString.new("a" * 26)
-
-      error = assert_raises(ArgumentError) do
-        player.name = long_name
-      end
-
-      assert_match(/Name length must be between 3 and 25 characters/,
-        error.message)
-    end
-
-    test "#name= raises error when name is too short" do
-      game = build(:lq_game)
-      player = build(:lq_player, game:)
-      short_name = NormalizedString.new("AB")
-
-      error = assert_raises(ArgumentError) do
-        player.name = short_name
-      end
-
-      assert_match(/Name length must be between 3 and 25 characters/,
-        error.message)
     end
 
     test "#reset_answer persists to database after save" do

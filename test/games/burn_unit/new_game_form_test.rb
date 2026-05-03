@@ -103,7 +103,21 @@ module BurnUnit
       form = NewGameForm.new(player_name: "  Alice  ", question: "Why?")
 
       assert_predicate form, :valid?
-      assert_equal "Alice", form.player_name.to_s
+      assert_equal "Alice", form.player_name_input.to_s
+    end
+
+    test "#valid? exposes PlayerName after success" do
+      form = NewGameForm.new(player_name: "Alice", question: "Why?")
+
+      assert_predicate form, :valid?
+      assert_instance_of PlayerName, form.player_name
+    end
+
+    test "#valid? leaves player_name nil on length failure" do
+      form = NewGameForm.new(player_name: "ab", question: "Why?")
+
+      assert_not_predicate form, :valid?
+      assert_nil form.player_name
     end
 
     test "#valid? normalizes question with NormalizedString" do
@@ -114,10 +128,10 @@ module BurnUnit
       assert_equal "What is your name?", form.question.to_s
     end
 
-    test "#player_name returns NormalizedString instance" do
+    test "#player_name_input returns NormalizedString instance" do
       form = NewGameForm.new(player_name: "Alice", question: "Why?")
 
-      assert_instance_of NormalizedString, form.player_name
+      assert_instance_of NormalizedString, form.player_name_input
     end
 
     test "#question returns NormalizedString instance" do

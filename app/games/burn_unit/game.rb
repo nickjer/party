@@ -1,33 +1,32 @@
 # frozen_string_literal: true
 
 module BurnUnit
-  # Wrapper around ::Game model that provides Burn Unit-specific
-  # behavior and document parsing.
+  # Aggregate for a Burn Unit game. AR-ignorant; persistence flows through
+  # GameRepo.
   class Game
     QUESTION_LENGTH = LengthValidator.new(min: 3, max: 160, field: :question)
 
     class << self
-      def build(question:)
+      def build(question:, id: GameRepo.generate_id)
         document = Document.new(question: question, status: Status.polling)
-        new(
-          ::Game.new(kind: :burn_unit, document: document.to_json)
-        )
+        new(id:, document:, players: [])
       end
-
-      def find(id) = new(scope.find(id))
-
-      private
-
-      def scope = ::Game.strict_loading.burn_unit.includes(:players)
     end
 
-    def initialize(model) = @model = model
+    # @dynamic id
+    attr_reader :id
+
+    def initialize(id:, document:, players:)
+      @id = id
+      @document = document
+      @players = players
+    end
 
     def add_player(user_id:, name:, judge: false, playing: false)
       raise "Player already exists for user" if player_for(user_id)
 
       player = Player.build(game_id: id, user_id:, name:, judge:, playing:)
-      cached_players << player
+      @players << player
       player
     end
 
@@ -36,8 +35,6 @@ module BurnUnit
     def find_player(id)
       players.find { |player| player.id == id } || raise("Player not found")
     end
-
-    def id = model.id
 
     def judge = players.find(&:judge?) || raise("Couldn't find judge")
 
@@ -50,20 +47,12 @@ module BurnUnit
         raise(ActiveRecord::RecordNotFound, "Couldn't find Player")
     end
 
-    def players = cached_players.sort
+    def players = @players.sort
 
     def question = document.question
 
     def question=(new_question)
       @document = document.with(question: new_question)
-    end
-
-    def save!
-      ::Game.transaction do
-        model.document = document.to_json
-        model.save! if model.changed?
-        players.each(&:save!)
-      end
     end
 
     def status = document.status
@@ -72,20 +61,17 @@ module BurnUnit
       @document = document.with(status: new_status)
     end
 
-    def to_model = model
+    def document_json = document.to_json
+
+    def model_name = ::Game.model_name
+    def to_key = [id]
+    def to_param = id
+    def to_global_id(options = {}) = ::Game.new(id:).to_global_id(options)
+    def to_gid_param(options = {}) = to_global_id(options).to_param
 
     private
 
-    # @dynamic model
-    attr_reader :model
-
-    def cached_players
-      @cached_players ||= model.players.map { |player| Player.new(player) }
-    end
-
-    def document
-      parsed_document = model.parsed_document #: Document::json
-      @document ||= Document.parse(parsed_document)
-    end
+    # @dynamic document
+    attr_reader :document
   end
 end

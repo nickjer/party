@@ -16,7 +16,7 @@ class PlayerBroadcaster
       content = block.call(player)
       next unless content
 
-      Turbo::StreamsChannel.broadcast_stream_to(player.to_model, content:)
+      Turbo::StreamsChannel.broadcast_stream_to(player, content:)
     end
   end
 

@@ -19,7 +19,7 @@ module LoadedQuestions
 
         # Alice name update should broadcast to Bob only
         # (2 actions: players list + name updates)
-        assert_turbo_stream_broadcasts bob.to_model, count: 2 do
+        assert_turbo_stream_broadcasts bob, count: 2 do
           PlayerNameUpdated.new(game:, player: alice).call
         end
       end
@@ -32,7 +32,7 @@ module LoadedQuestions
         ::PlayerConnections.instance.increment(alice.id)
 
         # Alice name update should not broadcast to Alice herself
-        assert_turbo_stream_broadcasts alice.to_model, count: 0 do
+        assert_turbo_stream_broadcasts alice, count: 0 do
           PlayerNameUpdated.new(game:, player: alice).call
         end
       end
@@ -46,7 +46,7 @@ module LoadedQuestions
         ::PlayerConnections.instance.increment(alice.id)
 
         # Alice name update should not broadcast to offline Bob
-        assert_turbo_stream_broadcasts bob.to_model, count: 0 do
+        assert_turbo_stream_broadcasts bob, count: 0 do
           PlayerNameUpdated.new(game:, player: alice).call
         end
       end
@@ -64,8 +64,8 @@ module LoadedQuestions
 
         # Alice name update should broadcast to Bob and Charlie only
         # (2 actions each: players list + name updates)
-        assert_turbo_stream_broadcasts bob.to_model, count: 2 do
-          assert_turbo_stream_broadcasts charlie.to_model, count: 2 do
+        assert_turbo_stream_broadcasts bob, count: 2 do
+          assert_turbo_stream_broadcasts charlie, count: 2 do
             PlayerNameUpdated.new(game:, player: alice).call
           end
         end
@@ -78,7 +78,7 @@ module LoadedQuestions
 
         ::PlayerConnections.instance.increment(bob.id)
 
-        turbo_streams = capture_turbo_stream_broadcasts bob.to_model do
+        turbo_streams = capture_turbo_stream_broadcasts bob do
           PlayerNameUpdated.new(game:, player: alice).call
         end
 

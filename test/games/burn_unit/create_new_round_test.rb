@@ -117,9 +117,9 @@ module BurnUnit
       question = NormalizedString.new("What is your favorite animal?")
 
       CreateNewRound.new(game:, judge: alice, question:).call
-      game.save!
+      GameRepo.save(game)
 
-      reloaded_game = Game.find(game.id)
+      reloaded_game = GameRepo.find(game.id)
       assert_equal "What is your favorite animal?", reloaded_game.question.to_s
       assert_predicate reloaded_game.status, :polling?
       assert_equal alice.id, reloaded_game.judge.id

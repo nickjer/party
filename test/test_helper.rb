@@ -45,7 +45,10 @@ module ActiveSupport
     end
 
     def reload(game:)
-      game.class.find(game.id)
+      case game
+      when LoadedQuestions::Game then LoadedQuestions::GameRepo.find(game.id)
+      when BurnUnit::Game        then BurnUnit::GameRepo.find(game.id)
+      end
     end
   end
 end

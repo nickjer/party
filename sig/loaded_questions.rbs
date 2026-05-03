@@ -33,34 +33,40 @@ module LoadedQuestions
 
     QUESTION_LENGTH: LengthValidator
 
-    def self.build: (question: NormalizedString) -> Game
-    def self.find: (String id) -> Game
-    private def self.scope: () -> ::Game::ActiveRecord_Relation
+    def self.build: (question: NormalizedString, ?id: String) -> Game
 
+    attr_reader id: String
     attr_reader guesses: Guesses
+    attr_reader players: Array[Player]
 
-    def initialize: (::Game game) -> void
+    def initialize: (
+      id: String,
+      document: Document,
+      players: Array[Player],
+      ?guesses: Guesses?
+    ) -> void
 
-    def id: () -> String
     def guesser: () -> Player
     def guesses=: (Guesses new_guesses) -> void
     def find_player: (String id) -> Player
     def player_for!: (String user_id) -> Player
     def player_for: (String user_id) -> Player?
-    def players: () -> Array[Player]
     def question: () -> NormalizedString
     def question=: (NormalizedString new_question) -> void
-    def save!: () -> void
     def status: () -> Status
     def status=: (Status new_status) -> void
     def add_player: (user_id: String, name: ::PlayerName, ?guesser: bool) -> Player
     def assign_guess: (player_id: String, answer_id: String?) -> void
-    def to_model: () -> ::Game
+    def document_json: () -> String
+
+    def model_name: () -> ::ActiveModel::Name
+    def to_key: () -> [String]
+    def to_param: () -> String
+    def to_global_id: (?Hash[Symbol, untyped] options) -> ::GlobalID
+    def to_gid_param: (?Hash[Symbol, untyped] options) -> String
 
     private
 
-    attr_reader cached_players: Array[Player]
-    attr_reader model: ::Game
     attr_reader document: Document
 
     class Document
@@ -295,6 +301,22 @@ module LoadedQuestions
     attr_reader game: Game
   end
 
+  class GameRepo
+    def self.generate_id: () -> String
+    def self.find: (String id) -> Game
+    def self.save: (Game game) -> void
+
+    private
+
+    def self.scope: () -> ::Game::ActiveRecord_Relation
+    def self.save_players: (Game game) -> void
+  end
+
+  class PlayerRepo
+    def self.generate_id: () -> String
+    def self.hydrate: (::Player record) -> Player
+  end
+
   class CreateNewGame
     def initialize: (
       user_id: String,
@@ -401,11 +423,26 @@ module LoadedQuestions
   class Player
     ANSWER_LENGTH: LengthValidator
 
+    attr_reader id: String
+    attr_reader game_id: String
+    attr_reader user_id: String
     attr_reader name: ::PlayerName
 
-    def self.build: (game_id: String, user_id: String, name: ::PlayerName, ?guesser: bool) -> Player
+    def self.build: (
+      game_id: String,
+      user_id: String,
+      name: ::PlayerName,
+      ?guesser: bool,
+      ?id: String?
+    ) -> Player
 
-    def initialize: (::Player model) -> void
+    def initialize: (
+      id: String,
+      game_id: String,
+      user_id: String,
+      name: ::PlayerName,
+      document: Document
+    ) -> void
 
     def <=>: (Player other) -> Integer
     def ==: (Player other) -> bool
@@ -413,23 +450,24 @@ module LoadedQuestions
     def answer=: (Answer new_answer) -> void
     def answered?: () -> bool
     def eql?: (Player other) -> bool
-    def game_id: () -> String
     def guesser?: () -> bool
     def guesser=: (bool is_guesser) -> void
     def hash: () -> Integer
-    def id: () -> String
     def name=: (::PlayerName new_name) -> void
     def online?: () -> bool
     def reset_answer: () -> void
-    def save!: () -> void
     def score: () -> Integer
     def score=: (Integer new_score) -> void
-    def to_model: () -> ::Player
-    def user_id: () -> String
+    def document_json: () -> String
+
+    def model_name: () -> ::ActiveModel::Name
+    def to_key: () -> [String]
+    def to_param: () -> String
+    def to_global_id: (?Hash[Symbol, untyped] options) -> ::GlobalID
+    def to_gid_param: (?Hash[Symbol, untyped] options) -> String
 
     private
 
-    attr_reader model: ::Player
     attr_reader document: Document
 
     class Document

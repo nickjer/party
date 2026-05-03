@@ -56,7 +56,7 @@ module LoadedQuestions
 
       player = game.add_player(user_id: user.id,
         name: PlayerName.parse("Alice"))
-      game.save!
+      GameRepo.save(game)
 
       game_after = reload(game:)
       reloaded_player = game_after.player_for(user.id)
@@ -102,7 +102,7 @@ module LoadedQuestions
       ])
 
       game.guesses = new_guesses
-      game.save!
+      GameRepo.save(game)
 
       reloaded_game = reload(game:)
       reloaded_guess1 = reloaded_game.guesses.find(player1.id)
@@ -131,7 +131,7 @@ module LoadedQuestions
       new_question = NormalizedString.new("What is your favorite animal?")
 
       game.question = new_question
-      game.save!
+      GameRepo.save(game)
 
       reloaded_game = reload(game:)
 
@@ -168,7 +168,7 @@ module LoadedQuestions
       assert_predicate game.status, :polling?
 
       game.status = Game::Status.guessing
-      game.save!
+      GameRepo.save(game)
 
       reloaded_game = reload(game:)
 
@@ -184,7 +184,7 @@ module LoadedQuestions
 
       # Assign Bob's answer to Charlie's slot
       game.assign_guess(player_id: charlie.id, answer_id: bob.answer.id)
-      game.save!
+      GameRepo.save(game)
 
       # Reload from database to verify persistence
       game_after = reload(game:)

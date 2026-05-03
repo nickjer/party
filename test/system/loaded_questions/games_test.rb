@@ -1069,9 +1069,9 @@ module LoadedQuestions
         Capybara::Session.prepend(ignore_error_module)
 
         begin
-          # Stub save! to raise an error (simulating backend 5xx)
-          LoadedQuestions::Game.any_instance
-            .stubs(:save!)
+          # Stub save to raise an error (simulating backend 5xx)
+          LoadedQuestions::GameRepo
+            .stubs(:save)
             .raises(StandardError, "Simulated backend error")
 
           # Attempt to drag an answer - this will trigger the 500 error
@@ -1088,7 +1088,7 @@ module LoadedQuestions
           assert_text "Inception"
         ensure
           # Remove the stub
-          LoadedQuestions::Game.any_instance.unstub(:save!)
+          LoadedQuestions::GameRepo.unstub(:save)
         end
 
         # Verify state is restored: both answers back in pool after reload

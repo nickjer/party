@@ -1,25 +1,30 @@
 # frozen_string_literal: true
 
 module BurnUnit
-  # Wrapper around ::Player model that provides Burn Unit-specific
-  # behavior and document parsing.
+  # Aggregate for a Burn Unit player. AR-ignorant; persistence flows through
+  # GameRepo (via the parent game).
   class Player
     class << self
-      def build(game_id:, user_id:, name:, judge: false, playing: false)
+      def build(game_id:, user_id:, name:, judge: false, playing: false,
+        id: nil)
+        id ||= PlayerRepo.generate_id
         document = Document.new(
           judge: judge, score: 0, vote: nil, playing: playing
         )
-        player = new(
-          ::Player.new(
-            game_id: game_id, user_id: user_id, document: document.to_json
-          )
-        )
-        player.name = name
-        player
+        new(id:, game_id:, user_id:, name:, document:)
       end
     end
 
-    def initialize(model) = @model = model
+    # @dynamic id, game_id, user_id
+    attr_reader :id, :game_id, :user_id
+
+    def initialize(id:, game_id:, user_id:, name:, document:)
+      @id = id
+      @game_id = game_id
+      @user_id = user_id
+      @name = name
+      @document = document
+    end
 
     def <=>(other) = name <=> other.name
 
@@ -27,11 +32,7 @@ module BurnUnit
 
     def eql?(other) = self == other
 
-    def game_id = model.game_id
-
     def hash = id.hash
-
-    def id = model.id
 
     def judge? = document.judge
 
@@ -39,16 +40,10 @@ module BurnUnit
       @document = document.with(judge: is_judge)
     end
 
-    def name
-      @name ||= PlayerName.parse(model.name)
-    end
+    # @dynamic name, name=
+    attr_accessor :name
 
-    def name=(new_name)
-      @name = new_name
-      model.name = new_name.to_s
-    end
-
-    def online? = model.online?
+    def online? = PlayerConnections.instance.count(id).positive?
 
     def playing? = document.playing
 
@@ -56,20 +51,11 @@ module BurnUnit
       @document = document.with(playing: is_playing)
     end
 
-    def save!
-      model.document = document.to_json
-      model.save! if model.changed?
-    end
-
     def score = document.score
 
     def score=(new_score)
       @document = document.with(score: new_score)
     end
-
-    def to_model = model
-
-    def user_id = model.user_id
 
     def vote = document.vote
 
@@ -79,14 +65,17 @@ module BurnUnit
 
     def voted? = vote.present?
 
+    def document_json = document.to_json
+
+    def model_name = ::Player.model_name
+    def to_key = [id]
+    def to_param = id
+    def to_global_id(options = {}) = ::Player.new(id:).to_global_id(options)
+    def to_gid_param(options = {}) = to_global_id(options).to_param
+
     private
 
-    # @dynamic model
-    attr_reader :model
-
-    def document
-      parsed_document = model.parsed_document #: Document::json
-      @document ||= Document.parse(parsed_document)
-    end
+    # @dynamic document
+    attr_reader :document
   end
 end

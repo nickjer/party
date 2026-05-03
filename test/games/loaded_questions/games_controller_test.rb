@@ -115,7 +115,7 @@ module LoadedQuestions
         game.assign_guess(player_id: guess.player.id,
           answer_id: guess.player.answer.id)
       end
-      game.save!
+      GameRepo.save(game)
 
       # Verify game is in guessing status
       assert_predicate game.status, :guessing?

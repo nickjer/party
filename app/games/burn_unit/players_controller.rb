@@ -4,7 +4,7 @@ module BurnUnit
   # Controller for managing Burn Unit players
   class PlayersController < ApplicationController
     def new
-      game = Game.find(params[:game_id])
+      game = GameRepo.find(params[:game_id])
       current_player = game.player_for(current_user.id)
 
       if current_player
@@ -16,7 +16,7 @@ module BurnUnit
     end
 
     def create
-      game = Game.find(params[:game_id])
+      game = GameRepo.find(params[:game_id])
       new_player = NewPlayerForm.new(game:, user_id: current_user.id,
         name: new_player_params[:name])
 
@@ -26,7 +26,7 @@ module BurnUnit
           user_id: current_user.id,
           name:
         )
-        game.save!
+        GameRepo.save(game)
 
         Broadcast::PlayerCreated.new(game:, player:).call
 
@@ -37,7 +37,7 @@ module BurnUnit
     end
 
     def edit
-      game = Game.find(params[:game_id])
+      game = GameRepo.find(params[:game_id])
       current_player = game.player_for(current_user.id)
       return redirect_to_new_player(game) if current_player.nil?
 
@@ -46,7 +46,7 @@ module BurnUnit
     end
 
     def update
-      game = Game.find(params[:game_id])
+      game = GameRepo.find(params[:game_id])
       current_player = game.player_for(current_user.id)
       return redirect_to_new_player(game) if current_player.nil?
 
@@ -55,7 +55,7 @@ module BurnUnit
       if edit_player.valid?
         new_name = edit_player.player_name #: ::PlayerName
         current_player.name = new_name
-        current_player.save!
+        GameRepo.save(game)
         Broadcast::PlayerNameUpdated.new(game:, player: current_player).call
         redirect_to_game(game)
       else
@@ -65,7 +65,7 @@ module BurnUnit
     end
 
     def vote
-      game = Game.find(params[:game_id])
+      game = GameRepo.find(params[:game_id])
       current_player = game.player_for(current_user.id)
       return redirect_to_new_player(game) if current_player.nil?
 
@@ -74,7 +74,7 @@ module BurnUnit
       if vote_form.valid?
         had_vote = current_player.voted?
         current_player.vote = vote_form.candidate_id
-        current_player.save!
+        GameRepo.save(game)
         unless had_vote
           Broadcast::VoteCreated.new(game:,
             player: current_player).call

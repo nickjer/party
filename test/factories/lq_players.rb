@@ -18,6 +18,10 @@ FactoryBot.define do
       player
     end
 
+    to_create do |_player, evaluator|
+      LoadedQuestions::GameRepo.save(evaluator.game)
+    end
+
     trait :with_answer do
       answer { Faker::Lorem.sentence(word_count: 3) }
     end

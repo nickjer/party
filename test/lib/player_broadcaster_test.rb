@@ -11,7 +11,7 @@ class PlayerBroadcasterTest < ActiveSupport::TestCase
     player = game.players.first
     PlayerConnections.instance.increment(player.id)
 
-    assert_turbo_stream_broadcasts player.to_model, count: 1 do
+    assert_turbo_stream_broadcasts player, count: 1 do
       PlayerBroadcaster.new(players: game.players).broadcast do |_player|
         "<turbo-stream></turbo-stream>"
       end
@@ -23,7 +23,7 @@ class PlayerBroadcasterTest < ActiveSupport::TestCase
     player = game.players.first
     # player is offline by default
 
-    assert_turbo_stream_broadcasts player.to_model, count: 0 do
+    assert_turbo_stream_broadcasts player, count: 0 do
       PlayerBroadcaster.new(players: game.players).broadcast do |_player|
         "<turbo-stream></turbo-stream>"
       end
@@ -35,7 +35,7 @@ class PlayerBroadcasterTest < ActiveSupport::TestCase
     player = game.players.first
     PlayerConnections.instance.increment(player.id)
 
-    assert_turbo_stream_broadcasts player.to_model, count: 0 do
+    assert_turbo_stream_broadcasts player, count: 0 do
       PlayerBroadcaster.new(players: game.players).broadcast do |_player|
         nil
       end

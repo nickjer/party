@@ -24,7 +24,7 @@ module LoadedQuestions
           player_name:,
           question: new_game.question
         ).call
-        game.save!
+        GameRepo.save(game)
         redirect_to loaded_questions_game_path(game.id)
       else
         render :new, locals: { new_game: }, status: :unprocessable_content
@@ -33,7 +33,7 @@ module LoadedQuestions
 
     # GET /loaded_questions/games/:id
     def show
-      game = Game.find(params[:id])
+      game = GameRepo.find(params[:id])
       current_player = game.player_for(current_user.id)
 
       if current_player.nil?
@@ -69,7 +69,7 @@ module LoadedQuestions
 
     # GET /loaded_questions/games/:id/new_round
     def new_round
-      game = Game.find(params[:id])
+      game = GameRepo.find(params[:id])
       current_player = game.player_for!(current_user.id)
       return head :forbidden if current_player.guesser?
 
@@ -79,7 +79,7 @@ module LoadedQuestions
 
     # POST /loaded_questions/games/:id/create_round
     def create_round
-      game = Game.find(params[:id])
+      game = GameRepo.find(params[:id])
       current_player = game.player_for!(current_user.id)
       return head :forbidden if current_player.guesser?
 
@@ -94,7 +94,7 @@ module LoadedQuestions
           guesser: current_player,
           question: new_round.question
         ).call
-        game.save!
+        GameRepo.save(game)
         Broadcast::RoundCreated.new(game:).call
 
         guessing_round_form = GuessingRoundForm.new(game:)
@@ -108,14 +108,14 @@ module LoadedQuestions
 
     # PATCH /loaded_questions/games/:id/completed_round
     def completed_round
-      game = Game.find(params[:id])
+      game = GameRepo.find(params[:id])
       current_player = game.player_for!(current_user.id)
       return head :forbidden unless current_player.guesser?
 
       completed_round_form = CompletedRoundForm.new(game:)
       if completed_round_form.valid?
         CompleteRound.new(game:).call
-        game.save!
+        GameRepo.save(game)
         Broadcast::RoundCompleted.new(game:).call
         render :completed, locals: { game:, current_player: }
       else
@@ -127,14 +127,14 @@ module LoadedQuestions
 
     # PATCH /loaded_questions/games/:id/guessing_round
     def guessing_round
-      game = Game.find(params[:id])
+      game = GameRepo.find(params[:id])
       current_player = game.player_for!(current_user.id)
       return head :forbidden unless current_player.guesser?
 
       guessing_round_form = GuessingRoundForm.new(game:)
       if guessing_round_form.valid?
         BeginGuessingRound.new(game:).call
-        game.save!
+        GameRepo.save(game)
         Broadcast::GuessingRoundStarted.new(game:).call
         completed_round_form = CompletedRoundForm.new(game:)
         render :guessing_guesser,
@@ -148,7 +148,7 @@ module LoadedQuestions
 
     # PATCH /loaded_questions/games/:id/assign_guess
     def assign_guess
-      game = Game.find(params[:id])
+      game = GameRepo.find(params[:id])
       current_player = game.player_for!(current_user.id)
       return head :forbidden unless current_player.guesser?
       return head :forbidden unless game.status.guessing?
@@ -157,7 +157,7 @@ module LoadedQuestions
       answer_id = assign_guess_params[:answer_id].presence
 
       game.assign_guess(player_id:, answer_id:)
-      game.save!
+      GameRepo.save(game)
       Broadcast::GuessesUpdated.new(game:).call
 
       head :ok

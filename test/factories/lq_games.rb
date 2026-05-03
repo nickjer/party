@@ -8,6 +8,10 @@ FactoryBot.define do
       LoadedQuestions::Game.build(question:)
     end
 
+    to_create do |game|
+      LoadedQuestions::GameRepo.save(game)
+    end
+
     trait :with_guesser do
       transient do
         guesser_user { association :user }

@@ -1,0 +1,75 @@
+<%# locals: (game:, current_player:) %>
+
+<div id="team_panels">
+  <div class="row g-2">
+    <% [Codenames::Team.red, Codenames::Team.blue].each do |team| %>
+      <% color = team.red? ? "danger" : "primary" %>
+      <% border_color = team.red? ? "border-danger" : "border-primary" %>
+      <% header_color = team.red? ? "bg-danger" : "bg-primary" %>
+      <% seated_spymaster = game.spymaster_for(team) %>
+      <div class="col-12 col-md-6">
+        <div class="card h-100 <%= border_color %>">
+          <div class="card-header <%= header_color %> text-white d-flex align-items-center justify-content-between">
+            <span class="fw-bold text-uppercase"><%= team %> team</span>
+            <% if game.starting_team == team %>
+              <span class="badge text-bg-light">Starts</span>
+            <% end %>
+          </div>
+          <div class="card-body">
+            <% if game.players_on(team).any? %>
+              <%= render(partial: "codenames/players/player",
+                collection: game.players_on(team),
+                as: :player,
+                locals: { current_player: }) %>
+            <% else %>
+              <p class="text-muted small fst-italic mb-0">No players yet</p>
+            <% end %>
+          </div>
+          <div class="card-footer d-flex gap-2">
+            <%= button_to join_team_codenames_game_player_path(game.id),
+                method: :patch,
+                params: { player: { team: team.to_s, spymaster: false } },
+                class: "btn btn-sm btn-outline-#{color} flex-grow-1" do %>
+              Join
+            <% end %>
+            <%= button_to join_team_codenames_game_player_path(game.id),
+                method: :patch,
+                params: { player: { team: team.to_s, spymaster: true } },
+                disabled: seated_spymaster && seated_spymaster != current_player,
+                class: "btn btn-sm btn-#{color} flex-grow-1" do %>
+              <i class="bi bi-binoculars-fill me-1"></i>
+              Spymaster
+            <% end %>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+  <% if game.players.reject(&:team).any? %>
+    <div class="card mt-2">
+      <div class="card-header bg-light fw-bold">Not on a team yet</div>
+      <div class="card-body">
+        <%= render(partial: "codenames/players/player",
+          collection: game.players.reject(&:team),
+          as: :player,
+          locals: { current_player: }) %>
+      </div>
+    </div>
+  <% end %>
+
+  <% if current_player == game.spymaster_for(game.starting_team) %>
+    <div class="d-grid mt-3">
+      <%= button_to start_codenames_game_path(game.id),
+          method: :post,
+          class: "btn btn-lg btn-success" do %>
+        <i class="bi bi-play-circle-fill me-1"></i>
+        Start game
+      <% end %>
+    </div>
+  <% else %>
+    <p class="text-center text-muted small mt-3 mb-0">
+      Waiting for the <%= game.starting_team %> spymaster to start the game…
+    </p>
+  <% end %>
+</div>

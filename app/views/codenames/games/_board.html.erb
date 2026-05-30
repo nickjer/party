@@ -1,0 +1,18 @@
+<%# locals: (game:, current_player:) %>
+
+<% if current_player.spymaster? && game.status.playing? %>
+  <div data-controller="spymaster-key">
+    <div class="d-flex justify-content-end mb-2">
+      <button type="button"
+        class="btn btn-sm btn-outline-secondary"
+        data-spymaster-key-target="button"
+        data-action="spymaster-key#toggle">
+        <i class="bi bi-eye-fill me-1"></i>
+        Show key
+      </button>
+    </div>
+    <%= render "codenames/games/grid", game:, current_player: %>
+  </div>
+<% else %>
+  <%= render "codenames/games/grid", game:, current_player: %>
+<% end %>

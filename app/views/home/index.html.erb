@@ -55,6 +55,30 @@
       </div>
     </div>
   </div>
+
+  <div class="col">
+    <div class="card h-100 shadow-sm hover-shadow">
+      <div class="card-body d-flex flex-column">
+        <div class="mb-3 text-success">
+          <i class="bi bi-grid-3x3-gap-fill" style="font-size: 3rem;"></i>
+        </div>
+
+        <h2 class="card-title h3 mb-3">Codenames</h2>
+
+        <p class="card-text text-muted flex-grow-1">
+          Two teams race to uncover their secret agents on a grid of 25 words.
+          Each team's spymaster sees the secret key and gives one-word clues out
+          loud; their operatives tap the cards they think belong to them. Avoid
+          the assassin at all costs!
+        </p>
+
+        <%= link_to new_codenames_game_path, class: "btn btn-success btn-lg mt-3 w-100" do %>
+          <i class="bi bi-play-circle-fill me-2"></i>
+          Start New Game
+        <% end %>
+      </div>
+    </div>
+  </div>
 </div>
 
 <style>

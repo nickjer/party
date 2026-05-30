@@ -1,0 +1,7 @@
+<%# locals: (game:, current_player:, join_team:) %>
+
+<%= render "codenames/games/player_stream", current_player: %>
+
+<%= turbo_frame_tag "game_frame", data: { connection_monitor_target: "frame" } do %>
+  <%= render "codenames/games/join_team_body", game:, current_player:, join_team: %>
+<% end %>

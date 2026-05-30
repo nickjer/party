@@ -16,6 +16,22 @@ Rails.application.routes.draw do
     end
   end
 
+  namespace :codenames do
+    resources :games, only: %i[create new show] do
+      member do
+        post :start
+        patch :reveal
+        patch :pass
+        post :new_game
+      end
+      resource :player, only: %i[create new edit update] do
+        member do
+          patch :join_team
+        end
+      end
+    end
+  end
+
   namespace :loaded_questions do
     resources :games, only: %i[create new show] do
       member do

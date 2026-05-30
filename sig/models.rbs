@@ -6,6 +6,7 @@ class Game < ::ApplicationRecord
   extend ::ActiveRecord::Base::ClassMethods[::Game, ::Game::ActiveRecord_Relation, String]
 
   def self.burn_unit: () -> ::Game::ActiveRecord_Relation
+  def self.codenames: () -> ::Game::ActiveRecord_Relation
   def self.loaded_questions: () -> ::Game::ActiveRecord_Relation
 
   def document: () -> String
@@ -20,6 +21,7 @@ class Game < ::ApplicationRecord
 
   class ActiveRecord_Relation < ::ActiveRecord::Relation
     def burn_unit: () -> ::Game::ActiveRecord_Relation
+    def codenames: () -> ::Game::ActiveRecord_Relation
     def loaded_questions: () -> ::Game::ActiveRecord_Relation
 
     include ::_ActiveRecord_Relation[::Game, String]

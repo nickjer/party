@@ -1,0 +1,44 @@
+<%# locals: (game:, current_player:) %>
+
+<% if game.status.completed? %>
+  <% border_color = game.winner.red? ? "border-danger" : "border-primary" %>
+  <% text_color = game.winner.red? ? "text-danger" : "text-primary" %>
+  <div class="card shadow-sm mt-3 <%= border_color %>">
+    <div class="card-body d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-2">
+      <h5 class="mb-0 <%= text_color %>">
+        <i class="bi bi-trophy-fill me-1"></i>
+        <%= game.winner.to_s.capitalize %> team wins!
+      </h5>
+      <%= button_to new_game_codenames_game_path(game.id),
+          method: :post,
+          class: "btn btn-success" do %>
+        <i class="bi bi-arrow-repeat me-1"></i>
+        New game
+      <% end %>
+    </div>
+  </div>
+<% else %>
+  <% text_color = game.current_team.red? ? "text-danger" : "text-primary" %>
+  <div class="card shadow-sm mt-3">
+    <div class="card-body d-flex flex-wrap align-items-center justify-content-between gap-2">
+      <div class="d-flex align-items-center gap-3">
+        <span class="badge bg-danger fs-6"><%= game.board.remaining(Codenames::Team.red) %></span>
+        <span class="badge bg-primary fs-6"><%= game.board.remaining(Codenames::Team.blue) %></span>
+        <span class="text-secondary small">
+          <i class="bi bi-megaphone me-1"></i>
+          <strong class="<%= text_color %>"><%= game.current_team.to_s.capitalize %></strong>
+          team's turn — spymaster gives a clue out loud
+        </span>
+      </div>
+
+      <% if current_player.operative? && current_player.team == game.current_team %>
+        <%= button_to pass_codenames_game_path(game.id),
+            method: :patch,
+            class: "btn btn-sm btn-outline-secondary" do %>
+          <i class="bi bi-skip-forward-fill me-1"></i>
+          End turn
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+<% end %>

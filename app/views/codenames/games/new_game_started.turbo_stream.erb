@@ -1,0 +1,5 @@
+<%# locals: (game:, current_player:) %>
+
+<%= turbo_stream.update "game_frame" do %>
+  <%= render "codenames/games/lobby_body", game:, current_player: %>
+<% end %>

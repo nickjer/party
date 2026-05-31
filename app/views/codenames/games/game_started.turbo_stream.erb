@@ -1,0 +1,9 @@
+<%# locals: (game:, current_player:) %>
+
+<%= turbo_stream.update "game_frame" do %>
+  <% if current_player.team.nil? %>
+    <%= render "codenames/games/join_team_body", game:, current_player: %>
+  <% else %>
+    <%= render "codenames/games/play_body", game:, current_player: %>
+  <% end %>
+<% end %>

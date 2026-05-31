@@ -1,0 +1,7 @@
+<%# locals: (game:, current_player:) %>
+
+<div class="d-grid gap-1 gap-sm-2" style="grid-template-columns: repeat(5, minmax(0, 1fr));">
+  <% game.board.cards.each_with_index do |card, index| %>
+    <%= render "codenames/games/card", game:, card:, index:, current_player: %>
+  <% end %>
+</div>

@@ -1,0 +1,486 @@
+module Codenames
+  class Team
+    def self.blue: () -> Team
+    def self.parse: (String team) -> Team
+    def self.red: () -> Team
+
+    attr_reader color: Symbol
+
+    def initialize: (Symbol color) -> void
+
+    def ==: (untyped other) -> bool
+    def as_json: () -> String
+    def blue?: () -> bool
+    def eql?: (untyped other) -> bool
+    def hash: () -> Integer
+    def opponent: () -> Team
+    def red?: () -> bool
+    def to_s: () -> String
+  end
+
+  class Adapter
+    def on_player_connected: (String player_id) -> void
+    def on_player_disconnected: (String player_id) -> void
+  end
+
+  module Broadcast
+    class PlayerConnected
+      def initialize: (player_id: String) -> void
+
+      def call: () -> void
+
+      private
+
+      attr_reader connected_player: ::Player
+    end
+
+    class PlayerDisconnected
+      def initialize: (player_id: String) -> void
+
+      def call: () -> void
+
+      private
+
+      attr_reader disconnected_player: ::Player
+    end
+
+    class PlayerCreated
+      def initialize: (game: Game, player: Player) -> void
+
+      def call: () -> void
+
+      private
+
+      attr_reader game: Game
+      attr_reader player: Player
+    end
+
+    class PlayerNameUpdated
+      def initialize: (game: Game, player: Player) -> void
+
+      def call: () -> void
+
+      private
+
+      attr_reader game: Game
+      attr_reader player: Player
+    end
+
+    class TeamUpdated
+      def initialize: (game: Game, player: Player) -> void
+
+      def call: () -> void
+
+      private
+
+      attr_reader game: Game
+      attr_reader player: Player
+    end
+
+    class GameStarted
+      def initialize: (game: Game, player: Player) -> void
+
+      def call: () -> void
+
+      private
+
+      attr_reader game: Game
+      attr_reader player: Player
+    end
+
+    class BoardUpdated
+      def initialize: (game: Game, player: Player) -> void
+
+      def call: () -> void
+
+      private
+
+      attr_reader game: Game
+      attr_reader player: Player
+    end
+
+    class NewGameStarted
+      def initialize: (game: Game, player: Player) -> void
+
+      def call: () -> void
+
+      private
+
+      attr_reader game: Game
+      attr_reader player: Player
+    end
+  end
+
+  class GameRepo
+    def self.generate_id: () -> String
+
+    def initialize: () -> void
+    def find: (String id) -> Game
+    def save: (Game game) -> void
+
+    private
+
+    attr_reader player_repo: PlayerRepo
+
+    def scope: () -> ::Game::ActiveRecord_Relation
+    def save_players: (Game game) -> void
+  end
+
+  class PlayerRepo
+    def self.generate_id: () -> String
+
+    def hydrate: (::Player record) -> Player
+  end
+
+  class Game
+    def self.build: (words: Array[String], ?starting_team: Team?, ?id: String?) -> Game
+
+    attr_reader id: String
+    attr_reader players: Array[Player]
+
+    def initialize: (
+      id: String,
+      document: Document,
+      players: Array[Player]
+    ) -> void
+
+    def add_player: (user_id: String, name: ::PlayerName, ?team: Team?, ?spymaster: bool) -> Player
+    def blue_team: () -> Array[Player]
+    def board: () -> Board
+    def current_team: () -> Team
+    def find_player: (String id) -> Player
+    def operatives: () -> Array[Player]
+    def player_for: (String user_id) -> Player?
+    def player_for!: (String user_id) -> Player
+    def players_on: (Team team) -> Array[Player]
+    def red_team: () -> Array[Player]
+    def spymaster_for: (Team team) -> Player?
+    def spymasters: () -> Array[Player]
+    def starting_team: () -> Team
+    def status: () -> Status
+    def winner: () -> Team?
+    def join_team: (player: Player, team: Team, spymaster: bool) -> self
+    def start_game: () -> self
+    def reveal: (index: Integer) -> self
+    def pass_turn: () -> self
+    def start_new_game: (words: Array[String], ?starting_team: Team?) -> self
+    def document_json: () -> String
+
+    def model_name: () -> ::ActiveModel::Name
+    def to_key: () -> [String]
+    def to_param: () -> String
+    def to_global_id: (?Hash[Symbol, untyped] options) -> ::GlobalID
+    def to_gid_param: (?Hash[Symbol, untyped] options) -> String
+
+    private
+
+    attr_reader document: Document
+
+    class Document
+      type json = {
+        status: String,
+        starting_team: String,
+        current_team: String,
+        winner: String?,
+        board: Array[Card::json]
+      }
+
+      attr_reader status: Status
+      attr_reader starting_team: Team
+      attr_reader current_team: Team
+      attr_reader winner: Team?
+      attr_reader board: Board
+
+      def self.parse: (json hash) -> Document
+
+      def initialize: (
+        status: Status,
+        starting_team: Team,
+        current_team: Team,
+        winner: Team?,
+        board: Board
+      ) -> void
+
+      def with: (
+        ?status: Status,
+        ?starting_team: Team,
+        ?current_team: Team,
+        ?winner: Team?,
+        ?board: Board
+      ) -> Document
+
+      def to_h: () -> json
+    end
+
+    class Status
+      def self.completed: () -> Status
+      def self.parse: (String status) -> Status
+      def self.playing: () -> Status
+      def self.setup: () -> Status
+
+      attr_reader status: Symbol
+
+      def initialize: (Symbol status) -> void
+
+      def ==: (Status other) -> bool
+      def as_json: () -> String
+      def completed?: () -> bool
+      def eql?: (Status other) -> bool
+      def hash: () -> Integer
+      def playing?: () -> bool
+      def setup?: () -> bool
+      def to_s: () -> String
+    end
+
+    class Identity
+      def self.agent: (Team team) -> Identity
+      def self.assassin: () -> Identity
+      def self.blue: () -> Identity
+      def self.bystander: () -> Identity
+      def self.parse: (String identity) -> Identity
+      def self.red: () -> Identity
+
+      attr_reader kind: Symbol
+
+      def initialize: (Symbol kind) -> void
+
+      def ==: (untyped other) -> bool
+      def agent?: () -> bool
+      def as_json: () -> String
+      def assassin?: () -> bool
+      def bystander?: () -> bool
+      def eql?: (untyped other) -> bool
+      def hash: () -> Integer
+      def team: () -> Team?
+      def to_s: () -> String
+    end
+
+    class Card
+      type json = {
+        word: String,
+        identity: String,
+        revealed: bool
+      }
+
+      def self.parse: (json hash) -> Card
+
+      @revealed: bool
+
+      attr_reader word: String
+      attr_reader identity: Identity
+
+      def initialize: (word: String, identity: Identity, revealed: bool) -> void
+
+      def revealed?: () -> bool
+      def reveal: () -> Card
+      def to_h: () -> json
+    end
+
+    class Board
+      SIZE: Integer
+
+      def self.generate: (words: Array[String], starting_team: Team) -> Board
+      def self.parse: (Array[Card::json] board) -> Board
+      def self.build_identities: (Team starting_team) -> Array[Identity]
+
+      attr_reader cards: Array[Card]
+
+      def initialize: (cards: Array[Card]) -> void
+
+      def all_revealed?: (Team team) -> bool
+      def card: (Integer index) -> Card
+      def remaining: (Team team) -> Integer
+      def reveal: (Integer index) -> Board
+      def revealed_count: (Team team) -> Integer
+      def total_for: (Team team) -> Integer
+      def to_a: () -> Array[Card::json]
+    end
+  end
+
+  class Player
+    attr_reader id: String
+    attr_reader game_id: String
+    attr_reader user_id: String
+    attr_reader name: ::PlayerName
+
+    def self.build: (
+      game_id: String,
+      user_id: String,
+      name: ::PlayerName,
+      ?team: Team?,
+      ?spymaster: bool,
+      ?id: String?
+    ) -> Player
+
+    def initialize: (
+      id: String,
+      game_id: String,
+      user_id: String,
+      name: ::PlayerName,
+      document: Document
+    ) -> void
+
+    def <=>: (Player other) -> Integer
+    def ==: (untyped other) -> bool
+    def eql?: (untyped other) -> bool
+    def hash: () -> Integer
+    def name=: (::PlayerName new_name) -> void
+    def online?: () -> bool
+    def operative?: () -> bool
+    def spymaster?: () -> bool
+    def spymaster=: (bool is_spymaster) -> void
+    def team: () -> Team?
+    def team=: (Team? new_team) -> void
+    def document_json: () -> String
+
+    def model_name: () -> ::ActiveModel::Name
+    def to_key: () -> [String]
+    def to_param: () -> String
+    def to_global_id: (?Hash[Symbol, untyped] options) -> ::GlobalID
+    def to_gid_param: (?Hash[Symbol, untyped] options) -> String
+
+    def team_rank: () -> Integer
+
+    private
+
+    attr_reader document: Document
+
+    class Document
+      type json = {
+        team: String?,
+        spymaster: bool
+      }
+
+      attr_reader team: Team?
+      attr_reader spymaster: bool
+
+      def self.parse: (json hash) -> Document
+
+      def initialize: (team: Team?, spymaster: bool) -> void
+
+      def with: (?team: Team?, ?spymaster: bool) -> Document
+
+      def to_h: () -> json
+    end
+  end
+
+  class NewGameForm
+    attr_reader errors: ::Errors
+    attr_reader player_name_input: ::NormalizedString
+    attr_reader player_name: ::PlayerName?
+
+    def initialize: (?player_name: _ToS?) -> void
+
+    def valid?: () -> bool
+  end
+
+  class NewPlayerForm
+    attr_reader errors: ::Errors
+    attr_reader game: Game
+    attr_reader name: ::NormalizedString
+    attr_reader player_name: ::PlayerName?
+    attr_reader user_id: String
+
+    def initialize: (game: Game, user_id: String, ?name: _ToS?) -> void
+
+    def valid?: () -> bool
+  end
+
+  class EditPlayerForm
+    attr_reader errors: ::Errors
+    attr_reader game: Game
+    attr_reader current_player: Player
+    attr_reader name: ::NormalizedString
+    attr_reader player_name: ::PlayerName?
+
+    def initialize: (game: Game, current_player: Player, ?name: _ToS?) -> void
+
+    def valid?: () -> bool
+  end
+
+  class JoinTeamForm
+    attr_reader team: Team?
+    attr_reader spymaster: bool
+    attr_reader errors: ::Errors
+
+    def initialize: (game: Game, current_player: Player, ?team: String?, ?spymaster: (String | bool)?) -> void
+
+    def valid?: () -> bool
+
+    private
+
+    attr_reader game: Game
+    attr_reader current_player: Player
+
+    def parse_team: (String? value) -> Team?
+    def validate_status: () -> void
+    def validate_midgame_join: () -> void
+    def validate_spymaster_seat: (Team selected_team) -> void
+  end
+
+  class StartGameForm
+    attr_reader errors: ::Errors
+
+    def initialize: (game: Game) -> void
+
+    def valid?: () -> bool
+
+    private
+
+    attr_reader game: Game
+
+    def validate_team: (Team team) -> void
+  end
+
+  class Words
+    include Singleton
+
+    def self.instance: () -> Words
+
+    def initialize: () -> void
+
+    def sample: (?Integer count) -> Array[String]
+
+    private
+
+    attr_reader words: Array[String]
+
+    def load_words: () -> Array[String]
+  end
+
+  class GamesController < ::ApplicationController
+    def new: () -> untyped
+    def create: () -> untyped
+    def show: () -> untyped
+    def start: () -> untyped
+    def reveal: () -> untyped
+    def pass: () -> untyped
+    def new_game: () -> untyped
+
+    private
+
+    attr_reader repo: GameRepo
+
+    def new_game_params: () -> ::ActionController::Parameters
+    def reveal_params: () -> ::ActionController::Parameters
+    def revealable?: (Game game, Integer index) -> bool
+  end
+
+  class PlayersController < ::ApplicationController
+    def new: () -> untyped
+    def create: () -> untyped
+    def edit: () -> untyped
+    def update: () -> untyped
+    def join_team: () -> untyped
+
+    private
+
+    attr_reader repo: GameRepo
+
+    def new_player_params: () -> ::ActionController::Parameters
+    def update_player_params: () -> ::ActionController::Parameters
+    def join_team_params: () -> ::ActionController::Parameters
+    def redirect_to_game: (Game game) -> void
+    def redirect_to_new_player: (Game game) -> void
+  end
+end

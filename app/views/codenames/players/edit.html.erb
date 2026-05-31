@@ -1,0 +1,33 @@
+<%# locals: (game:, current_player:, edit_player:) %>
+
+<%= turbo_frame_tag "game_frame" do %>
+  <div class="row justify-content-center py-4">
+    <div class="col-md-8 col-lg-6">
+      <div class="card shadow">
+        <div class="card-body p-4">
+          <h1 class="h4 text-success mb-3">Edit your name</h1>
+
+          <%= form_with(model: edit_player, scope: :player,
+            url: codenames_game_player_path(game.id), method: :patch) do |form| %>
+            <div class="mb-3">
+              <%= form.label :name, "Your Name" %>
+              <%= form.text_field :name,
+                  value: edit_player.name,
+                  maxlength: PlayerName::LENGTH.max,
+                  autofocus: true %>
+              <div class="form-text">
+                <%= PlayerName::LENGTH.min %>-<%= PlayerName::LENGTH.max %> characters
+              </div>
+            </div>
+
+            <div class="d-flex gap-2">
+              <%= form.submit "Save", class: "btn btn-success" %>
+              <%= link_to "Cancel", codenames_game_path(game.id),
+                  class: "btn btn-outline-secondary" %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+<% end %>

@@ -1,0 +1,69 @@
+<%# locals: (game:, current_player:) %>
+
+<div data-controller="dialog">
+  <% if game.status.completed? %>
+    <% border_color = game.winner.red? ? "border-danger" : "border-primary" %>
+    <% text_color = game.winner.red? ? "text-danger" : "text-primary" %>
+    <div class="card shadow-sm mb-3 border-2 position-relative <%= border_color %>">
+      <button type="button"
+        class="position-absolute top-0 end-0 mt-2 me-2 p-0 border-0 bg-transparent text-secondary lh-1"
+        data-action="dialog#open" title="How to play" aria-label="How to play">
+        <i class="bi bi-info-circle fs-5"></i>
+      </button>
+      <div class="card-body d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-2 pe-5">
+        <h5 class="mb-0 <%= text_color %>">
+          <i class="bi bi-trophy-fill me-1"></i>
+          <%= game.winner.to_s.capitalize %> team wins!
+        </h5>
+        <%= button_to new_game_codenames_game_path(game.id),
+            method: :post,
+            class: "btn btn-success" do %>
+          <i class="bi bi-arrow-repeat me-1"></i>
+          New game
+        <% end %>
+      </div>
+    </div>
+  <% else %>
+    <% banner_color = game.current_team.red? ? "bg-danger" : "bg-primary" %>
+    <div class="card shadow-sm mb-2 border-0 text-white position-relative <%= banner_color %>">
+      <button type="button"
+        class="position-absolute top-0 end-0 mt-2 me-2 p-0 border-0 bg-transparent text-white opacity-75 lh-1"
+        data-action="dialog#open" title="How to play" aria-label="How to play">
+        <i class="bi bi-info-circle fs-5"></i>
+      </button>
+      <div class="card-body d-flex flex-wrap align-items-center justify-content-between gap-2 py-2 pe-5">
+        <div class="d-flex align-items-center gap-2">
+          <i class="bi bi-megaphone-fill fs-4"></i>
+          <div class="lh-sm">
+            <div class="fs-5 fw-bold mb-0">
+              <%= game.current_team.to_s.capitalize %> team's turn
+            </div>
+            <small class="opacity-75">Spymaster gives a clue out loud</small>
+          </div>
+        </div>
+
+        <div class="d-flex align-items-center gap-2">
+          <span class="badge bg-light text-danger fs-6" title="Red agents left">
+            <i class="bi bi-people-fill me-1"></i>
+            <%= game.board.remaining(Codenames::Team.red) %>
+          </span>
+          <span class="badge bg-light text-primary fs-6" title="Blue agents left">
+            <i class="bi bi-people-fill me-1"></i>
+            <%= game.board.remaining(Codenames::Team.blue) %>
+          </span>
+          <% if current_player.operative? && current_player.team == game.current_team %>
+            <%= button_to pass_codenames_game_path(game.id),
+                method: :patch,
+                class: "btn btn-sm btn-light",
+                data: { turbo_confirm: "End your turn? Play passes to the other team." } do %>
+              <i class="bi bi-skip-forward-fill me-1"></i>
+              End turn
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <%= render "codenames/games/how_to_play" %>
+</div>

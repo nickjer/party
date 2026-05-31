@@ -89,6 +89,25 @@ Type signatures in `/sig/`: `models.rbs`, `lib.rbs`, `controllers.rbs`, `channel
 - Broadcasts: `PlayerCreated`, `PlayerConnected`, `PlayerDisconnected`, `PlayerNameUpdated`, `CandidateAdded`, `VoteCreated`, `RoundCreated`, `RoundCompleted`
 - Questions: Loaded from `config/burn_unit/questions.yml` singleton
 
+## Codenames Game
+
+A digital companion for in-person play (a faithful 5×5 / two-team Codenames). **Clues are spoken aloud and never entered or tracked** — the app owns the board, the secret key, reveal tracking, automatic turn switching, and win detection.
+
+**Phases**: Setup (lobby: pick team + role) → Playing (operatives reveal cards) → Completed (a team won or the assassin was hit)
+
+**Roles**: Each team (red/blue) has exactly **one spymaster** (sees the key) and one or more **operatives** (reveal cards). Board key per game: **9 starting-team agents, 8 other-team, 7 bystanders, 1 assassin**. Only the starting team's spymaster can start; teams/roles lock once playing (a mid-game joiner may pick any team as an operative). No spectators.
+
+**Documents**: Game has `{ status, starting_team, current_team, winner, board }` (board = 25 `{ word, identity, revealed }`); Player has `{ team, spymaster }`. `current_team` is non-nil from construction (initialized to `starting_team`).
+
+**Key Classes**:
+- Aggregates: `Game` (`.build`, `board`, `status`, `current_team`, `starting_team`, `winner`, `players_on`, `spymaster_for`, `operatives`, `add_player`, `join_team`, `start_game`, `reveal`, `pass_turn`, `start_new_game`), `Player` (`team`, `spymaster?`, `operative?`, `online?`)
+- Value Objects: `Team` (top-level `Codenames::Team`, shared by game + player), `Game::Status` (`setup?`/`playing?`/`completed?`), `Game::Identity` (red/blue/bystander/assassin), `Game::Card`, `Game::Board` (`generate`, `reveal`, `remaining`, `all_revealed?`)
+- Persistence: `GameRepo`, `PlayerRepo`
+- Forms: `NewGameForm`, `NewPlayerForm`, `EditPlayerForm`, `JoinTeamForm`, `StartGameForm`
+- Broadcasts: `PlayerCreated`, `PlayerConnected`, `PlayerDisconnected`, `PlayerNameUpdated`, `TeamUpdated`, `GameStarted`, `BoardUpdated`, `NewGameStarted`
+- Reveals/pass use `button_to` + Turbo (reveal carries `data-turbo-confirm`); a `spymaster-key` Stimulus controller toggles the key (hidden by default)
+- Words: Loaded from `config/codenames/words.yml` singleton (`Words.instance.sample(25)`)
+
 ## Development Patterns
 
 ### Working with Aggregate Wrappers

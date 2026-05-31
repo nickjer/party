@@ -1,0 +1,11 @@
+<%# locals: (game:, current_player:) %>
+
+<div class="d-flex flex-column flex-md-row align-items-stretch align-items-md-start gap-2 mt-2">
+  <div class="flex-grow-1">
+    <div id="play_area">
+      <%= render "codenames/games/play_area", game:, current_player: %>
+    </div>
+  </div>
+
+  <%= render "codenames/games/players_list", game:, current_player: %>
+</div>

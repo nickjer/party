@@ -5,6 +5,8 @@ class ApplicationController < ::ActionController::Base
 
   def burn_unit_game_path: (String game_id) -> String
   def new_burn_unit_game_player_path: (String game_id) -> String
+  def codenames_game_path: (String game_id) -> String
+  def new_codenames_game_player_path: (String game_id) -> String
   def loaded_questions_game_path: (String game_id) -> String
   def new_loaded_questions_game_player_path: (String game_id) -> String
   def turbo_stream: () -> Turbo::Streams::TagBuilder

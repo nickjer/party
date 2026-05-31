@@ -1,0 +1,30 @@
+<%# locals: (player:, current_player:) %>
+
+<div
+  id="<%= dom_id(player) %>"
+  class="<%= class_names(
+    "d-flex align-items-center gap-2 py-1 px-2 rounded",
+    "bg-success bg-opacity-10": player == current_player
+  ) %>"
+>
+  <% if player == current_player || player.online? %>
+    <i class="bi bi-circle-fill text-success" style="font-size: 0.5rem;" title="Online"></i>
+  <% else %>
+    <i class="bi bi-circle-fill text-secondary opacity-50" style="font-size: 0.5rem;" title="Offline"></i>
+  <% end %>
+
+  <% if player.spymaster? %>
+    <i class="bi bi-binoculars-fill text-secondary" title="Spymaster"></i>
+  <% end %>
+
+  <span class="flex-grow-1 text-truncate <%= "fw-bold" if player == current_player %>"><%= player.name %></span>
+
+  <% if player == current_player %>
+    <%= link_to edit_codenames_game_player_path(player.game_id),
+        data: { turbo_frame: "game_frame" },
+        class: "btn btn-sm btn-link text-muted p-0",
+        title: "Edit name" do %>
+      <i class="bi bi-pencil"></i>
+    <% end %>
+  <% end %>
+</div>

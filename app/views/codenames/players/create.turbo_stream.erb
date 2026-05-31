@@ -1,0 +1,11 @@
+<%# locals: (game:, current_player:) %>
+
+<% if game.status.setup? %>
+  <%= turbo_stream.update "team_panels" do %>
+    <%= render "codenames/games/team_panels", game:, current_player: %>
+  <% end %>
+<% else %>
+  <%= turbo_stream.update "players" do %>
+    <%= render "codenames/games/players_panel", game:, current_player: %>
+  <% end %>
+<% end %>

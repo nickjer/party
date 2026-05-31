@@ -1,0 +1,13 @@
+<%# locals: (game:, current_player:) %>
+
+<% if current_player.team.nil? && game.status.completed? %>
+  <%# A teamless mid-game joiner is on the join screen (game_frame), which has
+      no play_area; swap the frame so the game-over result reaches them. %>
+  <%= turbo_stream.update "game_frame" do %>
+    <%= render "codenames/games/play_body", game:, current_player: %>
+  <% end %>
+<% else %>
+  <%= turbo_stream.update "play_area" do %>
+    <%= render "codenames/games/play_area", game:, current_player: %>
+  <% end %>
+<% end %>

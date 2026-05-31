@@ -1,0 +1,34 @@
+<%# locals: (game:, current_player:, join_team: nil) %>
+
+<div class="row justify-content-center py-4">
+  <div class="col-md-8 col-lg-6 text-center">
+    <h1 class="h4 text-success mb-2">
+      <i class="bi bi-grid-3x3-gap-fill me-2"></i>
+      Join the game
+    </h1>
+    <p class="text-muted">Pick a team to play as an operative.</p>
+
+    <% if join_team&.errors&.full_messages&.any? %>
+      <div class="alert alert-warning py-2">
+        <% join_team.errors.full_messages.each do |message| %>
+          <div><%= message %></div>
+        <% end %>
+      </div>
+    <% end %>
+
+    <div class="d-grid gap-2 col-sm-8 mx-auto">
+      <%= button_to join_team_codenames_game_player_path(game.id),
+          method: :patch,
+          params: { player: { team: "red", spymaster: false } },
+          class: "btn btn-lg btn-danger w-100" do %>
+        Join Red
+      <% end %>
+      <%= button_to join_team_codenames_game_player_path(game.id),
+          method: :patch,
+          params: { player: { team: "blue", spymaster: false } },
+          class: "btn btn-lg btn-primary w-100" do %>
+        Join Blue
+      <% end %>
+    </div>
+  </div>
+</div>

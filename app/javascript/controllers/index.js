@@ -13,6 +13,12 @@ application.register("swap", SwapController)
 import GuessAssignmentController from "./guess_assignment_controller"
 application.register("guess-assignment", GuessAssignmentController)
 
+import SpymasterKeyController from "./spymaster_key_controller"
+application.register("spymaster-key", SpymasterKeyController)
+
+import ConfirmController from "./confirm_controller"
+application.register("confirm", ConfirmController)
+
 import Dialog from '@stimulus-components/dialog'
 application.register('dialog', Dialog)
 

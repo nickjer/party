@@ -1,0 +1,47 @@
+<%# locals: (game:, card:, index:, current_player:) %>
+
+<%
+  identity = card.identity
+  color_class =
+    if identity.assassin? then "bg-dark text-white"
+    elsif identity.bystander? then "bg-warning-subtle text-dark"
+    elsif identity.team&.red? then "bg-danger text-white"
+    else "bg-primary text-white"
+    end
+  identity_icon =
+    if identity.assassin? then "bi-x-octagon-fill"
+    elsif identity.bystander? then "bi-emoji-neutral-fill"
+    else "bi-person-fill"
+    end
+  base = "d-flex align-items-center justify-content-center text-center " \
+    "fw-semibold rounded p-1 text-uppercase text-break lh-1"
+  tile_style = "min-height: clamp(52px, 13vw, 78px); " \
+    "font-size: clamp(0.5rem, 2.3vw, 0.85rem);"
+%>
+
+<% if card.revealed? || game.status.completed? %>
+  <div class="<%= base %> flex-column gap-1 <%= color_class %> <%= "opacity-50 cn-card-covered" if card.revealed? %>" style="<%= tile_style %>">
+    <i class="bi <%= identity_icon %> fs-6" aria-hidden="true"></i>
+    <span><%= card.word %></span>
+  </div>
+<% elsif game.status.playing? && current_player.operative? && current_player.team == game.current_team %>
+  <%= button_to reveal_codenames_game_path(game.id),
+      params: { reveal: { index: } },
+      method: :patch,
+      form_class: "d-grid m-0",
+      class: "#{base} btn btn-light border",
+      style: tile_style,
+      data: { turbo_confirm: "Reveal \"#{card.word}\"?" } do %>
+    <%= card.word %>
+  <% end %>
+<% elsif current_player.spymaster? %>
+  <div class="<%= base %> btn-light border" style="<%= tile_style %>"
+       data-spymaster-key-target="card"
+       data-identity-class="<%= color_class %> border-secondary">
+    <%= card.word %>
+  </div>
+<% else %>
+  <div class="<%= base %> bg-light border" style="<%= tile_style %>">
+    <%= card.word %>
+  </div>
+<% end %>

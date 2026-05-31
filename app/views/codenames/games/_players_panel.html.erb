@@ -1,0 +1,40 @@
+<%# locals: (game:, current_player:) %>
+
+<% [Codenames::Team.red, Codenames::Team.blue].each do |team| %>
+  <% members = game.players_on(team) %>
+  <% header_class = team.red? ? "text-bg-danger" : "text-bg-primary" %>
+  <div id="team_<%= team %>" class="mb-2">
+    <div class="d-flex align-items-center gap-2 px-2 py-1 rounded-top <%= header_class %>">
+      <i class="bi bi-shield-fill"></i>
+      <span class="flex-grow-1 fw-semibold text-uppercase small"><%= team %> team</span>
+      <span class="badge text-bg-light rounded-pill"><%= members.size %></span>
+    </div>
+    <div class="border border-top-0 rounded-bottom py-1">
+      <% if members.any? %>
+        <%= render(partial: "codenames/players/player",
+          collection: members,
+          as: :player,
+          locals: { current_player: }) %>
+      <% else %>
+        <p class="text-muted small fst-italic mb-0 px-2 py-1">No players yet</p>
+      <% end %>
+    </div>
+  </div>
+<% end %>
+
+<% unassigned = game.players.reject(&:team) %>
+<% if unassigned.any? %>
+  <div id="team_unassigned" class="mb-2">
+    <div class="d-flex align-items-center gap-2 px-2 py-1 rounded-top text-bg-secondary">
+      <i class="bi bi-question-circle-fill"></i>
+      <span class="flex-grow-1 fw-semibold text-uppercase small">No team</span>
+      <span class="badge text-bg-light rounded-pill"><%= unassigned.size %></span>
+    </div>
+    <div class="border border-top-0 rounded-bottom py-1">
+      <%= render(partial: "codenames/players/player",
+        collection: unassigned,
+        as: :player,
+        locals: { current_player: }) %>
+    </div>
+  </div>
+<% end %>

@@ -4,9 +4,14 @@
   identity = card.identity
   color_class =
     if identity.assassin? then "bg-dark text-white"
-    elsif identity.bystander? then "bg-secondary-subtle text-dark"
+    elsif identity.bystander? then "bg-warning-subtle text-dark"
     elsif identity.team&.red? then "bg-danger text-white"
     else "bg-primary text-white"
+    end
+  identity_icon =
+    if identity.assassin? then "bi-x-octagon-fill"
+    elsif identity.bystander? then "bi-emoji-neutral-fill"
+    else "bi-person-fill"
     end
   base = "d-flex align-items-center justify-content-center text-center " \
     "fw-semibold rounded p-1 text-uppercase text-break lh-1"
@@ -15,8 +20,9 @@
 %>
 
 <% if card.revealed? || game.status.completed? %>
-  <div class="<%= base %> <%= color_class %> <%= "opacity-75" if card.revealed? %>" style="<%= tile_style %>">
-    <%= card.word %>
+  <div class="<%= base %> flex-column gap-1 <%= color_class %> <%= "opacity-75" if card.revealed? %>" style="<%= tile_style %>">
+    <i class="bi <%= identity_icon %> fs-6" aria-hidden="true"></i>
+    <span><%= card.word %></span>
   </div>
 <% elsif game.status.playing? && current_player.operative? && current_player.team == game.current_team %>
   <%= button_to reveal_codenames_game_path(game.id),

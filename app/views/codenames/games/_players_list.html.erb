@@ -10,10 +10,7 @@
     </div>
     <div class="card-body">
       <div id="players">
-        <%= render(partial: "codenames/players/player",
-          collection: game.players,
-          as: :player,
-          locals: { current_player: }) %>
+        <%= render "codenames/games/players_panel", game:, current_player: %>
       </div>
     </div>
   </div>

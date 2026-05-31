@@ -6,9 +6,6 @@
   <% end %>
 <% else %>
   <%= turbo_stream.update "players" do %>
-    <%= render partial: "codenames/players/player",
-      collection: game.players,
-      as: :player,
-      locals: { current_player: } %>
+    <%= render "codenames/games/players_panel", game:, current_player: %>
   <% end %>
 <% end %>

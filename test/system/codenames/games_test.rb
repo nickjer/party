@@ -57,7 +57,7 @@ module Codenames
       assert_button "Show key"
 
       # Eve joins after the game is underway. She has no team yet, so other
-      # players see her online with a transparent (no-team) border.
+      # players see her online in the "No team" section.
       using_session("eve") do
         visit new_codenames_game_player_path(game_id)
         fill_in "Your Name", with: "Eve"
@@ -72,7 +72,7 @@ module Codenames
 
       within "#players" do
         assert_selector "#{eve_row} i.bi-circle-fill.text-success", wait: 5
-        assert_selector "#{eve_row}[style*='transparent']"
+        assert_selector "#team_unassigned #{eve_row}"
       end
 
       # Eve joins the starting team as an operative.
@@ -80,9 +80,8 @@ module Codenames
         click_on "Join #{starting.to_s.capitalize}"
       end
 
-      # Ada sees Eve's row pick up the team color in real time.
-      eve_color = starting.red? ? "var(--bs-danger)" : "var(--bs-primary)"
-      assert_selector "#players #{eve_row}[style*='#{eve_color}']", wait: 5
+      # Ada sees Eve's row move into the starting team's section in real time.
+      assert_selector "#players #team_#{starting} #{eve_row}", wait: 5
 
       own_word = game.board.cards.find { |c| c.identity.team == starting }.word
       assassin_word = game.board.cards.find { |c| c.identity.assassin? }.word

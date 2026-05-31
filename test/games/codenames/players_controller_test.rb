@@ -40,7 +40,7 @@ module Codenames
       assert_predicate player, :spymaster?
     end
 
-    test "#join_team re-renders the lobby with errors on a taken spymaster seat" do
+    test "#join_team re-renders the lobby when the spymaster seat is taken" do
       game = create(:cn_game, :with_teams) # red spymaster taken
       user = create(:user)
       sign_in(user.id)

@@ -58,17 +58,17 @@ module Codenames
         errors.add(:spymaster,
           message: "roles are locked once the game starts")
       end
-      if current_player.team
-        errors.add(:base, message: "Teams are locked once the game starts")
-      end
+      return unless current_player.team
+
+      errors.add(:base, message: "Teams are locked once the game starts")
     end
 
     def validate_spymaster_seat(selected_team)
       existing = game.spymaster_for(selected_team)
-      if existing && existing != current_player
-        errors.add(:spymaster,
-          message: "#{selected_team} team already has a spymaster")
-      end
+      return unless existing && existing != current_player
+
+      errors.add(:spymaster,
+        message: "#{selected_team} team already has a spymaster")
     end
   end
 end

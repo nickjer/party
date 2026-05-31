@@ -5,8 +5,10 @@ require "test_helper"
 module Codenames
   class Game
     class DocumentTest < ActiveSupport::TestCase
-      def board = Board.generate(words: Array.new(25) { |i| "W#{i}" },
-        starting_team: Team.red)
+      def board
+        Board.generate(words: Array.new(25) { |i| "W#{i}" },
+          starting_team: Team.red)
+      end
 
       def document
         Document.new(status: Status.setup, starting_team: Team.red,

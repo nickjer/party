@@ -33,7 +33,7 @@ module Codenames
 
       def ==(other) = other.is_a?(Identity) && kind == other.kind
 
-      def agent? = kind == :red || kind == :blue
+      def agent? = %i[red blue].include?(kind)
 
       def as_json = kind.to_s
 

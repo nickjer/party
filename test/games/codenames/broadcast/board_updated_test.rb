@@ -10,7 +10,9 @@ module Codenames
 
       def online_game
         game = create(:cn_playing_game)
-        game.players.each { |player| PlayerConnections.instance.increment(player.id) }
+        game.players.each do |player|
+          PlayerConnections.instance.increment(player.id)
+        end
         game
       end
 

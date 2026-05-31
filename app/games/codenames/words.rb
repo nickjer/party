@@ -11,7 +11,10 @@ module Codenames
     end
 
     def sample(count = Game::Board::SIZE)
-      raise "Not enough words loaded" if words.size < count
+      if words.size < count
+        raise ArgumentError,
+          "requested #{count} words but only #{words.size} are loaded"
+      end
 
       words.sample(count)
     end
@@ -23,7 +26,7 @@ module Codenames
 
     def load_words
       file_path = Rails.root.join("config/codenames/words.yml")
-      yaml_content = YAML.load_file(file_path)
+      yaml_content = YAML.safe_load_file(file_path)
       empty = [] #: Array[String]
       yaml_content.fetch("shared", empty)
     end

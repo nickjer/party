@@ -56,16 +56,44 @@ module Codenames
       click_on "Start game"
       assert_button "Show key"
 
+      # Eve joins after the game is underway. She has no team yet, so other
+      # players see her online with a transparent (no-team) border.
+      using_session("eve") do
+        visit new_codenames_game_player_path(game_id)
+        fill_in "Your Name", with: "Eve"
+        click_on "Join Game"
+        assert_button "Join #{starting.to_s.capitalize}"
+      end
+
+      eve = GameRepo.new.find(game_id).players.find do |player|
+        player.name.to_s == "Eve"
+      end
+      eve_row = "#player_#{eve.id}"
+
+      within "#players" do
+        assert_selector "#{eve_row} i.bi-circle-fill.text-success", wait: 5
+        assert_selector "#{eve_row}[style*='transparent']"
+      end
+
+      # Eve joins the starting team as an operative.
+      using_session("eve") do
+        click_on "Join #{starting.to_s.capitalize}"
+      end
+
+      # Ada sees Eve's row pick up the team color in real time.
+      eve_color = starting.red? ? "var(--bs-danger)" : "var(--bs-primary)"
+      assert_selector "#players #{eve_row}[style*='#{eve_color}']", wait: 5
+
       own_word = game.board.cards.find { |c| c.identity.team == starting }.word
       assassin_word = game.board.cards.find { |c| c.identity.assassin? }.word
 
       # Bob (active operative) reveals one of his team's agents; turn continues.
       using_session("bob") do
-        accept_confirm { find("button", exact_text: own_word).click }
+        accept_confirm { click_button(own_word, exact: true) }
         assert_text "#{starting.to_s.capitalize} team's turn"
 
         # Then Bob hits the assassin and his team loses.
-        accept_confirm { find("button", exact_text: assassin_word).click }
+        accept_confirm { click_button(assassin_word, exact: true) }
         assert_text "#{starting.opponent.to_s.capitalize} team wins!"
       end
 

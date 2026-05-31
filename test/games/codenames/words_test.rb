@@ -16,7 +16,15 @@ module Codenames
     end
 
     test "#sample returns words from the pool" do
-      assert(Words.instance.sample.all? { |word| word.is_a?(String) })
+      assert(Words.instance.sample.all?(String))
+    end
+
+    test "#sample raises when the pool is smaller than the requested count" do
+      error = assert_raises(ArgumentError) do
+        Words.instance.sample(1_000_000)
+      end
+
+      assert_match(/requested 1000000 words/, error.message)
     end
   end
 end

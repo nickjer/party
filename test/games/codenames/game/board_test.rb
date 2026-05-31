@@ -23,8 +23,8 @@ module Codenames
       test ".generate includes 7 bystanders and 1 assassin" do
         board = Board.generate(words:, starting_team: Team.blue)
 
-        assert_equal 7, board.cards.count { |card| card.identity.bystander? }
-        assert_equal 1, board.cards.count { |card| card.identity.assassin? }
+        assert_equal(7, board.cards.count { |card| card.identity.bystander? })
+        assert_equal(1, board.cards.count { |card| card.identity.assassin? })
       end
 
       test ".generate gives blue 9 when blue starts" do

@@ -7,11 +7,15 @@ export default class extends Controller {
 
   connect() {
     this.visible = false
+    this.render()
   }
 
   toggle() {
     this.visible = !this.visible
+    this.render()
+  }
 
+  render() {
     this.cardTargets.forEach((card) => {
       const classes = card.dataset.identityClass.split(" ")
       classes.forEach((name) => card.classList.toggle(name, this.visible))

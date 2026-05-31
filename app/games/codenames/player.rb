@@ -23,7 +23,12 @@ module Codenames
       @document = document
     end
 
-    def <=>(other) = name <=> other.name
+    # Order by team (red, then blue, then unassigned), then by name.
+    def <=>(other)
+      return team_rank <=> other.team_rank if team_rank != other.team_rank
+
+      name <=> other.name
+    end
 
     def ==(other) = self.class == other.class && id == other.id
 
@@ -66,6 +71,15 @@ module Codenames
     end
 
     def to_gid_param(options = {}) = to_global_id(options).to_param
+
+    protected
+
+    def team_rank
+      if team&.red? then 0
+      elsif team&.blue? then 1
+      else 2
+      end
+    end
 
     private
 

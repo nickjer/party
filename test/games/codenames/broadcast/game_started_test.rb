@@ -10,7 +10,9 @@ module Codenames
 
       test "#call broadcasts the board to other online players" do
         game = create(:cn_playing_game)
-        game.players.each { |player| PlayerConnections.instance.increment(player.id) }
+        game.players.each do |player|
+          PlayerConnections.instance.increment(player.id)
+        end
         actor = game.spymaster_for(Team.red)
         other = game.players.find { |player| player.name.to_s == "BlueOp" }
 

@@ -10,7 +10,9 @@ module Codenames
 
       test "#call re-renders the whole players list so it stays sorted" do
         game = create(:cn_playing_game)
-        game.players.each { |player| PlayerConnections.instance.increment(player.id) }
+        game.players.each do |player|
+          PlayerConnections.instance.increment(player.id)
+        end
         renamed = game.players.find { |player| player.name.to_s == "RedOp" }
         other = game.players.find { |player| player.name.to_s == "BlueOp" }
 
@@ -26,7 +28,9 @@ module Codenames
 
       test "#call updates team_panels during setup" do
         game = create(:cn_game, :with_teams)
-        game.players.each { |player| PlayerConnections.instance.increment(player.id) }
+        game.players.each do |player|
+          PlayerConnections.instance.increment(player.id)
+        end
         renamed = game.spymaster_for(Team.red)
         other = game.spymaster_for(Team.blue)
 

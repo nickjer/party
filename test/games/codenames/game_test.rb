@@ -4,7 +4,7 @@ require "test_helper"
 
 module Codenames
   class GameTest < ActiveSupport::TestCase
-    def index_of(game, &block) = game.board.cards.index(&block)
+    def index_of(game, &) = game.board.cards.index(&)
 
     def red_agent_index(game)
       index_of(game) { |card| card.identity.team == Team.red }
@@ -60,7 +60,9 @@ module Codenames
     test "#operatives excludes spymasters and teamless players" do
       game = build(:cn_playing_game)
 
-      assert_equal %w[BlueOp RedOp], game.operatives.map { |p| p.name.to_s }.sort
+      assert_equal %w[BlueOp RedOp], game.operatives.map { |p|
+        p.name.to_s
+      }.sort
     end
 
     test "#start_game transitions setup to playing" do

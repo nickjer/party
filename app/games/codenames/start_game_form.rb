@@ -34,9 +34,9 @@ module Codenames
       unless members.one?(&:spymaster?)
         errors.add(:base, message: "#{label} team needs one spymaster")
       end
-      unless members.any?(&:operative?)
-        errors.add(:base, message: "#{label} team needs an operative")
-      end
+      return if members.any?(&:operative?)
+
+      errors.add(:base, message: "#{label} team needs an operative")
     end
   end
 end

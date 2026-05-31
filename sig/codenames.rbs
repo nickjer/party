@@ -339,6 +339,8 @@ module Codenames
     def to_global_id: (?Hash[Symbol, untyped] options) -> ::GlobalID
     def to_gid_param: (?Hash[Symbol, untyped] options) -> String
 
+    def team_rank: () -> Integer
+
     private
 
     attr_reader document: Document

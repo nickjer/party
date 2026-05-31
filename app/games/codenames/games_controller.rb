@@ -75,8 +75,8 @@ module Codenames
       return head :forbidden unless current_player.operative?
       return head :forbidden if current_player.team != game.current_team
 
-      index = reveal_params[:index].to_i
-      return head :forbidden unless revealable?(game, index)
+      index = Integer(reveal_params[:index], exception: false)
+      return head :forbidden if index.nil? || !revealable?(game, index)
 
       game.reveal(index:)
       repo.save(game)

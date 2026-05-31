@@ -47,6 +47,25 @@ module Codenames
         assert_equal "update", streams[0]["action"]
         assert_equal "play_area", streams[0]["target"]
       end
+
+      test "#call swaps the frame for a teamless joiner when the game ends" do
+        game = online_game
+        latecomer = game.add_player(
+          user_id: create(:user).id, name: PlayerName.parse("Late")
+        )
+        PlayerConnections.instance.increment(latecomer.id)
+        assassin = game.board.cards.index { |card| card.identity.assassin? }
+        game.reveal(index: assassin)
+        assert_predicate game.status, :completed?
+
+        actor = game.players.find { |player| player.name.to_s == "RedOp" }
+        streams = capture_turbo_stream_broadcasts latecomer do
+          BoardUpdated.new(game:, player: actor).call
+        end
+
+        assert_equal "update", streams[0]["action"]
+        assert_equal "game_frame", streams[0]["target"]
+      end
     end
   end
 end

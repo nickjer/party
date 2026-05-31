@@ -130,6 +130,17 @@ module Codenames
       assert_predicate reload(game:).board.card(index), :revealed?
     end
 
+    test "#reveal is forbidden for a non-numeric index" do
+      game = create(:cn_playing_game)
+      sign_in(red_operative(game).user_id)
+
+      patch reveal_codenames_game_path(game.id),
+        params: { reveal: { index: "abc" } }
+
+      assert_response :forbidden
+      assert_not reload(game:).board.card(0).revealed?
+    end
+
     test "#pass switches the turn" do
       game = create(:cn_playing_game)
       sign_in(red_operative(game).user_id)

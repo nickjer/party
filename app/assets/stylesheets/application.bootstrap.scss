@@ -12,3 +12,31 @@
 );
 
 // Add your custom styles below
+
+// Dim the page behind modal dialogs.
+dialog::backdrop {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+// Subtle entrance animation for the confirm dialog.
+.cn-dialog[open] {
+  animation: cn-dialog-in 0.15s ease-out;
+}
+
+@keyframes cn-dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.75rem) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+// Gray diagonal-stripe overlay on revealed cards so they read as "covered",
+// leaving the in-play cards clean and prominent.
+.cn-card-covered {
+  background-image:
+    repeating-linear-gradient(45deg, rgba(0, 0, 0, 0.18) 0 2px, transparent 2px 8px);
+}

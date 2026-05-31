@@ -47,6 +47,33 @@
         </p>
       </div>
     </dialog>
+
+    <dialog
+      data-controller="confirm"
+      data-confirm-target="dialog"
+      data-action="click->confirm#backdropClose"
+      class="cn-dialog border-0 p-0 rounded-4 shadow-lg"
+      style="max-width: 400px;"
+    >
+      <div class="p-4 text-center">
+        <div
+          class="d-inline-flex align-items-center justify-content-center rounded-circle bg-warning-subtle text-warning-emphasis mb-3"
+          style="width: 3.5rem; height: 3.5rem;"
+        >
+          <i class="bi bi-question-lg fs-3"></i>
+        </div>
+        <h1 class="fs-5 fw-bold mb-2">Are you sure?</h1>
+        <p data-confirm-target="message" class="text-secondary mb-4"></p>
+        <form method="dialog" class="d-flex justify-content-center gap-2 mb-0">
+          <button value="cancel" class="btn btn-outline-secondary px-4">
+            Cancel
+          </button>
+          <button value="confirm" class="btn btn-primary px-4" autofocus>
+            Confirm
+          </button>
+        </form>
+      </div>
+    </dialog>
   </body>
 
   <div class="container">

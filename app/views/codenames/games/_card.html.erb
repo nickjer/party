@@ -20,7 +20,7 @@
 %>
 
 <% if card.revealed? || game.status.completed? %>
-  <div class="<%= base %> flex-column gap-1 <%= color_class %> <%= "opacity-75" if card.revealed? %>" style="<%= tile_style %>">
+  <div class="<%= base %> flex-column gap-1 <%= color_class %> <%= "opacity-50 cn-card-covered" if card.revealed? %>" style="<%= tile_style %>">
     <i class="bi <%= identity_icon %> fs-6" aria-hidden="true"></i>
     <span><%= card.word %></span>
   </div>
@@ -37,7 +37,7 @@
 <% elsif current_player.spymaster? %>
   <div class="<%= base %> btn-light border" style="<%= tile_style %>"
        data-spymaster-key-target="card"
-       data-identity-class="<%= color_class %>">
+       data-identity-class="<%= color_class %> border-secondary">
     <%= card.word %>
   </div>
 <% else %>

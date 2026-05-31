@@ -88,11 +88,13 @@ module Codenames
 
       # Bob (active operative) reveals one of his team's agents; turn continues.
       using_session("bob") do
-        accept_confirm { click_button(own_word, exact: true) }
+        click_button(own_word, exact: true)
+        within("dialog[open]") { click_button "Confirm" }
         assert_text "#{starting.to_s.capitalize} team's turn"
 
         # Then Bob hits the assassin and his team loses.
-        accept_confirm { click_button(assassin_word, exact: true) }
+        click_button(assassin_word, exact: true)
+        within("dialog[open]") { click_button "Confirm" }
         assert_text "#{starting.opponent.to_s.capitalize} team wins!"
       end
 

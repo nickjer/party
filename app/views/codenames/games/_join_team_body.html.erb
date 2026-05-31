@@ -20,13 +20,13 @@
       <%= button_to join_team_codenames_game_player_path(game.id),
           method: :patch,
           params: { player: { team: "red", spymaster: false } },
-          class: "btn btn-lg btn-danger" do %>
+          class: "btn btn-lg btn-danger w-100" do %>
         Join Red
       <% end %>
       <%= button_to join_team_codenames_game_player_path(game.id),
           method: :patch,
           params: { player: { team: "blue", spymaster: false } },
-          class: "btn btn-lg btn-primary" do %>
+          class: "btn btn-lg btn-primary w-100" do %>
         Join Blue
       <% end %>
     </div>

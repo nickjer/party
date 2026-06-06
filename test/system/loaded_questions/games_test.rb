@@ -1071,7 +1071,6 @@ module LoadedQuestions
         begin
           # Stub save to raise an error (simulating backend 5xx)
           LoadedQuestions::GameRepo
-            .any_instance
             .stubs(:save)
             .raises(StandardError, "Simulated backend error")
 
@@ -1089,7 +1088,7 @@ module LoadedQuestions
           assert_text "Inception"
         ensure
           # Remove the stub
-          LoadedQuestions::GameRepo.any_instance.unstub(:save)
+          LoadedQuestions::GameRepo.unstub(:save)
         end
 
         # Verify state is restored: both answers back in pool after reload

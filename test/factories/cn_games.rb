@@ -13,7 +13,7 @@ FactoryBot.define do
     end
 
     to_create do |game|
-      Codenames::GameRepo.new.save(game)
+      Codenames::GameRepo.save(game)
     end
 
     trait :with_teams do

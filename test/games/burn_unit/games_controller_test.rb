@@ -74,7 +74,7 @@ module BurnUnit
       game = create(:bu_polling_game)
       non_judge = game.players.reject(&:judge?).first
       non_judge.playing = false
-      GameRepo.new.save(game)
+      GameRepo.save(game)
       sign_in(non_judge.user_id)
 
       assert_not_predicate non_judge, :playing?

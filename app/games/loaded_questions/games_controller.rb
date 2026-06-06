@@ -172,6 +172,6 @@ module LoadedQuestions
       params.expect(guess_assignment: %w[player_id answer_id])
     end
 
-    def repo = @repo ||= GameRepo.new
+    def repo = GameRepo
   end
 end

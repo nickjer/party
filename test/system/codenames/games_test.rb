@@ -12,7 +12,7 @@ module Codenames
 
       assert_selector "#team_panels"
       game_id = current_path.split("/").last
-      game = GameRepo.new.find(game_id)
+      game = GameRepo.find(game_id)
       starting = game.starting_team
       start_color = starting.red? ? "danger" : "primary"
       opp_color = starting.red? ? "primary" : "danger"
@@ -65,7 +65,7 @@ module Codenames
         assert_button "Join #{starting.to_s.capitalize}"
       end
 
-      eve = GameRepo.new.find(game_id).players.find do |player|
+      eve = GameRepo.find(game_id).players.find do |player|
         player.name.to_s == "Eve"
       end
       eve_row = "#player_#{eve.id}"

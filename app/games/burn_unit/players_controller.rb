@@ -116,6 +116,6 @@ module BurnUnit
       redirect_to(new_burn_unit_game_player_path(game.id))
     end
 
-    def repo = @repo ||= GameRepo.new
+    def repo = GameRepo
   end
 end

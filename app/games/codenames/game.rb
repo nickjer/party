@@ -6,7 +6,7 @@ module Codenames
   class Game
     class << self
       def build(words:, starting_team: nil, id: nil)
-        id ||= GameRepo.generate_id
+        id ||= GameStore.generate_game_id
         team = starting_team || [Team.red, Team.blue].sample #: Team
         document = Document.new(
           status: Status.setup,

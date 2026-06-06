@@ -30,9 +30,9 @@ Document-oriented design: **Games** have `kind` enum and `document` json for all
 Games live under `/app/games/{game_name}/`:
 
 **Aggregate Wrappers** (`game.rb`, `player.rb`): AR-ignorant domain objects. Hold an immutable `Document` value object plus identity (`id`); mutations call `document.with(...)`. Implement `.build` for construction; identity methods (`to_param`, `to_global_id`, `model_name`) delegate to `::Game`/`::Player` for Rails interop.
-**Repos** (`game_repo.rb`, `player_repo.rb`): The only place that touches `::Game`/`::Player` ActiveRecord models. Provide `find(id)` and `save(aggregate)`.
-**Controllers**: Namespaced, instantiate `GameRepo` per request, handle Turbo Frame responses, use form objects, trigger broadcasts.
-**Form Objects**: Validation with `Errors` collection, return `#valid?`.
+**Persistence** (`game_repo.rb`, `game_mapping.rb`): The shared `GameStore` (`app/lib/`) owns the AR mechanics (query, transaction, player diffing) and is the only thing that touches `::Game`/`::Player`. Each game's `game_repo.rb` is a one-line constant — `GameRepo = GameStore.new(mapping: GameMapping.new)` — and `game_mapping.rb` supplies the per-game `kind` plus `load_game`/`load_player` construction. `GameStore.generate_game_id`/`generate_player_id` mint ids.
+**Controllers**: Namespaced, reference the `GameRepo` constant, handle Turbo Frame responses, use form objects, trigger broadcasts.
+**Form Objects**: Validation with `Errors` collection, return `#valid?`. `NewPlayerForm`/`EditPlayerForm` are game-agnostic and shared in `app/forms/`; game-specific forms live in the namespace.
 **Broadcasts** (`broadcast/*.rb`): Per-event service objects that fan out Turbo Streams to online players.
 **Adapter** (`adapter.rb`): Implements the `_GameAdapter` interface; `PlayerChannel` dispatches connection events through it.
 **Domain Models** (`game/`, `player/`): Value objects for `Document`, `Status`, and game-specific collections.
@@ -58,7 +58,7 @@ Broadcast::RoundCreated.new(game:).call
 
 ### Type System (RBS)
 
-Type signatures in `/sig/`: `models.rbs`, `lib.rbs`, `controllers.rbs`, `channels.rbs`, `validators.rbs`, `external.rbs`, `loaded_questions.rbs`, `burn_unit.rbs`.
+Type signatures in `/sig/`: `models.rbs`, `lib.rbs` (incl. generic `GameStore`), `forms.rbs`, `controllers.rbs`, `channels.rbs`, `validators.rbs`, `external.rbs`, `loaded_questions.rbs`, `burn_unit.rbs`, `codenames.rbs`.
 
 **Always run `bin/steep check` before committing.**
 
@@ -70,7 +70,7 @@ Type signatures in `/sig/`: `models.rbs`, `lib.rbs`, `controllers.rbs`, `channel
 
 **Key Classes**:
 - Aggregates: `Game` (`.build`, `question`, `status`, `guesses`, `players`, `add_player`, `assign_guess`, `begin_guessing`, `complete_round`, `start_new_round`), `Player` (`answer`, `guesser?`, `online?`, `score`)
-- Persistence: `GameRepo` (`find`, `save`, `generate_id`), `PlayerRepo` (`hydrate`, `generate_id`)
+- Persistence: `GameRepo` (a `GameStore` constant), `GameMapping` (`kind`, `load_game`, `load_player`)
 - Value Objects: `Game::Document`, `Game::Status` (`polling?`, `guessing?`, `completed?`), `Game::Guesses` (`assign`, `score`, `complete?`, `for_completed_view`), `Game::GuessedAnswer`, `Game::Guesses::CompletedGuess` (`correct?`)
 - Forms: `NewGameForm`, `NewPlayerForm`, `EditPlayerForm`, `AnswerForm`, `NewRoundForm`, `GuessingRoundForm`, `CompletedRoundForm`
 - Broadcasts (9): `PlayerCreated`, `PlayerConnected`, `PlayerDisconnected`, `PlayerNameUpdated`, `AnswerCreated`, `RoundCreated`, `GuessingRoundStarted`, `GuessesUpdated`, `RoundCompleted`
@@ -84,7 +84,7 @@ Type signatures in `/sig/`: `models.rbs`, `lib.rbs`, `controllers.rbs`, `channel
 
 **Key Classes**:
 - Aggregates: `Game` (`.build`, `question`, `status`, `judge`, `players`, `add_player`, `start_new_round`, ...), `Player` (`judge?`, `playing?`, `vote`, `online?`, `score`)
-- Persistence: `GameRepo`, `PlayerRepo`
+- Persistence: `GameRepo` (a `GameStore` constant), `GameMapping`
 - Forms: `NewGameForm`, `NewPlayerForm`, `EditPlayerForm`, `VoteForm`, `NewRoundForm`, `CompletedRoundForm`
 - Broadcasts: `PlayerCreated`, `PlayerConnected`, `PlayerDisconnected`, `PlayerNameUpdated`, `CandidateAdded`, `VoteCreated`, `RoundCreated`, `RoundCompleted`
 - Questions: Loaded from `config/burn_unit/questions.yml` singleton
@@ -102,7 +102,7 @@ A digital companion for in-person play (a faithful 5×5 / two-team Codenames). *
 **Key Classes**:
 - Aggregates: `Game` (`.build`, `board`, `status`, `current_team`, `starting_team`, `winner`, `players_on`, `spymaster_for`, `operatives`, `add_player`, `join_team`, `start_game`, `reveal`, `pass_turn`, `start_new_game`), `Player` (`team`, `spymaster?`, `operative?`, `online?`)
 - Value Objects: `Team` (top-level `Codenames::Team`, shared by game + player), `Game::Status` (`setup?`/`playing?`/`completed?`), `Game::Identity` (red/blue/bystander/assassin), `Game::Card`, `Game::Board` (`generate`, `reveal`, `remaining`, `all_revealed?`)
-- Persistence: `GameRepo`, `PlayerRepo`
+- Persistence: `GameRepo` (a `GameStore` constant), `GameMapping`
 - Forms: `NewGameForm`, `NewPlayerForm`, `EditPlayerForm`, `JoinTeamForm`, `StartGameForm`
 - Broadcasts: `PlayerCreated`, `PlayerConnected`, `PlayerDisconnected`, `PlayerNameUpdated`, `TeamUpdated`, `GameStarted`, `BoardUpdated`, `NewGameStarted`
 - Reveals/pass use `button_to` + Turbo (reveal carries `data-turbo-confirm`); a `spymaster-key` Stimulus controller toggles the key (hidden by default)
@@ -113,7 +113,7 @@ A digital companion for in-person play (a faithful 5×5 / two-team Codenames). *
 ### Working with Aggregate Wrappers
 
 ```ruby
-repo = LoadedQuestions::GameRepo.new
+repo = LoadedQuestions::GameRepo
 game = LoadedQuestions::Game.build(question:)        # Construct with .build
 game.add_player(user_id:, name:, guesser: true)     # Mutations live on the aggregate
 game.begin_guessing                                  # Phase transitions are aggregate methods
@@ -121,7 +121,7 @@ repo.save(game)                                      # Repo persists game + all 
 game = repo.find(id)                                 # Reload via repo (uses .strict_loading)
 ```
 
-Aggregates do **not** expose plain attribute setters for document fields — state changes flow through named operations (`start_new_round`, `assign_guess`, `complete_round`) that swap in a new `Document` via `document.with(...)`. Aggregates never touch ActiveRecord; only `GameRepo`/`PlayerRepo` do.
+Aggregates do **not** expose plain attribute setters for document fields — state changes flow through named operations (`start_new_round`, `assign_guess`, `complete_round`) that swap in a new `Document` via `document.with(...)`. Aggregates never touch ActiveRecord; only `GameStore` does (via the per-game mapping).
 
 ### Form Objects
 
@@ -154,8 +154,8 @@ end
 3. Implement core classes:
    - Aggregate wrappers (`game.rb`, `player.rb`) with `.build` and document-mutation methods
    - Value objects in `game/` and `player/` (Document, Status, etc.)
-   - Repos (`game_repo.rb`, `player_repo.rb`) — the only place that touches `::Game`/`::Player`
-   - Form objects for validation (`*_form.rb`)
+   - `game_mapping.rb` (`kind`, `load_game`, `load_player`) + `game_repo.rb` (`GameRepo = GameStore.new(mapping: GameMapping.new)`) — construction is per-game; the shared `GameStore` does the AR work
+   - Form objects for game-specific validation (`*_form.rb`); reuse shared `NewPlayerForm`/`EditPlayerForm`
    - Controllers (`games_controller.rb`, `players_controller.rb`)
 4. Add namespaced routes in `config/routes.rb`
 5. Create broadcast service objects in `broadcast/` directory
@@ -216,7 +216,7 @@ Burn Unit: `bu_game` (base), `bu_polling_game`, `bu_completed_game`. Traits: `:w
 ```ruby
 game = create(:lq_polling_game, player_names: %w[Alice Bob])
 game.players.find(&:guesser?)             # Find guesser
-LoadedQuestions::GameRepo.new.save(game)  # Persist mutations
+LoadedQuestions::GameRepo.save(game)  # Persist mutations
 ```
 
 ## Coding Conventions

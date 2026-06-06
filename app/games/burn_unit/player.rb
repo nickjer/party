@@ -7,7 +7,7 @@ module BurnUnit
     class << self
       def build(game_id:, user_id:, name:, judge: false, playing: false,
         id: nil)
-        id ||= PlayerRepo.generate_id
+        id ||= GameStore.generate_player_id
         document = Document.new(
           judge: judge, score: 0, vote: nil, playing: playing
         )

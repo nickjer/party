@@ -132,6 +132,6 @@ module BurnUnit
       Broadcast::CandidateAdded.new(game:, player:).call
     end
 
-    def repo = @repo ||= GameRepo.new
+    def repo = GameRepo
   end
 end

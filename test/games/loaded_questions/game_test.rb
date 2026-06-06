@@ -67,7 +67,7 @@ module LoadedQuestions
 
       player = game.add_player(user_id: user.id,
         name: PlayerName.parse("Alice"))
-      GameRepo.new.save(game)
+      GameRepo.save(game)
 
       game_after = reload(game:)
       reloaded_player = game_after.player_for(user.id)
@@ -127,7 +127,7 @@ module LoadedQuestions
 
       # Assign Bob's answer to Charlie's slot
       game.assign_guess(player_id: charlie.id, answer_id: bob.answer.id)
-      GameRepo.new.save(game)
+      GameRepo.save(game)
 
       # Reload from database to verify persistence
       game_after = reload(game:)
@@ -197,7 +197,7 @@ module LoadedQuestions
       ])
 
       game.begin_guessing
-      GameRepo.new.save(game)
+      GameRepo.save(game)
 
       reloaded_game = reload(game:)
 
@@ -274,7 +274,7 @@ module LoadedQuestions
       new_question = NormalizedString.new("What is your favorite animal?")
 
       game.start_new_round(question: new_question, guesser: new_guesser)
-      GameRepo.new.save(game)
+      GameRepo.save(game)
 
       reloaded_game = reload(game:)
 

@@ -11,7 +11,7 @@ module BurnUnit
       assert_not_predicate player, :judge?
 
       player.judge = true
-      GameRepo.new.save(game)
+      GameRepo.save(game)
 
       reloaded_game = reload(game:)
       reloaded_player = reloaded_game.players.find { |p| p.id == player.id }
@@ -24,7 +24,7 @@ module BurnUnit
       player = create(:bu_player, game:)
 
       player.name = PlayerName.parse("NewName")
-      GameRepo.new.save(game)
+      GameRepo.save(game)
 
       reloaded_game = reload(game:)
       reloaded_player = reloaded_game.players.find { |p| p.id == player.id }
@@ -39,7 +39,7 @@ module BurnUnit
       assert_not_predicate player, :playing?
 
       player.playing = true
-      GameRepo.new.save(game)
+      GameRepo.save(game)
 
       reloaded_game = reload(game:)
       reloaded_player = reloaded_game.players.find { |p| p.id == player.id }
@@ -54,7 +54,7 @@ module BurnUnit
       assert_equal 0, player.score
 
       player.score = 5
-      GameRepo.new.save(game)
+      GameRepo.save(game)
 
       reloaded_game = reload(game:)
       reloaded_player = reloaded_game.players.find { |p| p.id == player.id }
@@ -82,7 +82,7 @@ module BurnUnit
       assert_not_predicate alice, :voted?
 
       alice.vote = bob.id
-      GameRepo.new.save(game)
+      GameRepo.save(game)
 
       reloaded_game = reload(game:)
       reloaded_alice = reloaded_game.players.find { |p| p.id == alice.id }

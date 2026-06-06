@@ -5,11 +5,11 @@ FactoryBot.define do
     question { Faker::Lorem.question }
 
     initialize_with do
-      BurnUnit::Game.build(question:)
+      BurnUnit::Game.build(question: NormalizedString.new(question))
     end
 
     to_create do |game|
-      BurnUnit::GameRepo.new.save(game)
+      BurnUnit::GameRepo.save(game)
     end
 
     trait :with_judge do

@@ -19,7 +19,7 @@ FactoryBot.define do
     end
 
     to_create do |_player, evaluator|
-      LoadedQuestions::GameRepo.new.save(evaluator.game)
+      LoadedQuestions::GameRepo.save(evaluator.game)
     end
 
     trait :with_answer do

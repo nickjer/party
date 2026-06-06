@@ -125,6 +125,6 @@ module Codenames
         !game.board.card(index).revealed?
     end
 
-    def repo = @repo ||= GameRepo.new
+    def repo = GameRepo
   end
 end

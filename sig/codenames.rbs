@@ -111,25 +111,12 @@ module Codenames
     end
   end
 
-  class GameRepo
-    def self.generate_id: () -> String
+  GameRepo: GameStore[Player, Game]
 
-    def initialize: () -> void
-    def find: (String id) -> Game
-    def save: (Game game) -> void
-
-    private
-
-    attr_reader player_repo: PlayerRepo
-
-    def scope: () -> ::Game::ActiveRecord_Relation
-    def save_players: (Game game) -> void
-  end
-
-  class PlayerRepo
-    def self.generate_id: () -> String
-
-    def hydrate: (::Player record) -> Player
+  class GameMapping
+    def kind: () -> Symbol
+    def load_game: (::Game record, Array[Player] players) -> Game
+    def load_player: (::Player record) -> Player
   end
 
   class Game
@@ -374,30 +361,6 @@ module Codenames
     def valid?: () -> bool
   end
 
-  class NewPlayerForm
-    attr_reader errors: ::Errors
-    attr_reader game: Game
-    attr_reader name: ::NormalizedString
-    attr_reader player_name: ::PlayerName?
-    attr_reader user_id: String
-
-    def initialize: (game: Game, user_id: String, ?name: _ToS?) -> void
-
-    def valid?: () -> bool
-  end
-
-  class EditPlayerForm
-    attr_reader errors: ::Errors
-    attr_reader game: Game
-    attr_reader current_player: Player
-    attr_reader name: ::NormalizedString
-    attr_reader player_name: ::PlayerName?
-
-    def initialize: (game: Game, current_player: Player, ?name: _ToS?) -> void
-
-    def valid?: () -> bool
-  end
-
   class JoinTeamForm
     attr_reader team: Team?
     attr_reader spymaster: bool
@@ -459,7 +422,7 @@ module Codenames
 
     private
 
-    attr_reader repo: GameRepo
+    attr_reader repo: GameStore[Player, Game]
 
     def new_game_params: () -> ::ActionController::Parameters
     def reveal_params: () -> ::ActionController::Parameters
@@ -475,7 +438,7 @@ module Codenames
 
     private
 
-    attr_reader repo: GameRepo
+    attr_reader repo: GameStore[Player, Game]
 
     def new_player_params: () -> ::ActionController::Parameters
     def update_player_params: () -> ::ActionController::Parameters

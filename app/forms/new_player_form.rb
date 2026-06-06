@@ -20,7 +20,7 @@ class NewPlayerForm
   def initialize(game:, user_id:, name: nil)
     @game = game
     @user_id = user_id
-    @name = NormalizedString.new(name)
+    @name = NameEasterEgg.new(name).apply
     @errors = Errors.new
   end
 

@@ -268,4 +268,31 @@ class NormalizedStringTest < ActiveSupport::TestCase
 
     assert_equal "hello world", string.to_s
   end
+
+  test "treats Cyrillic look-alikes as equal to Latin" do
+    latin = NormalizedString.new("Bob")
+    cyrillic = NormalizedString.new("Воb") # Cyrillic В/о + Latin b
+
+    assert_equal latin, cyrillic
+  end
+
+  test "treats Greek look-alikes as equal to Latin" do
+    latin = NormalizedString.new("apex")
+    greek = NormalizedString.new("αρεχ") # Greek alpha/rho/epsilon/chi
+
+    assert_equal latin, greek
+  end
+
+  test "displays look-alike characters exactly as typed" do
+    string = NormalizedString.new("Воb") # Cyrillic В/о + Latin b
+
+    assert_equal "Воb", string.to_s
+  end
+
+  test "does not fold non-look-alike Latin characters" do
+    string1 = NormalizedString.new("zed")
+    string2 = NormalizedString.new("zod")
+
+    assert_not_equal string1, string2
+  end
 end

@@ -19,7 +19,9 @@ class NameEasterEgg
   SEPARATOR = '[\s._-]*'
 
   TRIGGER = begin
-    classes = LOOKALIKES.values.map { |glyphs| "[#{glyphs.join}]+" }
+    classes = "bethany".each_char.map do |letter|
+      "[#{LOOKALIKES.fetch(letter).join}]+"
+    end
     /(?<![\p{L}\p{N}])#{classes.join(SEPARATOR)}(?![\p{L}\p{N}])/i
   end
 

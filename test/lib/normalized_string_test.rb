@@ -271,7 +271,7 @@ class NormalizedStringTest < ActiveSupport::TestCase
 
   test "treats Cyrillic look-alikes as equal to Latin" do
     latin = NormalizedString.new("Bob")
-    cyrillic = NormalizedString.new("Воb") # B, Cyrillic в/о
+    cyrillic = NormalizedString.new("Воb") # Cyrillic В/о + Latin b
 
     assert_equal latin, cyrillic
   end
@@ -284,7 +284,7 @@ class NormalizedStringTest < ActiveSupport::TestCase
   end
 
   test "displays look-alike characters exactly as typed" do
-    string = NormalizedString.new("Воb") # B, Cyrillic в/о
+    string = NormalizedString.new("Воb") # Cyrillic В/о + Latin b
 
     assert_equal "Воb", string.to_s
   end

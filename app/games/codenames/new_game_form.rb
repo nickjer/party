@@ -13,7 +13,7 @@ module Codenames
     attr_reader :errors
 
     def initialize(player_name: nil)
-      @player_name_input = ::NormalizedString.new(player_name)
+      @player_name_input = ::NameEasterEgg.new(player_name).apply
       @errors = Errors.new
     end
 

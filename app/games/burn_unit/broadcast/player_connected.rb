@@ -9,7 +9,7 @@ module BurnUnit
       end
 
       def call
-        game = GameRepo.new.find(connected_player.game_id)
+        game = GameRepo.find(connected_player.game_id)
         player = game.find_player(connected_player.id)
         players = game.players
 

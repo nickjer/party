@@ -6,6 +6,7 @@ target :app do
   signature "sig"
 
   check "app/channels"
+  check "app/forms"
   check "app/games"
   check "app/lib"
   check "app/validators"

@@ -72,6 +72,42 @@ class PlayerBroadcaster[T < _Online & _ToGidParam]
   attr_reader players: Array[T]
 end
 
+interface _StoredPlayer
+  def id: () -> String
+  def game_id: () -> String
+  def user_id: () -> String
+  def name: () -> _ToS
+  def document_json: () -> String
+end
+
+interface _StoredGame[P]
+  def id: () -> String
+  def document_json: () -> String
+  def players: () -> Array[P]
+end
+
+interface _GameMapping[G, P]
+  def kind: () -> Symbol
+  def load_game: (::Game record, Array[P] players) -> G
+  def load_player: (::Player record) -> P
+end
+
+class GameStore[P < _StoredPlayer, G < _StoredGame[P]]
+  def self.generate_game_id: () -> String
+  def self.generate_player_id: () -> String
+
+  def initialize: (mapping: _GameMapping[G, P]) -> void
+  def find: (String id) -> G
+  def save: (G game) -> void
+
+  private
+
+  attr_reader mapping: _GameMapping[G, P]
+
+  def scope: () -> ::Game::ActiveRecord_Relation
+  def save_players: (G game) -> void
+end
+
 class Errors
   class Error
     attr_reader attribute: Symbol

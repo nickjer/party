@@ -8,7 +8,7 @@ module LoadedQuestions
 
     class << self
       def build(game_id:, user_id:, name:, guesser: false, id: nil)
-        id ||= PlayerRepo.generate_id
+        id ||= GameStore.generate_player_id
         document = Document.new(
           answer: Answer.empty,
           guesser: guesser,

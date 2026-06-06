@@ -15,7 +15,7 @@ FactoryBot.define do
     end
 
     to_create do |_player, evaluator|
-      BurnUnit::GameRepo.new.save(evaluator.game)
+      BurnUnit::GameRepo.save(evaluator.game)
     end
   end
 end

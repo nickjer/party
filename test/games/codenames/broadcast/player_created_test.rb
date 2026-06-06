@@ -14,7 +14,7 @@ module Codenames
           name: PlayerName.parse("Alice"))
         bob = game.add_player(user_id: create(:user).id,
           name: PlayerName.parse("Bob"))
-        Codenames::GameRepo.new.save(game)
+        Codenames::GameRepo.save(game)
         PlayerConnections.instance.increment(alice.id)
         PlayerConnections.instance.increment(bob.id)
 
@@ -31,7 +31,7 @@ module Codenames
           name: PlayerName.parse("Alice"))
         bob = game.add_player(user_id: create(:user).id,
           name: PlayerName.parse("Bob"))
-        Codenames::GameRepo.new.save(game)
+        Codenames::GameRepo.save(game)
         PlayerConnections.instance.increment(alice.id)
 
         streams = capture_turbo_stream_broadcasts alice do

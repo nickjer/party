@@ -6,7 +6,7 @@ module Codenames
   class Player
     class << self
       def build(game_id:, user_id:, name:, team: nil, spymaster: false, id: nil)
-        id ||= PlayerRepo.generate_id
+        id ||= GameStore.generate_player_id
         document = Document.new(team:, spymaster:)
         new(id:, game_id:, user_id:, name:, document:)
       end

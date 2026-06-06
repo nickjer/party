@@ -76,7 +76,7 @@ module BurnUnit
 
       player = game.add_player(user_id: user.id,
         name: PlayerName.parse("Alice"))
-      GameRepo.new.save(game)
+      GameRepo.save(game)
 
       game_after = reload(game:)
       reloaded_player = game_after.player_for(user.id)
@@ -311,9 +311,9 @@ module BurnUnit
       alice_id = game.players.find { |p| p.name.to_s == "Alice" }.id
 
       game.complete_round
-      GameRepo.new.save(game)
+      GameRepo.save(game)
 
-      reloaded_game = GameRepo.new.find(game.id)
+      reloaded_game = GameRepo.find(game.id)
       assert_predicate reloaded_game.status, :completed?
 
       bob = reloaded_game.players.find { |p| p.id == bob_id }
@@ -470,9 +470,9 @@ module BurnUnit
       question = NormalizedString.new("What is your favorite animal?")
 
       game.start_new_round(question:, judge: alice)
-      GameRepo.new.save(game)
+      GameRepo.save(game)
 
-      reloaded_game = GameRepo.new.find(game.id)
+      reloaded_game = GameRepo.find(game.id)
       assert_equal "What is your favorite animal?", reloaded_game.question.to_s
       assert_predicate reloaded_game.status, :polling?
       assert_equal alice.id, reloaded_game.judge.id

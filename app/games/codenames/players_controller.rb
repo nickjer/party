@@ -107,6 +107,6 @@ module Codenames
       redirect_to(new_codenames_game_player_path(game.id))
     end
 
-    def repo = @repo ||= GameRepo.new
+    def repo = GameRepo
   end
 end

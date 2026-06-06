@@ -1,0 +1,31 @@
+class NewPlayerForm
+  attr_reader errors: ::Errors
+  attr_reader game: _GameForNameValidation & _GameForUniquePlayerValidation
+  attr_reader name: ::NormalizedString
+  attr_reader player_name: ::PlayerName?
+  attr_reader user_id: String
+
+  def initialize: (
+    game: _GameForNameValidation & _GameForUniquePlayerValidation,
+    user_id: String,
+    ?name: _ToS?
+  ) -> void
+
+  def valid?: () -> bool
+end
+
+class EditPlayerForm
+  attr_reader errors: ::Errors
+  attr_reader game: _GameForNameValidation
+  attr_reader current_player: _PlayerForNameValidation
+  attr_reader name: ::NormalizedString
+  attr_reader player_name: ::PlayerName?
+
+  def initialize: (
+    game: _GameForNameValidation,
+    current_player: _PlayerForNameValidation,
+    ?name: _ToS?
+  ) -> void
+
+  def valid?: () -> bool
+end

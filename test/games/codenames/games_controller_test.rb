@@ -68,7 +68,7 @@ module Codenames
       game = create(:cn_playing_game)
       latecomer = game.add_player(user_id: create(:user).id,
         name: PlayerName.parse("Late"))
-      Codenames::GameRepo.new.save(game)
+      Codenames::GameRepo.save(game)
       sign_in(latecomer.user_id)
 
       get codenames_game_path(game.id)

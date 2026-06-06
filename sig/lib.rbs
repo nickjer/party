@@ -11,6 +11,9 @@ interface _ToParam
 end
 
 class NormalizedString
+  CONFUSABLES: Hash[String, String]
+  CONFUSABLE_PATTERN: Regexp
+
   def initialize: (_ToS string) -> void
 
   def <=>: (NormalizedString other) -> Integer
@@ -45,6 +48,21 @@ class PlayerName
   def to_s: () -> String
 
   attr_reader normalized: NormalizedString
+end
+
+class NameEasterEgg
+  LOOKALIKES: Hash[String, Array[String]]
+  SEPARATOR: String
+  TRIGGER: Regexp
+
+  def initialize: (_ToS? raw) -> void
+  def apply: () -> NormalizedString
+
+  private
+
+  attr_reader name: NormalizedString
+
+  def replacement_for: (String match) -> String
 end
 
 class PlayerConnections

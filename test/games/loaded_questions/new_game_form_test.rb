@@ -120,6 +120,13 @@ module LoadedQuestions
       assert_equal "Alice", form.player_name_input.to_s
     end
 
+    test "#valid? applies the name easter egg" do
+      form = NewGameForm.new(player_name: "Bethany", question: "Why?")
+
+      assert_predicate form, :valid?
+      assert_equal "Betsy", form.player_name_input.to_s
+    end
+
     test "#valid? exposes PlayerName after success" do
       form = NewGameForm.new(player_name: "Alice", question: "Why?")
 

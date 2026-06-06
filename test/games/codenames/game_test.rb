@@ -40,6 +40,15 @@ module Codenames
       assert_includes game.players, player
     end
 
+    test "#add_player raises when the user already has a player" do
+      game = build(:cn_game)
+      game.add_player(user_id: "u1", name: PlayerName.parse("Alice"))
+
+      assert_raises(RuntimeError) do
+        game.add_player(user_id: "u1", name: PlayerName.parse("Bob"))
+      end
+    end
+
     test "#join_team assigns the team and spymaster role" do
       game = build(:cn_game)
       player = game.add_player(user_id: "u1", name: PlayerName.parse("Alice"))
@@ -128,6 +137,18 @@ module Codenames
       assert_equal Team.red, game.winner
     end
 
+    test "#reveal of the last agent wins for the blue team" do
+      game = build(:cn_playing_game, starting_team: Team.blue)
+      game.board.cards.each_with_index do |card, index|
+        next if card.identity.team != Team.blue || game.status.completed?
+
+        game.reveal(index:)
+      end
+
+      assert_predicate game.status, :completed?
+      assert_equal Team.blue, game.winner
+    end
+
     test "#reveal raises unless playing" do
       game = build(:cn_game, :with_teams)
 
@@ -174,6 +195,15 @@ module Codenames
       assert_raises(RuntimeError) do
         game.start_new_game(words: Words.instance.sample)
       end
+    end
+
+    test "#to_global_id builds a GlobalID for the game" do
+      game = build(:cn_game)
+
+      gid = game.to_global_id
+
+      assert_equal "Game", gid.model_name
+      assert_equal game.id, gid.model_id
     end
 
     test "persists and reloads through the repo" do

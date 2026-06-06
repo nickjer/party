@@ -2,6 +2,11 @@
 
 require "simplecov"
 SimpleCov.start "rails" do
+  enable_coverage :branch
+
+  add_group "Forms", "app/forms"
+  add_group "Validators", "app/validators"
+
   add_group "Burn Unit", "app/games/burn_unit"
   add_group "Codenames", "app/games/codenames"
   add_group "Loaded Questions", "app/games/loaded_questions"

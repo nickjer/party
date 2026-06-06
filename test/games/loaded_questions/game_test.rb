@@ -322,5 +322,14 @@ module LoadedQuestions
 
       assert_equal "Game must be in completed status", error.message
     end
+
+    test "#to_global_id builds a GlobalID for the game" do
+      game = build(:lq_game)
+
+      gid = game.to_global_id
+
+      assert_equal "Game", gid.model_name
+      assert_equal game.id, gid.model_id
+    end
   end
 end

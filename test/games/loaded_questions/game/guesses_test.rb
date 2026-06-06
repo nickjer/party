@@ -23,6 +23,19 @@ module LoadedQuestions
         assert_equal non_guesser.id, result.player.id
       end
 
+      test "#unassigned_answers omits answers already placed in a slot" do
+        game = build(:lq_matching_game, players: [
+          { name: "Alice", answer: "Pizza" },
+          { name: "Bob", answer: "Cats" }
+        ])
+        alice, bob = game.guesses.map(&:player).sort_by(&:name)
+
+        guesses = game.guesses.assign(player_id: alice.id,
+          answer_id: bob.answer.id)
+
+        assert_equal %w[Pizza], guesses.unassigned_answers.map(&:to_s)
+      end
+
       test "#initialize raises error when duplicate guessed player found" do
         game = build(:lq_matching_game, player_names: %w[Alice Bob])
         player1, player2 = game.players.reject(&:guesser?)
@@ -109,6 +122,12 @@ module LoadedQuestions
         assert_equal charlie.id, results[alice.id].attributed_to.id
         assert_equal alice.id,   results[bob.id].attributed_to.id
         assert_equal bob.id,     results[charlie.id].attributed_to.id
+      end
+
+      test "#for_completed_view requires every guess to be assigned" do
+        game = build(:lq_matching_game, player_names: %w[Alice Bob])
+
+        assert_raises(KeyError) { game.guesses.for_completed_view }
       end
 
       test "#assign clears previous assignment when answer is reassigned" do

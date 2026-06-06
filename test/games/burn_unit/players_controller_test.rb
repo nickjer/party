@@ -24,6 +24,28 @@ module BurnUnit
       assert_equal alice.id, bob.vote
     end
 
+    test "#vote does not re-broadcast when changing an existing vote" do
+      game = create(:bu_polling_game, players: [
+        { name: "Bob", vote_for: "Charlie" },
+        { name: "Charlie" },
+        { name: "Dave" }
+      ])
+      bob = game.players.find { |p| p.name.to_s == "Bob" }
+      dave = game.players.find { |p| p.name.to_s == "Dave" }
+      sign_in(bob.user_id)
+
+      assert_predicate bob, :voted?
+
+      patch vote_burn_unit_game_player_path(game.id), params: {
+        player: {
+          candidate_id: dave.id
+        }
+      }
+
+      assert_response :ok
+      assert_equal dave.id, reload(game:).player_for(bob.user_id).vote
+    end
+
     test "#vote returns validation error for missing candidate" do
       game = create(:bu_polling_game, player_names: %w[Bob])
       bob = game.players.find { |p| p.name.to_s == "Bob" }

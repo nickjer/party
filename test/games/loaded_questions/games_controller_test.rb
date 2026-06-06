@@ -106,6 +106,16 @@ module LoadedQuestions
       assert_not_dom "button", text: "Complete Matching"
     end
 
+    test "#show raises on an unknown game status" do
+      game = create(:lq_polling_game)
+      player = game.players.first
+      sign_in(player.user_id)
+      game.stubs(:status).returns(Game::Status.send(:new, :bogus))
+      GameRepo.stubs(:find).returns(game)
+
+      assert_raises(RuntimeError) { get loaded_questions_game_path(game.id) }
+    end
+
     test "#completed_round changes game status from guessing to completed" do
       # Create game in guessing status with players and answers
       game = create(:lq_matching_game, player_names: %w[Bob Charlie])

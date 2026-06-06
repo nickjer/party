@@ -23,6 +23,24 @@ module LoadedQuestions
       assert_equal "My answer", bob.answer.to_s
     end
 
+    test "#answer does not re-broadcast when changing an existing answer" do
+      game = create(:lq_game)
+      bob = create(:lq_player, game:, answer: "Original answer")
+      sign_in(bob.user_id)
+
+      assert_predicate bob, :answered?
+
+      patch answer_loaded_questions_game_player_path(game.id), params: {
+        player: {
+          answer: "Updated answer"
+        }
+      }
+
+      assert_response :ok
+      assert_equal "Updated answer",
+        reload(game:).player_for(bob.user_id).answer.to_s
+    end
+
     test "#answer returns validation error for single letter answer" do
       game = create(:lq_game)
       bob = create(:lq_player, game:)

@@ -77,6 +77,25 @@ module Codenames
       assert_dom "button", text: /Join Red/
     end
 
+    test "#show renders the board for a completed game" do
+      game = create(:cn_completed_game)
+      sign_in(red_operative(game).user_id)
+
+      get codenames_game_path(game.id)
+
+      assert_response :success
+      assert_dom "#play_area"
+    end
+
+    test "#show raises on an unknown game status" do
+      game = create(:cn_game, :with_teams)
+      sign_in(game.spymaster_for(Team.red).user_id)
+      game.stubs(:status).returns(Game::Status.send(:new, :bogus))
+      GameRepo.stubs(:find).returns(game)
+
+      assert_raises(RuntimeError) { get codenames_game_path(game.id) }
+    end
+
     test "#start is forbidden for a non-starting-spymaster" do
       game = create(:cn_game, :with_teams)
       sign_in(red_operative(game).user_id)
@@ -94,6 +113,20 @@ module Codenames
 
       assert_response :success
       assert_predicate reload(game:).status, :playing?
+    end
+
+    test "#start re-renders the lobby when the teams are incomplete" do
+      game = create(:cn_game) # red starts, no players yet
+      user = create(:user)
+      game.add_player(user_id: user.id, name: PlayerName.parse("RedSpy"),
+        team: Team.red, spymaster: true)
+      GameRepo.save(game)
+      sign_in(user.id)
+
+      post start_codenames_game_path(game.id)
+
+      assert_response :unprocessable_content
+      assert_predicate reload(game:).status, :setup?
     end
 
     test "#reveal is forbidden for an off-turn operative" do
@@ -141,6 +174,16 @@ module Codenames
       assert_not reload(game:).board.card(0).revealed?
     end
 
+    test "#reveal is forbidden when the game is not playing" do
+      game = create(:cn_game, :with_teams) # still in setup
+      sign_in(red_operative(game).user_id)
+
+      patch reveal_codenames_game_path(game.id),
+        params: { reveal: { index: 0 } }
+
+      assert_response :forbidden
+    end
+
     test "#pass switches the turn" do
       game = create(:cn_playing_game)
       sign_in(red_operative(game).user_id)
@@ -151,6 +194,34 @@ module Codenames
       assert_equal Team.blue, reload(game:).current_team
     end
 
+    test "#pass is forbidden when the game is not playing" do
+      game = create(:cn_game, :with_teams) # still in setup
+      sign_in(red_operative(game).user_id)
+
+      patch pass_codenames_game_path(game.id)
+
+      assert_response :forbidden
+    end
+
+    test "#pass is forbidden for a spymaster" do
+      game = create(:cn_playing_game)
+      sign_in(game.spymaster_for(Team.red).user_id)
+
+      patch pass_codenames_game_path(game.id)
+
+      assert_response :forbidden
+    end
+
+    test "#pass is forbidden for an off-turn operative" do
+      game = create(:cn_playing_game) # red's turn
+      blue_op = game.players.find { |player| player.name.to_s == "BlueOp" }
+      sign_in(blue_op.user_id)
+
+      patch pass_codenames_game_path(game.id)
+
+      assert_response :forbidden
+    end
+
     test "#new_game resets a completed game to the lobby" do
       game = create(:cn_completed_game)
       sign_in(game.spymaster_for(Team.red).user_id)
@@ -159,6 +230,15 @@ module Codenames
 
       assert_response :success
       assert_predicate reload(game:).status, :setup?
+    end
+
+    test "#new_game is forbidden unless the game is completed" do
+      game = create(:cn_playing_game)
+      sign_in(game.spymaster_for(Team.red).user_id)
+
+      post new_game_codenames_game_path(game.id)
+
+      assert_response :forbidden
     end
   end
 end

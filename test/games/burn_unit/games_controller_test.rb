@@ -87,6 +87,16 @@ module BurnUnit
       assert_predicate updated_player, :playing?
     end
 
+    test "#show raises on an unknown game status" do
+      game = create(:bu_polling_game)
+      player = game.players.first
+      sign_in(player.user_id)
+      game.stubs(:status).returns(Game::Status.send(:new, :bogus))
+      GameRepo.stubs(:find).returns(game)
+
+      assert_raises(RuntimeError) { get burn_unit_game_path(game.id) }
+    end
+
     test "#completed_round changes game status from polling to completed" do
       game = create(:bu_polling_game, players: [
         { name: "Bob", vote_for: "Charlie" },

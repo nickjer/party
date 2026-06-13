@@ -244,4 +244,45 @@ module Wavelength
       def to_json: (?untyped state) -> String
     end
   end
+
+  class NewGameForm
+    attr_reader errors: ::Errors
+    attr_reader player_name_input: ::NormalizedString
+    attr_reader player_name: ::PlayerName?
+
+    def initialize: (?player_name: _ToS?) -> void
+
+    def valid?: () -> bool
+  end
+
+  class JoinTeamForm
+    attr_reader team: Team?
+    attr_reader errors: ::Errors
+
+    def initialize: (game: Game, current_player: Player, ?team: String?) -> void
+
+    def valid?: () -> bool
+
+    private
+
+    attr_reader game: Game
+    attr_reader current_player: Player
+
+    def parse_team: (String? value) -> Team?
+    def validate_status: () -> void
+  end
+
+  class StartGameForm
+    attr_reader errors: ::Errors
+
+    def initialize: (game: Game) -> void
+
+    def valid?: () -> bool
+
+    private
+
+    attr_reader game: Game
+
+    def validate_team: (Team team) -> void
+  end
 end

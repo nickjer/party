@@ -1,42 +1,72 @@
-<%# locals: (game:, reveal:, interactive:) %>
+<%# locals: (game:, reveal:, interactive:, concealable: false) %>
 <% spectrum = game.spectrum %>
 <% target = game.target %>
 <% controller = interactive ? "dial" : "" %>
 
 <div class="card shadow-sm" data-controller="<%= controller %>">
   <div class="card-body">
-    <div class="d-flex justify-content-between fw-bold mb-2">
-      <span><%= spectrum.left %></span>
-      <span><%= spectrum.right %></span>
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <span class="badge rounded-pill bg-info-subtle text-info-emphasis fs-6">
+        <i class="bi bi-caret-left-fill me-1"></i><%= spectrum.left %>
+      </span>
+      <span class="badge rounded-pill bg-info-subtle text-info-emphasis fs-6">
+        <%= spectrum.right %><i class="bi bi-caret-right-fill ms-1"></i>
+      </span>
     </div>
 
-    <div class="position-relative bg-light border rounded" style="height: 2.5rem;">
+    <div class="position-relative bg-body-secondary border rounded my-4"
+         style="height: 3rem;">
+      <%# Bands and score are reveal-target items so the psychic's toggle hides
+          both; the target attribute is harmless when no controller is present. %>
       <% if reveal %>
-        <% lo = [target.position - Wavelength::Game::Target::OUTER, 0].max %>
-        <% hi = [target.position + Wavelength::Game::Target::OUTER, 100].min %>
-        <% band_style = "left: #{lo}%; width: #{hi - lo}%;" %>
-        <% target_style = "left: #{target.position}%;" %>
-        <div class="position-absolute top-0 bottom-0 bg-success opacity-50 rounded"
-             style="<%= band_style %>"></div>
-        <div class="position-absolute top-0 bottom-0 border-start border-3 border-success"
-             style="<%= target_style %>"></div>
+        <div data-reveal-target="item">
+          <%= render "wavelength/games/target_overlay", target: %>
+        </div>
       <% end %>
 
-      <% if game.guess %>
-        <% marker_style = "left: #{game.guess}%;" %>
-        <div class="position-absolute top-0 bottom-0 border-start border-3 border-dark"
-             style="<%= marker_style %>"
-             data-dial-target="marker"></div>
+      <% if interactive %>
+        <% marker_pos = game.guess || 50 %>
+        <% marker_style = "left: #{marker_pos}%;" %>
+        <div class="position-absolute top-0 bottom-0" style="<%= marker_style %>"
+             data-dial-target="marker">
+          <div class="position-absolute top-0 bottom-0 bg-dark"
+               style="left: 0; width: 3px; transform: translateX(-50%);"></div>
+          <span class="position-absolute badge rounded-pill bg-dark fs-6"
+                style="top: -1.5rem; left: 0; transform: translateX(-50%);"
+                data-dial-target="value"><%= marker_pos %></span>
+        </div>
+      <% elsif game.guess %>
+        <% locked = game.guess #: Integer %>
+        <% locked_style = "left: #{locked}%;" %>
+        <div class="position-absolute top-0 bottom-0" style="<%= locked_style %>">
+          <div class="position-absolute top-0 bottom-0 bg-dark"
+               style="left: 0; width: 3px; transform: translateX(-50%);"></div>
+          <i class="bi bi-caret-down-fill position-absolute text-dark"
+             style="top: -0.85rem; left: 0; transform: translateX(-50%);"></i>
+          <% if reveal %>
+            <span class="position-absolute badge rounded-pill bg-dark fs-6"
+                  style="bottom: -1.4rem; left: 0; transform: translateX(-50%);"
+                  data-reveal-target="item">
+              +<%= target.score_for(locked) %>
+            </span>
+          <% end %>
+        </div>
       <% end %>
     </div>
 
     <% if interactive %>
       <%= form_with url: lock_guess_wavelength_game_path(game.id), method: :patch do |form| %>
         <%= form.range_field "guess[position]", value: game.guess || 50,
-            in: 0..100, step: 1, class: "form-range mt-3",
+            in: 0..100, step: 1, class: "form-range",
             data: { dial_target: "input", action: "input->dial#move" } %>
         <%= form.submit "Lock it in", class: "btn btn-info w-100 mt-2" %>
       <% end %>
+    <% elsif concealable %>
+      <button type="button" class="btn btn-outline-secondary w-100 mt-2"
+        data-action="reveal#toggle">
+        <i class="bi bi-eye-fill me-1"></i>
+        Show / hide target
+      </button>
     <% end %>
   </div>
 </div>

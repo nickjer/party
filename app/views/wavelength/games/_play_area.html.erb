@@ -10,17 +10,18 @@
 
 <% elsif game.status.reveal? %>
   <%= render "wavelength/games/dial", game:, reveal: true, interactive: false %>
-  <div class="d-grid mt-3">
-    <%= button_to next_round_wavelength_game_path(game.id), method: :post,
-        class: "btn btn-lg btn-info" do %>
-      <i class="bi bi-arrow-right-circle-fill me-1"></i>
-      Next round
-    <% end %>
-  </div>
+  <%= button_to next_round_wavelength_game_path(game.id), method: :post,
+      form_class: "d-grid mt-3", class: "btn btn-lg btn-info" do %>
+    <i class="bi bi-arrow-right-circle-fill me-1"></i>
+    Next round
+  <% end %>
 
 <% elsif game.status.left_right? %>
-  <%= render "wavelength/games/dial", game:, reveal: is_psychic,
-      interactive: false %>
+  <% if is_psychic %>
+    <%= render "wavelength/games/psychic_dial", game: %>
+  <% else %>
+    <%= render "wavelength/games/dial", game:, reveal: false, interactive: false %>
+  <% end %>
   <% if on_active_team %>
     <p class="text-center text-muted mt-3">
       Waiting for the <%= game.current_team.opponent %> team to guess left or right…
@@ -31,7 +32,8 @@
       <% %w[left right].each do |side| %>
         <%= button_to guess_side_wavelength_game_path(game.id), method: :patch,
             params: { guess: { side: } },
-            class: "btn btn-lg btn-outline-dark flex-grow-1" do %>
+            form_class: "d-grid flex-grow-1 m-0",
+            class: "btn btn-lg btn-outline-dark" do %>
           <%= side == "left" ? "← Left" : "Right →" %>
         <% end %>
       <% end %>
@@ -40,7 +42,7 @@
 
 <% else %>
   <% if is_psychic %>
-    <%= render "wavelength/games/dial", game:, reveal: true, interactive: false %>
+    <%= render "wavelength/games/psychic_dial", game: %>
     <p class="text-center fw-bold mt-3">Give your one-word clue out loud!</p>
   <% elsif on_active_team %>
     <%= render "wavelength/games/dial", game:, reveal: false, interactive: true %>

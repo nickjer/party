@@ -268,13 +268,23 @@ module Wavelength
     end
 
     class Target
-      BULLSEYE: Integer
-      INNER: Integer
-      OUTER: Integer
+      BULLSEYE: Float
+      INNER: Float
+      OUTER: Float
+
+      class Band
+        attr_reader points: Integer
+        attr_reader from: Float
+        attr_reader to: Float
+
+        def initialize: (points: Integer, from: Float, to: Float) -> void
+        def width: () -> Float
+      end
 
       def self.generate: () -> Target
 
       attr_reader position: Integer
+      attr_reader bands: Array[Band]
 
       def initialize: (position: Integer) -> void
 
@@ -283,6 +293,10 @@ module Wavelength
       def hash: () -> Integer
       def score_for: (Integer dial) -> Integer
       def side_of: (Integer dial) -> Symbol
+
+      private
+
+      def band: (low: Float, high: Float, points: Integer) -> Band
     end
   end
 

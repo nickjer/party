@@ -69,10 +69,16 @@ module Wavelength
       opponent = game.players_on(Team.blue).first
       target = game.target.position
 
-      # The psychic sees the target and is told to give a clue.
+      # The psychic is told to give a clue; the target shows by default and can
+      # be hidden, then shown again, via the toggle.
       using_session(session_for(psychic)) do
         assert_text "Give your one-word clue out loud!", wait: 5
         assert_no_button "Lock it in"
+        assert_selector "[data-reveal-target='item']", visible: true
+        click_on "Show / hide target"
+        assert_no_selector "[data-reveal-target='item']", visible: true
+        click_on "Show / hide target"
+        assert_selector "[data-reveal-target='item']", visible: true
       end
 
       # An opponent waits while the red team guesses (no dial controls).
@@ -87,6 +93,15 @@ module Wavelength
         assert_button "Lock it in", wait: 5
         lock_dial(target)
         assert_text "Waiting", wait: 5 # active team now waits on the opponent
+      end
+
+      # While the opponent decides, the psychic sees the target and the locked
+      # guess's score (two reveal items); the toggle hides both at once.
+      using_session(session_for(psychic)) do
+        assert_text "Waiting", wait: 5
+        assert_selector "[data-reveal-target='item']", visible: true, minimum: 2
+        click_on "Show / hide target"
+        assert_no_selector "[data-reveal-target='item']", visible: true
       end
 
       # The opponent now sees the left/right catch-up via broadcast.

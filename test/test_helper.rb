@@ -56,6 +56,7 @@ module ActiveSupport
       when LoadedQuestions::Game then LoadedQuestions::GameRepo.find(game.id)
       when BurnUnit::Game        then BurnUnit::GameRepo.find(game.id)
       when Codenames::Game       then Codenames::GameRepo.find(game.id)
+      when Wavelength::Game      then Wavelength::GameRepo.find(game.id)
       else raise ArgumentError, "Unsupported game type: #{game.class}"
       end
     end

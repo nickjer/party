@@ -19,6 +19,9 @@ application.register("spymaster-key", SpymasterKeyController)
 import ConfirmController from "./confirm_controller"
 application.register("confirm", ConfirmController)
 
+import DialController from "./dial_controller"
+application.register("dial", DialController)
+
 import Dialog from '@stimulus-components/dialog'
 application.register('dialog', Dialog)
 

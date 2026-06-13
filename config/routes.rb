@@ -32,6 +32,23 @@ Rails.application.routes.draw do
     end
   end
 
+  namespace :wavelength do
+    resources :games, only: %i[create new show] do
+      member do
+        post :start
+        patch :lock_guess
+        patch :guess_side
+        post :next_round
+        post :new_game
+      end
+      resource :player, only: %i[create new edit update] do
+        member do
+          patch :join_team
+        end
+      end
+    end
+  end
+
   namespace :loaded_questions do
     resources :games, only: %i[create new show] do
       member do

@@ -1,0 +1,42 @@
+<%# locals: (game:, reveal:, interactive:) %>
+<% spectrum = game.spectrum %>
+<% target = game.target %>
+<% controller = interactive ? "dial" : "" %>
+
+<div class="card shadow-sm" data-controller="<%= controller %>">
+  <div class="card-body">
+    <div class="d-flex justify-content-between fw-bold mb-2">
+      <span><%= spectrum.left %></span>
+      <span><%= spectrum.right %></span>
+    </div>
+
+    <div class="position-relative bg-light border rounded" style="height: 2.5rem;">
+      <% if reveal %>
+        <% lo = [target.position - Wavelength::Game::Target::OUTER, 0].max %>
+        <% hi = [target.position + Wavelength::Game::Target::OUTER, 100].min %>
+        <% band_style = "left: #{lo}%; width: #{hi - lo}%;" %>
+        <% target_style = "left: #{target.position}%;" %>
+        <div class="position-absolute top-0 bottom-0 bg-success opacity-50 rounded"
+             style="<%= band_style %>"></div>
+        <div class="position-absolute top-0 bottom-0 border-start border-3 border-success"
+             style="<%= target_style %>"></div>
+      <% end %>
+
+      <% if game.guess %>
+        <% marker_style = "left: #{game.guess}%;" %>
+        <div class="position-absolute top-0 bottom-0 border-start border-3 border-dark"
+             style="<%= marker_style %>"
+             data-dial-target="marker"></div>
+      <% end %>
+    </div>
+
+    <% if interactive %>
+      <%= form_with url: lock_guess_wavelength_game_path(game.id), method: :patch do |form| %>
+        <%= form.range_field "guess[position]", value: game.guess || 50,
+            in: 0..100, step: 1, class: "form-range mt-3",
+            data: { dial_target: "input", action: "input->dial#move" } %>
+        <%= form.submit "Lock it in", class: "btn btn-info w-100 mt-2" %>
+      <% end %>
+    <% end %>
+  </div>
+</div>

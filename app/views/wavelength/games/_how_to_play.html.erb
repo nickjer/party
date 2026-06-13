@@ -1,0 +1,75 @@
+<%# locals: () %>
+
+<dialog
+  data-dialog-target="dialog"
+  data-action="click->dialog#backdropClose"
+  class="cn-dialog border-0 p-0 rounded-4 shadow-lg"
+  style="max-width: 32rem;"
+>
+  <div class="p-4">
+    <div class="d-flex justify-content-between align-items-start mb-3">
+      <h1 class="fs-5 fw-bold mb-0">
+        <i class="bi bi-info-circle me-2"></i>
+        How to play
+      </h1>
+      <button
+        type="button"
+        class="btn-close"
+        data-action="dialog#close"
+        aria-label="Close"
+      ></button>
+    </div>
+
+    <p class="text-secondary small">
+      This app runs the spectrum cards, the hidden target, turn order, and
+      scoring. Clues are spoken out loud — never typed here.
+    </p>
+
+    <div class="d-flex gap-3 mb-3">
+      <i class="bi bi-eye-fill fs-4 text-secondary"></i>
+      <div>
+        <div class="fw-semibold">The psychic (one per turn)</div>
+        <p class="mb-0 small text-secondary">
+          Only you see the hidden target on the dial. Say
+          <strong>one word</strong> out loud that places your concept between the
+          two ends of the spectrum — then let your team guess.
+        </p>
+      </div>
+    </div>
+
+    <div class="d-flex gap-3 mb-3">
+      <i class="bi bi-sliders fs-4 text-secondary"></i>
+      <div>
+        <div class="fw-semibold">The team</div>
+        <p class="mb-0 small text-secondary">
+          Discuss the clue, drag the dial to where you think the target sits,
+          and <strong>Lock it in</strong>. Closer is better:
+          <strong>4</strong> points for a bullseye, then <strong>3</strong> and
+          <strong>2</strong> for the outer bands.
+        </p>
+      </div>
+    </div>
+
+    <div class="d-flex gap-3 mb-3">
+      <i class="bi bi-arrow-left-right fs-4 text-secondary"></i>
+      <div>
+        <div class="fw-semibold">The other team</div>
+        <p class="mb-0 small text-secondary">
+          Before the reveal, guess whether the true target is to the
+          <strong>left</strong> or <strong>right</strong> of the locked dial. Get
+          it right and you steal <strong>1</strong> point.
+        </p>
+      </div>
+    </div>
+
+    <div class="d-flex gap-3">
+      <i class="bi bi-trophy-fill fs-4 text-secondary"></i>
+      <div>
+        <div class="fw-semibold">Goal</div>
+        <p class="mb-0 small text-secondary">
+          The first team to reach <strong>10</strong> points wins.
+        </p>
+      </div>
+    </div>
+  </div>
+</dialog>

@@ -378,4 +378,41 @@ module Wavelength
 
     def validate_team: (Team team) -> void
   end
+
+  class GamesController < ::ApplicationController
+    def new: () -> untyped
+    def create: () -> untyped
+    def show: () -> untyped
+    def start: () -> untyped
+    def lock_guess: () -> untyped
+    def guess_side: () -> untyped
+    def next_round: () -> untyped
+    def new_game: () -> untyped
+
+    private
+
+    attr_reader repo: GameStore[Player, Game]
+
+    def new_game_params: () -> ::ActionController::Parameters
+    def lock_guess_params: () -> ::ActionController::Parameters
+    def guess_side_params: () -> ::ActionController::Parameters
+  end
+
+  class PlayersController < ::ApplicationController
+    def new: () -> untyped
+    def create: () -> untyped
+    def edit: () -> untyped
+    def update: () -> untyped
+    def join_team: () -> untyped
+
+    private
+
+    attr_reader repo: GameStore[Player, Game]
+
+    def new_player_params: () -> ::ActionController::Parameters
+    def update_player_params: () -> ::ActionController::Parameters
+    def join_team_params: () -> ::ActionController::Parameters
+    def redirect_to_game: (Game game) -> void
+    def redirect_to_new_player: (Game game) -> void
+  end
 end

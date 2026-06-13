@@ -79,6 +79,30 @@
       </div>
     </div>
   </div>
+
+  <div class="col">
+    <div class="card h-100 shadow-sm hover-shadow">
+      <div class="card-body d-flex flex-column">
+        <div class="mb-3 text-info">
+          <i class="bi bi-speedometer2" style="font-size: 3rem;"></i>
+        </div>
+
+        <h2 class="card-title h3 mb-3">Wavelength</h2>
+
+        <p class="card-text text-muted flex-grow-1">
+          Two teams read each other's minds on a spectrum dial. Each round one
+          player sees a hidden target and gives a single-word clue out loud;
+          their team slides the dial to where they think it lands. The closer
+          the guess, the more points — first team to ten wins!
+        </p>
+
+        <%= link_to new_wavelength_game_path, class: "btn btn-info btn-lg mt-3 w-100" do %>
+          <i class="bi bi-play-circle-fill me-2"></i>
+          Start New Game
+        <% end %>
+      </div>
+    </div>
+  </div>
 </div>
 
 <style>

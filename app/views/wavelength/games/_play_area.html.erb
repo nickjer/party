@@ -1,0 +1,53 @@
+<%# locals: (game:, current_player:) %>
+
+<%= render "wavelength/games/status_bar", game:, current_player: %>
+
+<% on_active_team = current_player.team == game.current_team %>
+<% is_psychic = game.psychic?(current_player) %>
+
+<% if game.status.completed? %>
+  <%= render "wavelength/games/dial", game:, reveal: true, interactive: false %>
+
+<% elsif game.status.reveal? %>
+  <%= render "wavelength/games/dial", game:, reveal: true, interactive: false %>
+  <div class="d-grid mt-3">
+    <%= button_to next_round_wavelength_game_path(game.id), method: :post,
+        class: "btn btn-lg btn-info" do %>
+      <i class="bi bi-arrow-right-circle-fill me-1"></i>
+      Next round
+    <% end %>
+  </div>
+
+<% elsif game.status.left_right? %>
+  <%= render "wavelength/games/dial", game:, reveal: is_psychic,
+      interactive: false %>
+  <% if on_active_team %>
+    <p class="text-center text-muted mt-3">
+      Waiting for the <%= game.current_team.opponent %> team to guess left or right…
+    </p>
+  <% else %>
+    <p class="text-center fw-bold mt-3">Is the target left or right of the dial?</p>
+    <div class="d-flex gap-2">
+      <% %w[left right].each do |side| %>
+        <%= button_to guess_side_wavelength_game_path(game.id), method: :patch,
+            params: { guess: { side: } },
+            class: "btn btn-lg btn-outline-dark flex-grow-1" do %>
+          <%= side == "left" ? "← Left" : "Right →" %>
+        <% end %>
+      <% end %>
+    </div>
+  <% end %>
+
+<% else %>
+  <% if is_psychic %>
+    <%= render "wavelength/games/dial", game:, reveal: true, interactive: false %>
+    <p class="text-center fw-bold mt-3">Give your one-word clue out loud!</p>
+  <% elsif on_active_team %>
+    <%= render "wavelength/games/dial", game:, reveal: false, interactive: true %>
+  <% else %>
+    <%= render "wavelength/games/dial", game:, reveal: false, interactive: false %>
+    <p class="text-center text-muted mt-3">
+      <%= game.current_team.to_s.capitalize %> team is guessing…
+    </p>
+  <% end %>
+<% end %>

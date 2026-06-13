@@ -12,13 +12,10 @@ module Codenames
 
       assert_selector "#team_panels"
       game_id = current_path.split("/").last
-      game = GameRepo.find(game_id)
-      starting = game.starting_team
-      start_color = starting.red? ? "danger" : "primary"
-      opp_color = starting.red? ? "primary" : "danger"
 
+      # The first game always starts with the red team.
       # Ada joins the starting team as its spymaster, so she can start.
-      within "div.card.border-#{start_color}" do
+      within "div.card.border-danger" do
         click_on "Spymaster"
       end
       assert_button "Start game"
@@ -28,7 +25,7 @@ module Codenames
         visit new_codenames_game_player_path(game_id)
         fill_in "Your Name", with: "Bob"
         click_on "Join Game"
-        within "div.card.border-#{start_color}" do
+        within "div.card.border-danger" do
           click_on "Join"
         end
       end
@@ -38,7 +35,7 @@ module Codenames
         visit new_codenames_game_player_path(game_id)
         fill_in "Your Name", with: "Cleo"
         click_on "Join Game"
-        within "div.card.border-#{opp_color}" do
+        within "div.card.border-primary" do
           click_on "Spymaster"
         end
       end
@@ -47,7 +44,7 @@ module Codenames
         visit new_codenames_game_player_path(game_id)
         fill_in "Your Name", with: "Dana"
         click_on "Join Game"
-        within "div.card.border-#{opp_color}" do
+        within "div.card.border-primary" do
           click_on "Join"
         end
       end
@@ -62,7 +59,7 @@ module Codenames
         visit new_codenames_game_player_path(game_id)
         fill_in "Your Name", with: "Eve"
         click_on "Join Game"
-        assert_button "Join #{starting.to_s.capitalize}"
+        assert_button "Join Red"
       end
 
       eve = GameRepo.find(game_id).players.find do |player|
@@ -77,29 +74,30 @@ module Codenames
 
       # Eve joins the starting team as an operative.
       using_session("eve") do
-        click_on "Join #{starting.to_s.capitalize}"
+        click_on "Join Red"
       end
 
       # Ada sees Eve's row move into the starting team's section in real time.
-      assert_selector "#players #team_#{starting} #{eve_row}", wait: 5
+      assert_selector "#players #team_red #{eve_row}", wait: 5
 
-      own_word = game.board.cards.find { |c| c.identity.team == starting }.word
-      assassin_word = game.board.cards.find { |c| c.identity.assassin? }.word
+      board = GameRepo.find(game_id).board
+      own_word = board.cards.find { |c| c.identity.team == Team.red }.word
+      assassin_word = board.cards.find { |c| c.identity.assassin? }.word
 
       # Bob (active operative) reveals one of his team's agents; turn continues.
       using_session("bob") do
         click_button(own_word, exact: true)
         within("dialog[open]") { click_button "Confirm" }
-        assert_text "#{starting.to_s.capitalize} team's turn"
+        assert_text "Red team's turn"
 
         # Then Bob hits the assassin and his team loses.
         click_button(assassin_word, exact: true)
         within("dialog[open]") { click_button "Confirm" }
-        assert_text "#{starting.opponent.to_s.capitalize} team wins!"
+        assert_text "Blue team wins!"
       end
 
       # Ada sees the loss too, broadcast in real time.
-      assert_text "#{starting.opponent.to_s.capitalize} team wins!"
+      assert_text "Blue team wins!"
     end
   end
 end

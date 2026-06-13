@@ -30,6 +30,12 @@ module Codenames
       assert_equal Team.blue, game.current_team
     end
 
+    test ".build defaults the starting team to red" do
+      game = Game.build(words: Words.instance.sample)
+
+      assert_equal Team.red, game.starting_team
+    end
+
     test "#add_player adds a teamless player by default" do
       game = build(:cn_game)
 
@@ -187,6 +193,24 @@ module Codenames
       assert_nil game.winner
       assert_equal 4, game.players.size
       assert_not_equal old_words, game.board.cards.map(&:word)
+    end
+
+    test "#start_new_game switches the starting team to the opponent" do
+      game = build(:cn_completed_game, starting_team: Team.red)
+
+      game.start_new_game(words: Words.instance.sample)
+
+      assert_equal Team.blue, game.starting_team
+      assert_equal Team.blue, game.current_team
+    end
+
+    test "#start_new_game honors an explicit starting team" do
+      game = build(:cn_completed_game, starting_team: Team.red)
+
+      game.start_new_game(words: Words.instance.sample, starting_team: Team.red)
+
+      assert_equal Team.red, game.starting_team
+      assert_equal Team.red, game.current_team
     end
 
     test "#start_new_game raises unless completed" do

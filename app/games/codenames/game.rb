@@ -7,7 +7,7 @@ module Codenames
     class << self
       def build(words:, starting_team: nil, id: nil)
         id ||= GameStore.generate_game_id
-        team = starting_team || [Team.red, Team.blue].sample #: Team
+        team = starting_team || Team.red
         document = Document.new(
           status: Status.setup,
           starting_team: team,
@@ -121,7 +121,7 @@ module Codenames
     def start_new_game(words:, starting_team: nil)
       raise "Game must be in completed status" unless status.completed?
 
-      team = starting_team || [Team.red, Team.blue].sample #: Team
+      team = starting_team || document.starting_team.opponent
       @document = document.with(
         status: Status.setup,
         starting_team: team,

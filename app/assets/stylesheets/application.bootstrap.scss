@@ -40,3 +40,51 @@ dialog::backdrop {
   background-image:
     repeating-linear-gradient(45deg, rgba(0, 0, 0, 0.18) 0 2px, transparent 2px 8px);
 }
+
+// Wavelength dial: a transparent native range input overlaid on the spectrum
+// track, whose thumb is a tall dark bar doubling as the guess marker.
+.wl-dial-range {
+  appearance: none;
+  -webkit-appearance: none;
+  background: transparent;
+  cursor: pointer;
+
+  &::-webkit-slider-runnable-track {
+    height: 3rem;
+    background: transparent;
+  }
+
+  &::-moz-range-track {
+    height: 3rem;
+    background: transparent;
+  }
+
+  &::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 4px;
+    height: 3rem;
+    border: 0;
+    border-radius: 2px;
+    background: var(--bs-dark);
+  }
+
+  &::-moz-range-thumb {
+    width: 4px;
+    height: 3rem;
+    border: 0;
+    border-radius: 2px;
+    background: var(--bs-dark);
+  }
+
+  &:focus-visible {
+    outline: none;
+
+    &::-webkit-slider-thumb {
+      box-shadow: 0 0 0 0.25rem rgba(var(--bs-info-rgb), 0.5);
+    }
+
+    &::-moz-range-thumb {
+      box-shadow: 0 0 0 0.25rem rgba(var(--bs-info-rgb), 0.5);
+    }
+  }
+}

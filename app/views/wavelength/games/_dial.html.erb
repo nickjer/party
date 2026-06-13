@@ -14,59 +14,69 @@
       </span>
     </div>
 
-    <div class="position-relative bg-body-secondary border rounded my-4"
-         style="height: 3rem;">
-      <%# Bands and score are reveal-target items so the psychic's toggle hides
-          both; the target attribute is harmless when no controller is present. %>
-      <% if reveal %>
-        <div data-reveal-target="item">
-          <%= render "wavelength/games/target_overlay", target: %>
-        </div>
-      <% end %>
-
-      <% if interactive %>
-        <% marker_pos = game.guess || 50 %>
-        <% marker_style = "left: #{marker_pos}%;" %>
-        <div class="position-absolute top-0 bottom-0" style="<%= marker_style %>"
-             data-dial-target="marker">
-          <div class="position-absolute top-0 bottom-0 bg-dark"
-               style="left: 0; width: 3px; transform: translateX(-50%);"></div>
-          <span class="position-absolute badge rounded-pill bg-dark fs-6"
-                style="top: -1.5rem; left: 0; transform: translateX(-50%);"
-                data-dial-target="value"><%= marker_pos %></span>
-        </div>
-      <% elsif game.guess %>
-        <% locked = game.guess #: Integer %>
-        <% locked_style = "left: #{locked}%;" %>
-        <div class="position-absolute top-0 bottom-0" style="<%= locked_style %>">
-          <div class="position-absolute top-0 bottom-0 bg-dark"
-               style="left: 0; width: 3px; transform: translateX(-50%);"></div>
-          <i class="bi bi-caret-down-fill position-absolute text-dark"
-             style="top: -0.85rem; left: 0; transform: translateX(-50%);"></i>
-          <% if reveal %>
-            <span class="position-absolute badge rounded-pill bg-dark fs-6"
-                  style="bottom: -1.4rem; left: 0; transform: translateX(-50%);"
-                  data-reveal-target="item">
-              +<%= target.score_for(locked) %>
-            </span>
-          <% end %>
-        </div>
-      <% end %>
-    </div>
-
     <% if interactive %>
+      <%# The range input is overlaid directly on the track; its thumb (styled
+          in SCSS) is the draggable marker, and the value pill rides above it. %>
       <%= form_with url: lock_guess_wavelength_game_path(game.id), method: :patch do |form| %>
-        <%= form.range_field "guess[position]", value: game.guess || 50,
-            in: 0..100, step: 1, class: "form-range",
-            data: { dial_target: "input", action: "input->dial#move" } %>
+        <% guess = game.guess || 50 %>
+        <% pill_style = "left: #{guess}%; top: -1.6rem; " \
+             "transform: translateX(-50%); z-index: 2;" %>
+        <div class="position-relative my-4">
+          <span class="position-absolute badge rounded-pill bg-dark fs-6"
+                style="<%= pill_style %>" data-dial-target="value"><%= guess %></span>
+          <div class="position-relative bg-body-secondary border rounded"
+               style="height: 3rem;">
+            <% if reveal %>
+              <div data-reveal-target="item">
+                <%= render "wavelength/games/target_overlay", target: %>
+              </div>
+            <% end %>
+          </div>
+          <%= form.range_field "guess[position]", value: guess,
+              in: 0..100, step: 1,
+              class: "wl-dial-range position-absolute top-0 start-0 w-100",
+              style: "height: 3rem; margin: 0;",
+              data: { dial_target: "input", action: "input->dial#move" } %>
+        </div>
         <%= form.submit "Lock it in", class: "btn btn-info w-100 mt-2" %>
       <% end %>
-    <% elsif concealable %>
-      <button type="button" class="btn btn-outline-secondary w-100 mt-2"
-        data-action="reveal#toggle">
-        <i class="bi bi-eye-fill me-1"></i>
-        Show / hide target
-      </button>
+    <% else %>
+      <div class="position-relative bg-body-secondary border rounded my-4"
+           style="height: 3rem;">
+        <%# Bands and score are reveal-target items so the psychic's toggle hides
+            both; the target attribute is harmless when no controller is present. %>
+        <% if reveal %>
+          <div data-reveal-target="item">
+            <%= render "wavelength/games/target_overlay", target: %>
+          </div>
+        <% end %>
+
+        <% if game.guess %>
+          <% locked = game.guess #: Integer %>
+          <% locked_style = "left: #{locked}%;" %>
+          <div class="position-absolute top-0 bottom-0" style="<%= locked_style %>">
+            <div class="position-absolute top-0 bottom-0 bg-dark"
+                 style="left: 0; width: 3px; transform: translateX(-50%);"></div>
+            <i class="bi bi-caret-down-fill position-absolute text-dark"
+               style="top: -0.85rem; left: 0; transform: translateX(-50%);"></i>
+            <% if reveal %>
+              <span class="position-absolute badge rounded-pill bg-dark fs-6"
+                    style="bottom: -1.4rem; left: 0; transform: translateX(-50%);"
+                    data-reveal-target="item">
+                +<%= target.score_for(locked) %>
+              </span>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+
+      <% if concealable %>
+        <button type="button" class="btn btn-outline-secondary w-100 mt-2"
+          data-action="reveal#toggle">
+          <i class="bi bi-eye-fill me-1"></i>
+          Show / hide target
+        </button>
+      <% end %>
     <% end %>
   </div>
 </div>

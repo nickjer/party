@@ -40,6 +40,7 @@ class PlayerChannel < ApplicationCable::Channel
       when :loaded_questions then LoadedQuestions::Adapter.new
       when :burn_unit then BurnUnit::Adapter.new
       when :codenames then Codenames::Adapter.new
+      when :wavelength then Wavelength::Adapter.new
       else raise "Unknown game kind: #{kind.inspect}"
       end
     end

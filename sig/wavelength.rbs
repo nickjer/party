@@ -20,6 +20,99 @@ module Wavelength
 
   GameRepo: GameStore[Player, Game]
 
+  class Adapter
+    def on_player_connected: (String player_id) -> void
+    def on_player_disconnected: (String player_id) -> void
+  end
+
+  module Broadcast
+    class PlayerConnected
+      def initialize: (player_id: String) -> void
+
+      def call: () -> void
+
+      private
+
+      attr_reader connected_player: ::Player
+    end
+
+    class PlayerDisconnected
+      def initialize: (player_id: String) -> void
+
+      def call: () -> void
+
+      private
+
+      attr_reader disconnected_player: ::Player
+    end
+
+    class PlayerCreated
+      def initialize: (game: Game, player: Player) -> void
+
+      def call: () -> void
+
+      private
+
+      attr_reader game: Game
+      attr_reader player: Player
+    end
+
+    class PlayerNameUpdated
+      def initialize: (game: Game, player: Player) -> void
+
+      def call: () -> void
+
+      private
+
+      attr_reader game: Game
+      attr_reader player: Player
+    end
+
+    class TeamUpdated
+      def initialize: (game: Game, player: Player) -> void
+
+      def call: () -> void
+
+      private
+
+      attr_reader game: Game
+      attr_reader player: Player
+    end
+
+    class GameStarted
+      def initialize: (game: Game, player: Player) -> void
+
+      def call: () -> void
+
+      private
+
+      attr_reader game: Game
+      attr_reader player: Player
+    end
+
+    class RoundUpdated
+      def initialize: (game: Game, player: Player) -> void
+
+      def call: () -> void
+
+      private
+
+      attr_reader game: Game
+      attr_reader player: Player
+    end
+
+    class NewGameStarted
+      def initialize: (game: Game, player: Player) -> void
+
+      def call: () -> void
+
+      private
+
+      attr_reader game: Game
+      attr_reader player: Player
+    end
+  end
+
   class GameMapping
     def kind: () -> Symbol
     def load_game: (::Game record, Array[Player] players) -> Game

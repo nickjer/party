@@ -8,6 +8,7 @@ class Game < ::ApplicationRecord
   def self.burn_unit: () -> ::Game::ActiveRecord_Relation
   def self.codenames: () -> ::Game::ActiveRecord_Relation
   def self.loaded_questions: () -> ::Game::ActiveRecord_Relation
+  def self.wavelength: () -> ::Game::ActiveRecord_Relation
 
   def document: () -> String
   def document=: (String) -> String
@@ -23,6 +24,7 @@ class Game < ::ApplicationRecord
     def burn_unit: () -> ::Game::ActiveRecord_Relation
     def codenames: () -> ::Game::ActiveRecord_Relation
     def loaded_questions: () -> ::Game::ActiveRecord_Relation
+    def wavelength: () -> ::Game::ActiveRecord_Relation
 
     include ::_ActiveRecord_Relation[::Game, String]
     include ::Enumerable[::Game]

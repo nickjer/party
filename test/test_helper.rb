@@ -10,6 +10,7 @@ SimpleCov.start "rails" do
   add_group "Burn Unit", "app/games/burn_unit"
   add_group "Codenames", "app/games/codenames"
   add_group "Loaded Questions", "app/games/loaded_questions"
+  add_group "Wavelength", "app/games/wavelength"
 end
 
 ENV["RAILS_ENV"] ||= "test"

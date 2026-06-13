@@ -1,0 +1,247 @@
+module Wavelength
+  class Team
+    def self.blue: () -> Team
+    def self.parse: (String team) -> Team
+    def self.red: () -> Team
+
+    attr_reader color: Symbol
+
+    def initialize: (Symbol color) -> void
+
+    def ==: (untyped other) -> bool
+    def as_json: () -> String
+    def blue?: () -> bool
+    def eql?: (untyped other) -> bool
+    def hash: () -> Integer
+    def opponent: () -> Team
+    def red?: () -> bool
+    def to_s: () -> String
+  end
+
+  GameRepo: GameStore[Player, Game]
+
+  class GameMapping
+    def kind: () -> Symbol
+    def load_game: (::Game record, Array[Player] players) -> Game
+    def load_player: (::Player record) -> Player
+  end
+
+  class Spectrums
+    include Singleton
+
+    def self.instance: () -> Spectrums
+
+    def initialize: () -> void
+
+    def sample: () -> Game::Spectrum
+
+    private
+
+    attr_reader cards: Array[Game::Spectrum]
+
+    def load_cards: () -> Array[Game::Spectrum]
+  end
+
+  class Game
+    WIN_SCORE: Integer
+
+    def self.build: (spectrum: Game::Spectrum, target: Game::Target,
+      ?starting_team: Team?, ?id: String?) -> Game
+
+    attr_reader id: String
+    attr_reader players: Array[Player]
+
+    def initialize: (id: String, document: Document, players: Array[Player]) -> void
+
+    def add_player: (user_id: String, name: ::PlayerName, ?team: Team?) -> Player
+    def blue_team: () -> Array[Player]
+    def current_team: () -> Team
+    def guess: () -> Integer?
+    def opponent_guess: () -> String?
+    def red_team: () -> Array[Player]
+    def spectrum: () -> Spectrum
+    def starting_team: () -> Team
+    def status: () -> Status
+    def target: () -> Target
+    def winner: () -> Team?
+    def find_player: (String id) -> Player
+    def player_for: (String user_id) -> Player?
+    def player_for!: (String user_id) -> Player
+    def players_on: (Team team) -> Array[Player]
+    def psychic: () -> Player?
+    def psychic?: (Player player) -> bool
+    def guessers: () -> Array[Player]
+    def score_for: (Team team) -> Integer
+    def join_team: (player: Player, team: Team) -> self
+    def start_game: () -> self
+    def lock_guess: (position: Integer) -> self
+    def guess_side: (side: String) -> self
+    def start_new_round: (spectrum: Spectrum, target: Target) -> self
+    def start_new_game: (spectrum: Spectrum, target: Target, ?starting_team: Team?) -> self
+    def document_json: () -> String
+
+    def model_name: () -> ::ActiveModel::Name
+    def to_key: () -> [String]
+    def to_param: () -> String
+    def to_global_id: (?Hash[Symbol, untyped] options) -> ::GlobalID
+    def to_gid_param: (?Hash[Symbol, untyped] options) -> String
+
+    private
+
+    attr_reader document: Document
+
+    def assign_psychic: (Team team) -> Player
+    def award: (Integer active_points, bool opponent_correct) -> [Integer, Integer]
+    def resolve: (Integer new_red, Integer new_blue) -> [Status, bool]
+    def leader: (Integer new_red, Integer new_blue) -> Team
+
+    public
+
+    class Document
+      type json = {
+        status: String, starting_team: String, current_team: String,
+        psychic_id: String?, spectrum: Spectrum::json, target: Integer,
+        guess: Integer?, opponent_guess: String?, red_score: Integer,
+        blue_score: Integer, winner: String?
+      }
+
+      attr_reader status: Status
+      attr_reader starting_team: Team
+      attr_reader current_team: Team
+      attr_reader psychic_id: String?
+      attr_reader spectrum: Spectrum
+      attr_reader target: Target
+      attr_reader guess: Integer?
+      attr_reader opponent_guess: String?
+      attr_reader red_score: Integer
+      attr_reader blue_score: Integer
+      attr_reader winner: Team?
+
+      def self.parse: (json hash) -> Document
+
+      def initialize: (status: Status, starting_team: Team, current_team: Team,
+        psychic_id: String?, spectrum: Spectrum, target: Target, guess: Integer?,
+        opponent_guess: String?, red_score: Integer, blue_score: Integer,
+        winner: Team?) -> void
+
+      def with: (?status: Status, ?starting_team: Team, ?current_team: Team,
+        ?psychic_id: String?, ?spectrum: Spectrum, ?target: Target,
+        ?guess: Integer?, ?opponent_guess: String?, ?red_score: Integer,
+        ?blue_score: Integer, ?winner: Team?) -> Document
+
+      def to_h: () -> json
+
+      def to_json: (?untyped state) -> String
+    end
+
+    class Status
+      def self.completed: () -> Status
+      def self.guessing: () -> Status
+      def self.left_right: () -> Status
+      def self.reveal: () -> Status
+      def self.setup: () -> Status
+      def self.parse: (String status) -> Status
+
+      attr_reader status: Symbol
+
+      def initialize: (Symbol status) -> void
+
+      def ==: (Status other) -> bool
+      def as_json: () -> String
+      def completed?: () -> bool
+      def eql?: (Status other) -> bool
+      def guessing?: () -> bool
+      def hash: () -> Integer
+      def left_right?: () -> bool
+      def reveal?: () -> bool
+      def setup?: () -> bool
+      def to_s: () -> String
+    end
+
+    class Spectrum
+      type json = { left: String, right: String }
+
+      def self.parse: (json hash) -> Spectrum
+
+      attr_reader left: String
+      attr_reader right: String
+
+      def initialize: (left: String, right: String) -> void
+
+      def ==: (untyped other) -> bool
+      def eql?: (untyped other) -> bool
+      def hash: () -> Integer
+      def to_h: () -> json
+    end
+
+    class Target
+      BULLSEYE: Integer
+      INNER: Integer
+      OUTER: Integer
+
+      def self.generate: () -> Target
+
+      attr_reader position: Integer
+
+      def initialize: (position: Integer) -> void
+
+      def ==: (untyped other) -> bool
+      def eql?: (untyped other) -> bool
+      def hash: () -> Integer
+      def score_for: (Integer dial) -> Integer
+      def side_of: (Integer dial) -> Symbol
+    end
+  end
+
+  class Player
+    attr_reader id: String
+    attr_reader game_id: String
+    attr_reader user_id: String
+    attr_reader name: ::PlayerName
+
+    def self.build: (game_id: String, user_id: String, name: ::PlayerName,
+      ?team: Team?, ?id: String?) -> Player
+
+    def initialize: (id: String, game_id: String, user_id: String,
+      name: ::PlayerName, document: Document) -> void
+
+    def <=>: (Player other) -> Integer
+    def ==: (untyped other) -> bool
+    def eql?: (untyped other) -> bool
+    def hash: () -> Integer
+    def name=: (::PlayerName new_name) -> void
+    def online?: () -> bool
+    def psychic_count: () -> Integer
+    def increment_psychic_count: () -> void
+    def team: () -> Team?
+    def team=: (Team? new_team) -> void
+    def document_json: () -> String
+    def model_name: () -> ::ActiveModel::Name
+    def to_key: () -> [String]
+    def to_param: () -> String
+    def to_global_id: (?Hash[Symbol, untyped] options) -> ::GlobalID
+    def to_gid_param: (?Hash[Symbol, untyped] options) -> String
+    def team_rank: () -> Integer
+
+    private
+
+    attr_reader document: Document
+
+    class Document
+      type json = { team: String?, psychic_count: Integer }
+
+      attr_reader team: Team?
+      attr_reader psychic_count: Integer
+
+      def self.parse: (json hash) -> Document
+
+      def initialize: (team: Team?, psychic_count: Integer) -> void
+
+      def with: (?team: Team?, ?psychic_count: Integer) -> Document
+
+      def to_h: () -> json
+
+      def to_json: (?untyped state) -> String
+    end
+  end
+end

@@ -1,0 +1,117 @@
+---
+# Every card needs a debatable middle and no objectively correct answer.
+# If a clue can only sit at one end (e.g. "is/isn't a sandwich"), it's not a spectrum.
+shared:
+# Opinion / hot-take
+- { left: "Overrated", right: "Underrated" }
+- { left: "Bad habit", right: "Good habit" }
+- { left: "Forgettable", right: "Memorable" }
+- { left: "Guilty pleasure", right: "Respectable taste" }
+- { left: "Waste of money", right: "Worth every penny" }
+- { left: "A want", right: "A need" }
+- { left: "Overpriced", right: "A steal" }
+- { left: "Trend", right: "Classic" }
+- { left: "Cringe", right: "Cool" }
+- { left: "Style over substance", right: "Substance over style" }
+
+# Physical / sensory
+- { left: "Cold", right: "Hot" }
+- { left: "Quiet", right: "Loud" }
+- { left: "Smooth", right: "Rough" }
+- { left: "Round", right: "Pointy" }
+- { left: "Soft", right: "Hard" }
+- { left: "Dim", right: "Bright" }
+- { left: "Slow", right: "Fast" }
+- { left: "Tiny", right: "Enormous" }
+- { left: "Fragile", right: "Sturdy" }
+- { left: "Smells bad", right: "Smells amazing" }
+
+# Taste / food
+- { left: "Snack", right: "Meal" }
+- { left: "Savory", right: "Sweet" }
+- { left: "Bland", right: "Spicy" }
+- { left: "Junk food", right: "Health food" }
+- { left: "Sip it", right: "Chug it" }
+- { left: "Acquired taste", right: "Universally loved" }
+- { left: "Breakfast food", right: "Dinner food" }
+
+# Abstract / social
+- { left: "Casual", right: "Formal" }
+- { left: "Common", right: "Rare" }
+- { left: "Safe", right: "Dangerous" }
+- { left: "Temporary", right: "Permanent" }
+- { left: "Weird", right: "Normal" }
+- { left: "Forbidden", right: "Encouraged" }
+- { left: "A right", right: "A privilege" }
+- { left: "Taboo", right: "Polite" }
+- { left: "Optional", right: "Mandatory" }
+- { left: "Private", right: "Public" }
+- { left: "Terrible for a first date", right: "Good for a first date" }
+
+# Pop culture / entertainment
+- { left: "Villain", right: "Hero" }
+- { left: "Fantasy", right: "Sci-fi" }
+- { left: "Old-fashioned", right: "Modern" }
+- { left: "Flop", right: "Blockbuster" }
+- { left: "Comedy", right: "Drama" }
+- { left: "Background music", right: "Sing-along anthem" }
+- { left: "Niche", right: "Mainstream" }
+- { left: "Reboot", right: "Original" }
+
+# Personality / judgment
+- { left: "Introvert", right: "Extrovert" }
+- { left: "Risky", right: "Cautious" }
+- { left: "Logical", right: "Emotional" }
+- { left: "Leader", right: "Follower" }
+- { left: "Mainstream", right: "Hipster" }
+- { left: "Messy", right: "Tidy" }
+- { left: "Spontaneous", right: "Planned" }
+- { left: "Humble", right: "Confident" }
+- { left: "Serious", right: "Goofy" }
+- { left: "Stubborn", right: "Easygoing" }
+
+# Objects / everyday
+- { left: "Toy", right: "Tool" }
+- { left: "Decoration", right: "Essential" }
+- { left: "Disposable", right: "Keepsake" }
+- { left: "Cheap gift", right: "Thoughtful gift" }
+- { left: "Clutter", right: "Treasure" }
+
+# Difficulty / effort
+- { left: "Easy", right: "Hard" }
+- { left: "Relaxing", right: "Stressful" }
+- { left: "A chore", right: "A hobby" }
+- { left: "Effortless", right: "Exhausting" }
+- { left: "Beginner-friendly", right: "Expert-only" }
+- { left: "Requires luck", right: "Requires skill" }
+
+# Time / pace
+- { left: "Wastes time", right: "Saves time" }
+- { left: "A fad", right: "Here to stay" }
+- { left: "Ahead of its time", right: "Behind the times" }
+- { left: "Childhood", right: "Adulthood" }
+
+# Morality / value
+- { left: "Selfish", right: "Selfless" }
+- { left: "A vice", right: "A virtue" }
+- { left: "Petty", right: "Noble" }
+- { left: "White lie", right: "Honest truth" }
+- { left: "Unforgivable", right: "No big deal" }
+
+# Animals / nature
+- { left: "Predator", right: "Prey" }
+- { left: "Pet", right: "Wild animal" }
+- { left: "Ugly animal", right: "Cute animal" }
+- { left: "Tame", right: "Ferocious" }
+
+# Vibes / aesthetic
+- { left: "Tacky", right: "Elegant" }
+- { left: "Cozy", right: "Grand" }
+- { left: "Gross", right: "Adorable" }
+- { left: "Boring", right: "Exciting" }
+- { left: "Calming color", right: "Energizing color" }
+- { left: "Normal", right: "Cursed" }
+- { left: "Classy", right: "Chaotic" }
+
+# Hypothetical
+- { left: "Useless superpower", right: "Useful superpower" }

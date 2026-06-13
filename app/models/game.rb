@@ -9,7 +9,8 @@ class Game < ApplicationRecord
   enum :kind, {
     loaded_questions: 0,
     burn_unit: 1,
-    codenames: 2
+    codenames: 2,
+    wavelength: 3
   }
 
   has_many :players, dependent: :destroy

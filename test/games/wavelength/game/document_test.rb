@@ -12,7 +12,7 @@ module Wavelength
       def document
         Document.new(status: Status.setup, starting_team: Team.red,
           current_team: Team.red, psychic_id: nil, spectrum:,
-          target: Target.new(position: 42), guess: nil, opponent_guess: nil,
+          target: Target.new(position: 42), guess: CENTER, opponent_guess: nil,
           red_score: 0, blue_score: 0, winner: nil)
       end
 
@@ -34,11 +34,10 @@ module Wavelength
         assert_equal Team.red, parsed.winner
       end
 
-      test ".parse handles nil psychic_id, guess, and winner" do
+      test ".parse handles nil psychic_id, opponent_guess, and winner" do
         parsed = Document.parse(document.to_h)
 
         assert_nil parsed.psychic_id
-        assert_nil parsed.guess
         assert_nil parsed.opponent_guess
         assert_nil parsed.winner
       end

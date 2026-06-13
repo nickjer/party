@@ -36,6 +36,7 @@ Rails.application.routes.draw do
     resources :games, only: %i[create new show] do
       member do
         post :start
+        patch :move_dial
         patch :lock_guess
         patch :guess_side
         post :next_round

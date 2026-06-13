@@ -1,0 +1,4 @@
+<%# locals: (game:) %>
+<%= turbo_stream.update "wl_dial_marker_#{game.id}" do %>
+  <%= render "wavelength/games/dial_marker", game:, reveal: false %>
+<% end %>

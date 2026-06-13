@@ -101,6 +101,17 @@ module Wavelength
       attr_reader player: Player
     end
 
+    class DialMoved
+      def initialize: (game: Game, player: Player) -> void
+
+      def call: () -> void
+
+      private
+
+      attr_reader game: Game
+      attr_reader player: Player
+    end
+
     class NewGameStarted
       def initialize: (game: Game, player: Player) -> void
 
@@ -137,6 +148,7 @@ module Wavelength
 
   class Game
     WIN_SCORE: Integer
+    CENTER: Integer
 
     def self.build: (spectrum: Game::Spectrum, target: Game::Target,
       ?starting_team: Team?, ?id: String?) -> Game
@@ -149,7 +161,7 @@ module Wavelength
     def add_player: (user_id: String, name: ::PlayerName, ?team: Team?) -> Player
     def blue_team: () -> Array[Player]
     def current_team: () -> Team
-    def guess: () -> Integer?
+    def guess: () -> Integer
     def opponent_guess: () -> String?
     def red_team: () -> Array[Player]
     def spectrum: () -> Spectrum
@@ -167,6 +179,7 @@ module Wavelength
     def score_for: (Team team) -> Integer
     def join_team: (player: Player, team: Team) -> self
     def start_game: () -> self
+    def move_dial: (position: Integer) -> self
     def lock_guess: (position: Integer) -> self
     def guess_side: (side: String) -> self
     def start_new_round: (spectrum: Spectrum, target: Target) -> self
@@ -194,7 +207,7 @@ module Wavelength
       type json = {
         status: String, starting_team: String, current_team: String,
         psychic_id: String?, spectrum: Spectrum::json, target: Integer,
-        guess: Integer?, opponent_guess: String?, red_score: Integer,
+        guess: Integer, opponent_guess: String?, red_score: Integer,
         blue_score: Integer, winner: String?
       }
 
@@ -204,7 +217,7 @@ module Wavelength
       attr_reader psychic_id: String?
       attr_reader spectrum: Spectrum
       attr_reader target: Target
-      attr_reader guess: Integer?
+      attr_reader guess: Integer
       attr_reader opponent_guess: String?
       attr_reader red_score: Integer
       attr_reader blue_score: Integer
@@ -213,13 +226,13 @@ module Wavelength
       def self.parse: (json hash) -> Document
 
       def initialize: (status: Status, starting_team: Team, current_team: Team,
-        psychic_id: String?, spectrum: Spectrum, target: Target, guess: Integer?,
+        psychic_id: String?, spectrum: Spectrum, target: Target, guess: Integer,
         opponent_guess: String?, red_score: Integer, blue_score: Integer,
         winner: Team?) -> void
 
       def with: (?status: Status, ?starting_team: Team, ?current_team: Team,
         ?psychic_id: String?, ?spectrum: Spectrum, ?target: Target,
-        ?guess: Integer?, ?opponent_guess: String?, ?red_score: Integer,
+        ?guess: Integer, ?opponent_guess: String?, ?red_score: Integer,
         ?blue_score: Integer, ?winner: Team?) -> Document
 
       def to_h: () -> json
@@ -398,6 +411,7 @@ module Wavelength
     def create: () -> untyped
     def show: () -> untyped
     def start: () -> untyped
+    def move_dial: () -> untyped
     def lock_guess: () -> untyped
     def guess_side: () -> untyped
     def next_round: () -> untyped
@@ -408,6 +422,7 @@ module Wavelength
     attr_reader repo: GameStore[Player, Game]
 
     def new_game_params: () -> ::ActionController::Parameters
+    def move_dial_params: () -> ::ActionController::Parameters
     def lock_guess_params: () -> ::ActionController::Parameters
     def guess_side_params: () -> ::ActionController::Parameters
   end

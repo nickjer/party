@@ -59,6 +59,22 @@ module Wavelength
       end
     end
 
+    def move_dial
+      game = repo.find(params[:id])
+      current_player = game.player_for!(current_user.id)
+      return head :forbidden unless game.status.guessing?
+      return head :forbidden if current_player.team != game.current_team
+      return head :forbidden if game.psychic?(current_player)
+
+      position = Integer(move_dial_params[:position], exception: false)
+      return head :forbidden if position.nil? || !position.between?(0, 100)
+
+      game.move_dial(position:)
+      repo.save(game)
+      Broadcast::DialMoved.new(game:, player: current_player).call
+      head :no_content
+    end
+
     def lock_guess
       game = repo.find(params[:id])
       current_player = game.player_for!(current_user.id)
@@ -120,6 +136,7 @@ module Wavelength
     private
 
     def new_game_params = params.expect(game: %w[player_name])
+    def move_dial_params = params.expect(guess: %w[position])
     def lock_guess_params = params.expect(guess: %w[position])
     def guess_side_params = params.expect(guess: %w[side])
 

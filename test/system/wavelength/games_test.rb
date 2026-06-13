@@ -88,6 +88,16 @@ module Wavelength
         assert_no_button "← Left"
       end
 
+      # The guesser nudges the shared dial; releasing broadcasts the position,
+      # and the waiting opponent sees the marker move there in real time.
+      using_session(session_for(guesser)) do
+        assert_button "Lock it in", wait: 5
+        find("#play_area input[type='range']").set(30)
+      end
+      using_session(session_for(opponent)) do
+        within("#wl_dial_marker_#{game_id}") { assert_text "30", wait: 5 }
+      end
+
       # The active guesser drags the dial onto the target and locks it in.
       using_session(session_for(guesser)) do
         assert_button "Lock it in", wait: 5

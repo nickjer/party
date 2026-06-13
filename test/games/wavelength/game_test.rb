@@ -109,6 +109,21 @@ module Wavelength
       assert_not_includes game.guessers, game.psychic
     end
 
+    test "#move_dial slides the dial and stays in guessing" do
+      game = build(:wl_guessing_game)
+
+      game.move_dial(position: 30)
+
+      assert_predicate game.status, :guessing?
+      assert_equal 30, game.guess
+    end
+
+    test "#move_dial raises unless in guessing" do
+      game = build(:wl_reveal_game)
+
+      assert_raises(RuntimeError) { game.move_dial(position: 30) }
+    end
+
     test "#lock_guess stores the guess and moves to left_right" do
       game = build(:wl_guessing_game)
 
@@ -226,13 +241,13 @@ module Wavelength
       assert_not_equal first_psychic, game.psychic
     end
 
-    test "#start_new_round clears the previous guess and redraws" do
+    test "#start_new_round recenters the dial and redraws" do
       game = build(:wl_reveal_game)
 
       game.start_new_round(spectrum: Spectrums.instance.sample,
         target: Game::Target.new(position: 12))
 
-      assert_nil game.guess
+      assert_equal Game::CENTER, game.guess
       assert_nil game.opponent_guess
       assert_equal 12, game.target.position
     end

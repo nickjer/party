@@ -1,9 +1,10 @@
 <%# locals: (game:, reveal:, interactive:, concealable: false) %>
 <% spectrum = game.spectrum %>
-<% target = game.target %>
 <% controller = interactive ? "dial" : "" %>
+<% marker_id = "wl_dial_marker_#{game.id}" %>
 
-<div class="card shadow-sm" data-controller="<%= controller %>">
+<div class="card shadow-sm" data-controller="<%= controller %>"
+     data-dial-url-value="<%= move_dial_wavelength_game_path(game.id) %>">
   <div class="card-body">
     <div class="d-flex justify-content-between align-items-center mb-2">
       <span class="badge rounded-pill bg-info-subtle text-info-emphasis fs-6">
@@ -15,59 +16,37 @@
     </div>
 
     <% if interactive %>
-      <%# The range input is overlaid directly on the track; its thumb (styled
-          in SCSS) is the draggable marker, and the value pill rides above it. %>
+      <%# The range input overlays the track with an invisible thumb; the dark
+          marker is a separate element moved locally and by live broadcasts. %>
       <%= form_with url: lock_guess_wavelength_game_path(game.id), method: :patch do |form| %>
-        <% guess = game.guess || 50 %>
-        <% pill_style = "left: #{guess}%; top: -1.6rem; " \
-             "transform: translateX(-50%); z-index: 2;" %>
-        <div class="position-relative my-4">
-          <span class="position-absolute badge rounded-pill bg-dark fs-6"
-                style="<%= pill_style %>" data-dial-target="value"><%= guess %></span>
-          <div class="position-relative bg-body-secondary border rounded"
-               style="height: 3rem;">
-            <% if reveal %>
-              <div data-reveal-target="item">
-                <%= render "wavelength/games/target_overlay", target: %>
-              </div>
-            <% end %>
+        <div class="position-relative bg-body-secondary border rounded my-4"
+             style="height: 3rem;">
+          <div id="<%= marker_id %>" class="position-absolute top-0 bottom-0 start-0 end-0"
+               style="pointer-events: none;">
+            <%= render "wavelength/games/dial_marker", game:, reveal: false %>
           </div>
-          <%= form.range_field "guess[position]", value: guess,
+          <%= form.range_field "guess[position]", value: game.guess,
               in: 0..100, step: 1,
               class: "wl-dial-range position-absolute top-0 start-0 w-100",
               style: "height: 3rem; margin: 0;",
-              data: { dial_target: "input", action: "input->dial#move" } %>
+              data: { dial_target: "input",
+                action: "input->dial#move change->dial#commit" } %>
         </div>
         <%= form.submit "Lock it in", class: "btn btn-info w-100 mt-2" %>
       <% end %>
     <% else %>
       <div class="position-relative bg-body-secondary border rounded my-4"
            style="height: 3rem;">
-        <%# Bands and score are reveal-target items so the psychic's toggle hides
-            both; the target attribute is harmless when no controller is present. %>
         <% if reveal %>
+          <%# Target bands are a reveal item so the psychic's toggle hides them;
+              the attribute is harmless when no reveal controller is present. %>
           <div data-reveal-target="item">
-            <%= render "wavelength/games/target_overlay", target: %>
+            <%= render "wavelength/games/target_overlay", target: game.target %>
           </div>
         <% end %>
-
-        <% if game.guess %>
-          <% locked = game.guess #: Integer %>
-          <% locked_style = "left: #{locked}%;" %>
-          <div class="position-absolute top-0 bottom-0" style="<%= locked_style %>">
-            <div class="position-absolute top-0 bottom-0 bg-dark"
-                 style="left: 0; width: 3px; transform: translateX(-50%);"></div>
-            <span class="position-absolute badge rounded-pill bg-dark fs-6"
-                  style="top: -1.6rem; left: 0; transform: translateX(-50%);"><%= locked %></span>
-            <% if reveal %>
-              <span class="position-absolute badge rounded-pill bg-dark fs-6"
-                    style="bottom: -1.4rem; left: 0; transform: translateX(-50%);"
-                    data-reveal-target="item">
-                +<%= target.score_for(locked) %>
-              </span>
-            <% end %>
-          </div>
-        <% end %>
+        <div id="<%= marker_id %>" class="position-absolute top-0 bottom-0 start-0 end-0">
+          <%= render "wavelength/games/dial_marker", game:, reveal: %>
+        </div>
       </div>
 
       <% if concealable %>

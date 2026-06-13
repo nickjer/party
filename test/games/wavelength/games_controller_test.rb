@@ -108,6 +108,68 @@ module Wavelength
       assert_predicate reload(game:).status, :setup?
     end
 
+    test "#move_dial is forbidden when the game is not guessing" do
+      game = create(:wl_game, :with_teams) # still in setup
+      sign_in(player_named(game, "RedTwo").user_id)
+
+      patch move_dial_wavelength_game_path(game.id),
+        params: { guess: { position: 30 } }
+
+      assert_response :forbidden
+    end
+
+    test "#move_dial is forbidden for an off-team player" do
+      game = create(:wl_guessing_game) # red's turn
+      sign_in(player_named(game, "BlueOne").user_id)
+
+      patch move_dial_wavelength_game_path(game.id),
+        params: { guess: { position: 30 } }
+
+      assert_response :forbidden
+    end
+
+    test "#move_dial is forbidden for the psychic" do
+      game = create(:wl_guessing_game)
+      sign_in(game.psychic.user_id)
+
+      patch move_dial_wavelength_game_path(game.id),
+        params: { guess: { position: 30 } }
+
+      assert_response :forbidden
+    end
+
+    test "#move_dial is forbidden for an out-of-range position" do
+      game = create(:wl_guessing_game)
+      sign_in(game.guessers.first.user_id)
+
+      patch move_dial_wavelength_game_path(game.id),
+        params: { guess: { position: 150 } }
+
+      assert_response :forbidden
+    end
+
+    test "#move_dial is forbidden for a non-numeric position" do
+      game = create(:wl_guessing_game)
+      sign_in(game.guessers.first.user_id)
+
+      patch move_dial_wavelength_game_path(game.id),
+        params: { guess: { position: "abc" } }
+
+      assert_response :forbidden
+    end
+
+    test "#move_dial slides the dial for an active guesser" do
+      game = create(:wl_guessing_game)
+      sign_in(game.guessers.first.user_id)
+
+      patch move_dial_wavelength_game_path(game.id),
+        params: { guess: { position: 30 } }
+
+      assert_response :no_content
+      assert_predicate reload(game:).status, :guessing?
+      assert_equal 30, reload(game:).guess
+    end
+
     test "#lock_guess is forbidden when the game is not guessing" do
       game = create(:wl_game, :with_teams) # still in setup
       sign_in(player_named(game, "RedTwo").user_id)

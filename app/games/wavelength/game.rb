@@ -6,14 +6,17 @@ module Wavelength
   class Game
     WIN_SCORE = 10
 
+    # Where the dial sits at the start of a round, before anyone moves it.
+    CENTER = 50
+
     class << self
       def build(spectrum:, target:, starting_team: nil, id: nil)
         id ||= GameStore.generate_game_id
         team = starting_team || Team.red
         document = Document.new(
           status: Status.setup, starting_team: team, current_team: team,
-          psychic_id: nil, spectrum:, target:, guess: nil, opponent_guess: nil,
-          red_score: 0, blue_score: 0, winner: nil
+          psychic_id: nil, spectrum:, target:, guess: CENTER,
+          opponent_guess: nil, red_score: 0, blue_score: 0, winner: nil
         )
         new(id:, document:, players: [])
       end
@@ -86,6 +89,14 @@ module Wavelength
       self
     end
 
+    # Slides the shared dial during guessing; the guess is only frozen on lock.
+    def move_dial(position:)
+      raise "Game must be in guessing status" unless status.guessing?
+
+      @document = document.with(guess: position)
+      self
+    end
+
     def lock_guess(position:)
       raise "Game must be in guessing status" unless status.guessing?
 
@@ -96,9 +107,8 @@ module Wavelength
     def guess_side(side:)
       raise "Game must be in left_right status" unless status.left_right?
 
-      dial = guess #: Integer
-      active_points = target.score_for(dial)
-      opponent_correct = side.to_sym == target.side_of(dial)
+      active_points = target.score_for(guess)
+      opponent_correct = side.to_sym == target.side_of(guess)
       new_red, new_blue = award(active_points, opponent_correct)
 
       next_status, won = resolve(new_red, new_blue)
@@ -116,7 +126,7 @@ module Wavelength
       psychic = assign_psychic(next_team)
       @document = document.with(
         status: Status.guessing, current_team: next_team,
-        psychic_id: psychic.id, spectrum:, target:, guess: nil,
+        psychic_id: psychic.id, spectrum:, target:, guess: CENTER,
         opponent_guess: nil
       )
       self
@@ -128,8 +138,8 @@ module Wavelength
       team = starting_team || document.starting_team.opponent
       @document = document.with(
         status: Status.setup, starting_team: team, current_team: team,
-        psychic_id: nil, spectrum:, target:, guess: nil, opponent_guess: nil,
-        red_score: 0, blue_score: 0, winner: nil
+        psychic_id: nil, spectrum:, target:, guess: CENTER,
+        opponent_guess: nil, red_score: 0, blue_score: 0, winner: nil
       )
       self
     end

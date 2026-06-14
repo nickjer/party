@@ -98,7 +98,6 @@ module Wavelength
       self
     end
 
-    # The psychic's clue, entered in-app, ends the clue phase and opens guessing.
     def submit_clue(text:)
       raise "Game must be in clue status" unless status.clue?
 
@@ -107,7 +106,6 @@ module Wavelength
       self
     end
 
-    # Slides the shared dial during guessing; the guess is only frozen on lock.
     def move_dial(position:)
       raise "Game must be in guessing status" unless status.guessing?
 

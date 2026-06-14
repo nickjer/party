@@ -1,4 +1,4 @@
-<%# locals: (game:, current_player:) %>
+<%# locals: (game:, current_player:, clue_form: nil) %>
 
 <%= render "wavelength/games/status_bar", game:, current_player: %>
 
@@ -56,10 +56,21 @@
     </div>
   <% end %>
 
+<% elsif game.status.clue? %>
+  <% if is_psychic %>
+    <%= render "wavelength/games/psychic_dial", game: %>
+    <%= render "wavelength/games/clue_form", game:,
+        clue_form: clue_form || Wavelength::ClueForm.new %>
+  <% else %>
+    <%= render "wavelength/games/dial", game:, reveal: false, interactive: false %>
+    <p class="text-center text-muted mt-3">
+      Waiting for <%= game.psychic.name %> to give a clue…
+    </p>
+  <% end %>
+
 <% else %>
   <% if is_psychic %>
     <%= render "wavelength/games/psychic_dial", game: %>
-    <p class="text-center fw-bold mt-3">Give your one-word clue out loud!</p>
   <% elsif on_active_team %>
     <%= render "wavelength/games/dial", game:, reveal: false, interactive: true %>
   <% else %>

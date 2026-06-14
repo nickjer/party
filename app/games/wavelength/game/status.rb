@@ -7,6 +7,7 @@ module Wavelength
       class << self
         private :new
 
+        def clue = new(:clue)
         def completed = new(:completed)
         def guessing = new(:guessing)
         def left_right = new(:left_right)
@@ -16,6 +17,7 @@ module Wavelength
         def parse(status)
           case status
           when "setup" then setup
+          when "clue" then clue
           when "guessing" then guessing
           when "left_right" then left_right
           when "reveal" then reveal
@@ -29,6 +31,7 @@ module Wavelength
 
       def ==(other) = status == other.status
       def as_json = status.to_s
+      def clue? = status == :clue
       def completed? = status == :completed
       def eql?(other) = self == other
       def guessing? = status == :guessing

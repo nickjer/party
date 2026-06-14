@@ -58,7 +58,7 @@ Broadcast::RoundCreated.new(game:).call
 
 ### Type System (RBS)
 
-Type signatures in `/sig/`: `models.rbs`, `lib.rbs` (incl. generic `GameStore`), `forms.rbs`, `controllers.rbs`, `channels.rbs`, `validators.rbs`, `external.rbs`, `loaded_questions.rbs`, `burn_unit.rbs`, `codenames.rbs`.
+Type signatures in `/sig/`: `models.rbs`, `lib.rbs` (incl. generic `GameStore`), `forms.rbs`, `controllers.rbs`, `channels.rbs`, `validators.rbs`, `external.rbs`, `loaded_questions.rbs`, `burn_unit.rbs`, `codenames.rbs`, `wavelength.rbs`.
 
 **Always run `bin/steep check` before committing.**
 
@@ -107,6 +107,27 @@ A digital companion for in-person play (a faithful 5×5 / two-team Codenames). *
 - Broadcasts: `PlayerCreated`, `PlayerConnected`, `PlayerDisconnected`, `PlayerNameUpdated`, `TeamUpdated`, `GameStarted`, `BoardUpdated`, `NewGameStarted`
 - Reveals/pass use `button_to` + Turbo (reveal carries `data-turbo-confirm`); a `spymaster-key` Stimulus controller toggles the key (hidden by default)
 - Words: Loaded from `config/codenames/words.yml` singleton (`Words.instance.sample(25)`)
+
+## Wavelength Game
+
+A digital companion for the telepathy party game. Each round a **psychic** sees a hidden target on a spectrum between two opposing concepts and **types a clue** (this game's clue is entered in-app and broadcast to the table, unlike Codenames). The app owns the spectrum cards, the hidden target, turn rotation, and scoring.
+
+**Phases**: Setup (lobby: pick a team) → Clue (psychic types a clue) → Guessing (active team moves and locks the dial) → Left/Right (the other team guesses which side the target's center is on) → Reveal (scores shown, the up team picks the next psychic) → Completed (a team reached the win score). **A 4-point bullseye settles the round at lock time and skips the Left/Right phase** (the opponent gets no steal).
+
+**Roles**: One **psychic** per round (rotates to the up team via `suggested_psychic`, picking the least-used psychic by `psychic_count`). Other active-team players are **guessers** (move/lock the dial); the **other team** makes the single Left/Right guess. No spectators; a mid-game joiner picks any team.
+
+**Scoring**: Dial wedges are **2-3-4-3-2** (`Target#score_for`; bullseye ≤ 2.5, then ≤ 7.5, ≤ 12.5). A correct Left/Right guess earns the other team **1 point** (unless the active team hit the bullseye). **The team that goes second starts at 1 point** (`fresh_document` head start). First to **10** wins; v1 ties resolve to the team that just scored (`# v2: sudden death`).
+
+**Documents**: Game has `{ status, starting_team, current_team, psychic_id, clue, spectrum, target, guess, opponent_guess, red_score, blue_score, winner }`; Player has `{ team, psychic_count }`. `current_team` is initialized to `starting_team`; `clue` is nil until the psychic submits.
+
+**Key Classes**:
+- Aggregates: `Game` (`.build`, `.fresh_document`, `status`, `spectrum`, `target`, `clue`, `guess`, `current_team`, `starting_team`, `winner`, `score_for`, `psychic`, `psychic?`, `guessers`, `suggested_psychic`, `players_on`, `add_player`, `join_team`, `start_game`, `submit_clue`, `move_dial`, `lock_guess`, `guess_side`, `start_new_round`, `start_new_game`), `Player` (`team`, `psychic_count`, `increment_psychic_count`, `online?`)
+- Value Objects: `Team` (top-level `Wavelength::Team`, shared by game + player; `red?`/`opponent`), `Game::Status` (`setup?`/`clue?`/`guessing?`/`left_right?`/`reveal?`/`completed?`), `Game::Spectrum` (`left`, `right`), `Game::Target` (`position`, `score_for`, `bullseye?`, `side_of`, `bands`)
+- Persistence: `GameRepo` (a `GameStore` constant), `GameMapping`
+- Forms: `NewGameForm`, `NewPlayerForm`, `EditPlayerForm`, `JoinTeamForm`, `StartGameForm`, `ClueForm`
+- Broadcasts: `PlayerCreated`, `PlayerConnected`, `PlayerDisconnected`, `PlayerNameUpdated`, `TeamUpdated`, `GameStarted`, `DialMoved`, `RoundUpdated`, `NewGameStarted`
+- The psychic sees the hidden target via a toggle (hidden by default); the dial is a range input, and `lock_guess`/`guess_side`/`next_round` post via `button_to` + Turbo
+- Spectrums: Loaded from `config/wavelength/spectrums.yml` singleton (`Spectrums.instance.sample`)
 
 ## Development Patterns
 

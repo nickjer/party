@@ -1,0 +1,12 @@
+<%# locals: (game:, clue_form:) %>
+
+<%= form_with model: clue_form, scope: :clue,
+    url: submit_clue_wavelength_game_path(game.id), method: :patch do |form| %>
+  <div class="mt-3">
+    <%= form.label :text, "Your clue", class: "visually-hidden" %>
+    <%= form.text_field :text, placeholder: "Type your clue for the team",
+        autocomplete: "off", autofocus: true, required: true,
+        maxlength: Wavelength::Game::CLUE_LENGTH.max %>
+    <%= form.button "Send clue", class: "btn btn-info w-100 mt-2" %>
+  </div>
+<% end %>

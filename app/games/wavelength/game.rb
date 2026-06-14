@@ -9,16 +9,25 @@ module Wavelength
     # Where the dial sits at the start of a round, before anyone moves it.
     CENTER = 50
 
+    CLUE_LENGTH = LengthValidator.new(min: 1, max: 50, field: :clue)
+
     class << self
       def build(spectrum:, target:, starting_team: nil, id: nil)
         id ||= GameStore.generate_game_id
         team = starting_team || Team.red
-        document = Document.new(
-          status: Status.setup, starting_team: team, current_team: team,
-          psychic_id: nil, spectrum:, target:, guess: CENTER,
-          opponent_guess: nil, red_score: 0, blue_score: 0, winner: nil
+        new(id:, players: [],
+          document: fresh_document(spectrum:, target:, starting_team: team))
+      end
+
+      # A setup-phase document for a brand-new board: dial centered, no psychic
+      # or clue, and a 1-point head start for the team that goes second.
+      def fresh_document(spectrum:, target:, starting_team:)
+        Document.new(
+          status: Status.setup, starting_team:, current_team: starting_team,
+          psychic_id: nil, clue: nil, spectrum:, target:, guess: CENTER,
+          opponent_guess: nil, red_score: starting_team.red? ? 0 : 1,
+          blue_score: starting_team.blue? ? 0 : 1, winner: nil
         )
-        new(id:, document:, players: [])
       end
     end
 
@@ -40,6 +49,7 @@ module Wavelength
     end
 
     def blue_team = players_on(Team.blue)
+    def clue = document.clue
     def current_team = document.current_team
     def guess = document.guess
     def opponent_guess = document.opponent_guess
@@ -91,11 +101,18 @@ module Wavelength
       raise "Game must be in setup status" unless status.setup?
 
       become_psychic(psychic, on: starting_team)
-      @document = document.with(status: Status.guessing, psychic_id: psychic.id)
+      @document = document.with(status: Status.clue, psychic_id: psychic.id)
       self
     end
 
-    # Slides the shared dial during guessing; the guess is only frozen on lock.
+    def submit_clue(text:)
+      raise "Game must be in clue status" unless status.clue?
+
+      CLUE_LENGTH.validate!(text)
+      @document = document.with(clue: text, status: Status.guessing)
+      self
+    end
+
     def move_dial(position:)
       raise "Game must be in guessing status" unless status.guessing?
 
@@ -106,22 +123,21 @@ module Wavelength
     def lock_guess(position:)
       raise "Game must be in guessing status" unless status.guessing?
 
-      @document = document.with(guess: position, status: Status.left_right)
+      @document = document.with(guess: position)
+      # A bullseye ends the round outright: a perfect lock leaves the opponent
+      # no side to catch, so we settle now and skip the left/right step.
+      if target.bullseye?(position)
+        settle_round(opponent_guess: nil)
+      else
+        @document = document.with(status: Status.left_right)
+      end
       self
     end
 
     def guess_side(side:)
       raise "Game must be in left_right status" unless status.left_right?
 
-      active_points = target.score_for(guess)
-      opponent_correct = side.to_sym == target.side_of(guess)
-      new_red, new_blue = award(active_points, opponent_correct)
-
-      next_status, won = resolve(new_red, new_blue)
-      @document = document.with(
-        opponent_guess: side, red_score: new_red, blue_score: new_blue,
-        status: next_status, winner: won ? leader(new_red, new_blue) : nil
-      )
+      settle_round(opponent_guess: side)
       self
     end
 
@@ -131,8 +147,8 @@ module Wavelength
       next_team = current_team.opponent
       become_psychic(psychic, on: next_team)
       @document = document.with(
-        status: Status.guessing, current_team: next_team,
-        psychic_id: psychic.id, spectrum:, target:, guess: CENTER,
+        status: Status.clue, current_team: next_team,
+        psychic_id: psychic.id, clue: nil, spectrum:, target:, guess: CENTER,
         opponent_guess: nil
       )
       self
@@ -142,11 +158,8 @@ module Wavelength
       raise "Game must be in completed status" unless status.completed?
 
       team = starting_team || document.starting_team.opponent
-      @document = document.with(
-        status: Status.setup, starting_team: team, current_team: team,
-        psychic_id: nil, spectrum:, target:, guess: CENTER,
-        opponent_guess: nil, red_score: 0, blue_score: 0, winner: nil
-      )
+      @document = self.class.fresh_document(spectrum:, target:,
+        starting_team: team)
       self
     end
 
@@ -192,9 +205,18 @@ module Wavelength
       [new_red, new_blue]
     end
 
-    def resolve(new_red, new_blue)
+    # Scores the locked guess (plus the opponent's optional left/right call),
+    # then reveals or completes the round on a win.
+    def settle_round(opponent_guess:)
+      active_points = target.score_for(guess)
+      opponent_correct = opponent_guess&.to_sym == target.side_of(guess)
+      new_red, new_blue = award(active_points, opponent_correct)
       won = new_red >= WIN_SCORE || new_blue >= WIN_SCORE
-      [won ? Status.completed : Status.reveal, won]
+      @document = document.with(
+        opponent_guess:, red_score: new_red, blue_score: new_blue,
+        status: won ? Status.completed : Status.reveal,
+        winner: won ? leader(new_red, new_blue) : nil
+      )
     end
 
     # v1: a tie resolves to the team that just scored (v2: sudden death).

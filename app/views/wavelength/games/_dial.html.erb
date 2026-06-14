@@ -18,14 +18,14 @@
     <% if interactive %>
       <%# The range input overlays the track with an invisible thumb; the dark
           marker is a separate element moved locally and by live broadcasts. %>
-      <%= form_with url: lock_guess_wavelength_game_path(game.id), method: :patch do |form| %>
+      <%= form_with scope: :guess, url: lock_guess_wavelength_game_path(game.id), method: :patch do |form| %>
         <div class="position-relative bg-body-secondary border rounded my-4"
              style="height: 3rem;">
           <div id="<%= marker_id %>" class="position-absolute top-0 bottom-0 start-0 end-0"
                style="pointer-events: none;">
             <%= render "wavelength/games/dial_marker", game:, reveal: false %>
           </div>
-          <%= form.range_field "guess[position]", value: game.guess,
+          <%= form.range_field :position, value: game.guess,
               in: 0..100, step: 1,
               class: "wl-dial-range position-absolute top-0 start-0 w-100",
               style: "height: 3rem; margin: 0;",

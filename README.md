@@ -16,6 +16,15 @@ friends better (or discovering how weird they really are).
 prompts, then a rotating judge picks the winning answer. Think you know your
 friends best? Prove it.
 
+**Codenames** - A digital companion for the classic word game. Two teams race
+to contact all their agents on a 5×5 grid; each team's spymaster gives one-word
+clues out loud while operatives tap cards — just don't hit the assassin.
+
+**Wavelength** - A telepathy game. A "psychic" sees a hidden target on a
+spectrum between two opposing concepts (like Hot–Cold) and types a clue; their
+team turns the dial to find it while the other team guesses which side it's on.
+Read your friends' minds to score.
+
 ## Tech Stack
 
 - **Rails 8** with [Hotwire](https://hotwired.dev/) (Turbo + Stimulus) for

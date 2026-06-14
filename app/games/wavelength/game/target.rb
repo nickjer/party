@@ -51,6 +51,9 @@ module Wavelength
         0
       end
 
+      # A dead-on guess (the 4-point wedge)
+      def bullseye?(dial) = score_for(dial) == 4
+
       # Which side the true target sits on, relative to the locked dial.
       def side_of(dial)
         return :left if position < dial

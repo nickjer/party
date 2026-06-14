@@ -83,7 +83,7 @@ module Wavelength
       assert_dom "#play_area"
     end
 
-    test "#start transitions to guessing and makes the clicker psychic" do
+    test "#start transitions to the clue phase and makes the clicker psychic" do
       game = create(:wl_game, :with_teams)
       red = player_named(game, "RedOne")
       sign_in(red.user_id)
@@ -91,7 +91,7 @@ module Wavelength
       post start_wavelength_game_path(game.id)
 
       assert_response :success
-      assert_predicate reload(game:).status, :guessing?
+      assert_predicate reload(game:).status, :clue?
       assert_equal red.id, reload(game:).psychic.id
     end
 
@@ -117,6 +117,50 @@ module Wavelength
       assert_response :unprocessable_content
       assert_dom ".alert", text: /at least 2 players/
       assert_predicate reload(game:).status, :setup?
+    end
+
+    test "#submit_clue stores the clue and moves to guessing" do
+      game = create(:wl_clue_game)
+      sign_in(game.psychic.user_id)
+
+      patch submit_clue_wavelength_game_path(game.id),
+        params: { clue: { text: "Banana" } }
+
+      assert_response :success
+      assert_predicate reload(game:).status, :guessing?
+      assert_equal "Banana", reload(game:).clue.to_s
+    end
+
+    test "#submit_clue is forbidden when not in the clue phase" do
+      game = create(:wl_guessing_game)
+      sign_in(game.psychic.user_id)
+
+      patch submit_clue_wavelength_game_path(game.id),
+        params: { clue: { text: "Banana" } }
+
+      assert_response :forbidden
+    end
+
+    test "#submit_clue is forbidden for a non-psychic" do
+      game = create(:wl_clue_game)
+      sign_in(game.guessers.first.user_id)
+
+      patch submit_clue_wavelength_game_path(game.id),
+        params: { clue: { text: "Banana" } }
+
+      assert_response :forbidden
+    end
+
+    test "#submit_clue re-renders with an error for a blank clue" do
+      game = create(:wl_clue_game)
+      sign_in(game.psychic.user_id)
+
+      patch submit_clue_wavelength_game_path(game.id),
+        params: { clue: { text: "" } }
+
+      assert_response :unprocessable_content
+      assert_dom ".invalid-feedback", text: /too short/
+      assert_predicate reload(game:).status, :clue?
     end
 
     test "#move_dial is forbidden when the game is not guessing" do
@@ -243,6 +287,18 @@ module Wavelength
       assert_equal 42, reload(game:).guess
     end
 
+    test "#lock_guess settles the round immediately on a bullseye" do
+      game = create(:wl_guessing_game, target_position: 50)
+      sign_in(game.guessers.first.user_id)
+
+      patch lock_guess_wavelength_game_path(game.id),
+        params: { guess: { position: 50 } }
+
+      assert_response :success
+      assert_predicate reload(game:).status, :reveal?
+      assert_equal 4, reload(game:).score_for(Team.red)
+    end
+
     test "#guess_side is forbidden when the game is not in left_right" do
       game = create(:wl_guessing_game)
       sign_in(player_named(game, "BlueOne").user_id)
@@ -301,7 +357,7 @@ module Wavelength
       post next_round_wavelength_game_path(game.id)
 
       assert_response :success
-      assert_predicate reload(game:).status, :guessing?
+      assert_predicate reload(game:).status, :clue?
       assert_equal Team.blue, reload(game:).current_team
       assert_equal blue.id, reload(game:).psychic.id
     end

@@ -60,6 +60,24 @@ module Wavelength
       end
     end
 
+    def submit_clue
+      game = repo.find(params[:id])
+      current_player = game.player_for!(current_user.id)
+      return head :forbidden unless game.status.clue?
+      return head :forbidden unless game.psychic?(current_player)
+
+      clue = ClueForm.new(text: submit_clue_params[:text])
+      if clue.valid?
+        game.submit_clue(text: clue.text)
+        repo.save(game)
+        Broadcast::RoundUpdated.new(game:, player: current_player).call
+        render :play, locals: { game:, current_player: }
+      else
+        render :play, locals: { game:, current_player:, clue_form: clue },
+          status: :unprocessable_content
+      end
+    end
+
     def move_dial
       game = repo.find(params[:id])
       current_player = game.player_for!(current_user.id)
@@ -140,6 +158,7 @@ module Wavelength
     private
 
     def new_game_params = params.expect(game: %w[player_name])
+    def submit_clue_params = params.expect(clue: %w[text])
     def move_dial_params = params.expect(guess: %w[position])
     def lock_guess_params = params.expect(guess: %w[position])
     def guess_side_params = params.expect(guess: %w[side])

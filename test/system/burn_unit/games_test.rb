@@ -847,6 +847,20 @@ module BurnUnit
         assert_text "Edit Your Name", wait: 5
         assert_field "Your Name", with: "Charlie"
 
+        # Cancel returns to the game without changing the name
+        click_on "Cancel"
+        assert_text "Who would survive on a deserted island?", wait: 5
+        assert_no_text "Edit Your Name"
+        within("#players") { assert_selector "span.fw-bold", text: "Charlie" }
+
+        # Reopen the edit form to continue
+        within("#players") do
+          charlie_div = find("div[id^='player_']", text: "Charlie")
+          within(charlie_div) { find("a[title='Edit name']").click }
+        end
+        assert_text "Edit Your Name", wait: 5
+        assert_field "Your Name", with: "Charlie"
+
         # Try to change name to something too short
         fill_in "Your Name", with: "Ch"
         click_on "Update Name"

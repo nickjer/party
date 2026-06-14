@@ -5,23 +5,16 @@
     <div class="col-md-8 col-lg-6">
       <div class="card shadow">
         <div class="card-body p-4">
-          <h1 class="h4 text-info mb-3">Edit your name</h1>
+          <h1 class="h4 text-info mb-3">Edit Your Name</h1>
 
           <%= form_with(model: edit_player, scope: :player,
             url: wavelength_game_player_path(game.id), method: :patch) do |form| %>
             <div class="mb-3">
-              <%= form.label :name, "Your Name" %>
-              <%= form.text_field :name,
-                  value: edit_player.name,
-                  maxlength: PlayerName::LENGTH.max,
-                  autofocus: true %>
-              <div class="form-text">
-                <%= PlayerName::LENGTH.min %>-<%= PlayerName::LENGTH.max %> characters
-              </div>
+              <%= render "players/name_field", form: %>
             </div>
 
             <div class="d-flex gap-2">
-              <%= form.submit "Save", class: "btn btn-info" %>
+              <%= form.submit "Update Name", class: "btn btn-info" %>
               <%= link_to "Cancel", wavelength_game_path(game.id),
                   class: "btn btn-outline-secondary" %>
             </div>

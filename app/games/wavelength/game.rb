@@ -9,13 +9,15 @@ module Wavelength
     # Where the dial sits at the start of a round, before anyone moves it.
     CENTER = 50
 
+    CLUE_LENGTH = LengthValidator.new(min: 1, max: 50, field: :clue)
+
     class << self
       def build(spectrum:, target:, starting_team: nil, id: nil)
         id ||= GameStore.generate_game_id
         team = starting_team || Team.red
         document = Document.new(
           status: Status.setup, starting_team: team, current_team: team,
-          psychic_id: nil, spectrum:, target:, guess: CENTER,
+          psychic_id: nil, clue: nil, spectrum:, target:, guess: CENTER,
           opponent_guess: nil, red_score: 0, blue_score: 0, winner: nil
         )
         new(id:, document:, players: [])
@@ -40,6 +42,7 @@ module Wavelength
     end
 
     def blue_team = players_on(Team.blue)
+    def clue = document.clue
     def current_team = document.current_team
     def guess = document.guess
     def opponent_guess = document.opponent_guess
@@ -91,7 +94,16 @@ module Wavelength
       raise "Game must be in setup status" unless status.setup?
 
       become_psychic(psychic, on: starting_team)
-      @document = document.with(status: Status.guessing, psychic_id: psychic.id)
+      @document = document.with(status: Status.clue, psychic_id: psychic.id)
+      self
+    end
+
+    # The psychic's clue, entered in-app, ends the clue phase and opens guessing.
+    def submit_clue(text:)
+      raise "Game must be in clue status" unless status.clue?
+
+      CLUE_LENGTH.validate!(text)
+      @document = document.with(clue: text, status: Status.guessing)
       self
     end
 
@@ -131,8 +143,8 @@ module Wavelength
       next_team = current_team.opponent
       become_psychic(psychic, on: next_team)
       @document = document.with(
-        status: Status.guessing, current_team: next_team,
-        psychic_id: psychic.id, spectrum:, target:, guess: CENTER,
+        status: Status.clue, current_team: next_team,
+        psychic_id: psychic.id, clue: nil, spectrum:, target:, guess: CENTER,
         opponent_guess: nil
       )
       self
@@ -144,7 +156,7 @@ module Wavelength
       team = starting_team || document.starting_team.opponent
       @document = document.with(
         status: Status.setup, starting_team: team, current_team: team,
-        psychic_id: nil, spectrum:, target:, guess: CENTER,
+        psychic_id: nil, clue: nil, spectrum:, target:, guess: CENTER,
         opponent_guess: nil, red_score: 0, blue_score: 0, winner: nil
       )
       self

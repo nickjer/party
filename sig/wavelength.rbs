@@ -149,6 +149,7 @@ module Wavelength
   class Game
     WIN_SCORE: Integer
     CENTER: Integer
+    CLUE_LENGTH: LengthValidator
 
     def self.build: (spectrum: Game::Spectrum, target: Game::Target,
       ?starting_team: Team?, ?id: String?) -> Game
@@ -160,6 +161,7 @@ module Wavelength
 
     def add_player: (user_id: String, name: ::PlayerName, ?team: Team?) -> Player
     def blue_team: () -> Array[Player]
+    def clue: () -> String?
     def current_team: () -> Team
     def guess: () -> Integer
     def opponent_guess: () -> String?
@@ -180,6 +182,7 @@ module Wavelength
     def score_for: (Team team) -> Integer
     def join_team: (player: Player, team: Team) -> self
     def start_game: (psychic: Player) -> self
+    def submit_clue: (text: String) -> self
     def move_dial: (position: Integer) -> self
     def lock_guess: (position: Integer) -> self
     def guess_side: (side: String) -> self
@@ -207,15 +210,16 @@ module Wavelength
     class Document
       type json = {
         status: String, starting_team: String, current_team: String,
-        psychic_id: String?, spectrum: Spectrum::json, target: Integer,
-        guess: Integer, opponent_guess: String?, red_score: Integer,
-        blue_score: Integer, winner: String?
+        psychic_id: String?, clue: String?, spectrum: Spectrum::json,
+        target: Integer, guess: Integer, opponent_guess: String?,
+        red_score: Integer, blue_score: Integer, winner: String?
       }
 
       attr_reader status: Status
       attr_reader starting_team: Team
       attr_reader current_team: Team
       attr_reader psychic_id: String?
+      attr_reader clue: String?
       attr_reader spectrum: Spectrum
       attr_reader target: Target
       attr_reader guess: Integer
@@ -227,14 +231,14 @@ module Wavelength
       def self.parse: (json hash) -> Document
 
       def initialize: (status: Status, starting_team: Team, current_team: Team,
-        psychic_id: String?, spectrum: Spectrum, target: Target, guess: Integer,
-        opponent_guess: String?, red_score: Integer, blue_score: Integer,
-        winner: Team?) -> void
+        psychic_id: String?, clue: String?, spectrum: Spectrum, target: Target,
+        guess: Integer, opponent_guess: String?, red_score: Integer,
+        blue_score: Integer, winner: Team?) -> void
 
       def with: (?status: Status, ?starting_team: Team, ?current_team: Team,
-        ?psychic_id: String?, ?spectrum: Spectrum, ?target: Target,
-        ?guess: Integer, ?opponent_guess: String?, ?red_score: Integer,
-        ?blue_score: Integer, ?winner: Team?) -> Document
+        ?psychic_id: String?, ?clue: String?, ?spectrum: Spectrum,
+        ?target: Target, ?guess: Integer, ?opponent_guess: String?,
+        ?red_score: Integer, ?blue_score: Integer, ?winner: Team?) -> Document
 
       def to_h: () -> json
 
@@ -242,6 +246,7 @@ module Wavelength
     end
 
     class Status
+      def self.clue: () -> Status
       def self.completed: () -> Status
       def self.guessing: () -> Status
       def self.left_right: () -> Status
@@ -255,6 +260,7 @@ module Wavelength
 
       def ==: (Status other) -> bool
       def as_json: () -> String
+      def clue?: () -> bool
       def completed?: () -> bool
       def eql?: (Status other) -> bool
       def guessing?: () -> bool
@@ -407,11 +413,21 @@ module Wavelength
     def validate_team: (Team team) -> void
   end
 
+  class ClueForm
+    attr_reader text: String
+    attr_reader errors: ::Errors
+
+    def initialize: (?text: _ToS?) -> void
+
+    def valid?: () -> bool
+  end
+
   class GamesController < ::ApplicationController
     def new: () -> untyped
     def create: () -> untyped
     def show: () -> untyped
     def start: () -> untyped
+    def submit_clue: () -> untyped
     def move_dial: () -> untyped
     def lock_guess: () -> untyped
     def guess_side: () -> untyped
@@ -423,6 +439,7 @@ module Wavelength
     attr_reader repo: GameStore[Player, Game]
 
     def new_game_params: () -> ::ActionController::Parameters
+    def submit_clue_params: () -> ::ActionController::Parameters
     def move_dial_params: () -> ::ActionController::Parameters
     def lock_guess_params: () -> ::ActionController::Parameters
     def guess_side_params: () -> ::ActionController::Parameters

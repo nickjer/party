@@ -71,13 +71,14 @@ module Wavelength
       assert(red.all? { |player| player.team == Team.red })
     end
 
-    test "#start_game moves to guessing with the claiming player as psychic" do
+    test "#start_game moves to the clue phase with the claimer as psychic" do
       game = build(:wl_game, :with_teams) # red starts
       claimer = game.players_on(Team.red).last
 
       game.start_game(psychic: claimer)
 
-      assert_predicate game.status, :guessing?
+      assert_predicate game.status, :clue?
+      assert_nil game.clue
       assert_equal claimer, game.psychic
     end
 
@@ -93,6 +94,27 @@ module Wavelength
       blue = game.players_on(Team.blue).first
 
       assert_raises(RuntimeError) { game.start_game(psychic: blue) }
+    end
+
+    test "#submit_clue stores the clue and moves to guessing" do
+      game = build(:wl_clue_game)
+
+      game.submit_clue(text: "Banana")
+
+      assert_predicate game.status, :guessing?
+      assert_equal "Banana", game.clue
+    end
+
+    test "#submit_clue raises unless in the clue phase" do
+      game = build(:wl_guessing_game)
+
+      assert_raises(RuntimeError) { game.submit_clue(text: "Banana") }
+    end
+
+    test "#submit_clue raises for a clue that is too long" do
+      game = build(:wl_clue_game)
+
+      assert_raises(ArgumentError) { game.submit_clue(text: "x" * 51) }
     end
 
     test "#psychic? is true for the assigned psychic and false otherwise" do
@@ -221,7 +243,7 @@ module Wavelength
       # The 10-10 tie resolves to the active (current) team: red.
       document = Game::Document.new(
         status: Game::Status.left_right, starting_team: Team.red,
-        current_team: Team.red, psychic_id: "p1",
+        current_team: Team.red, psychic_id: "p1", clue: "Clue",
         spectrum: Game::Spectrum.new(left: "A", right: "B"),
         target: Game::Target.new(position: 58), guess: 60,
         opponent_guess: nil, red_score: 6, blue_score: 9, winner: nil
@@ -249,12 +271,12 @@ module Wavelength
         spectrum: Spectrums.instance.sample,
         target: Game::Target.new(position: 50))
 
-      assert_predicate game.status, :guessing?
+      assert_predicate game.status, :clue?
       assert_equal Team.blue, game.current_team
       assert_equal claimer, game.psychic
     end
 
-    test "#start_new_round recenters the dial and redraws" do
+    test "#start_new_round recenters the dial and clears the clue" do
       game = build(:wl_reveal_game)
       claimer = game.players_on(Team.blue).first
 
@@ -264,6 +286,7 @@ module Wavelength
 
       assert_equal Game::CENTER, game.guess
       assert_nil game.opponent_guess
+      assert_nil game.clue
       assert_equal 12, game.target.position
     end
 

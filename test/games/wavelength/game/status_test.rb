@@ -8,6 +8,12 @@ module Wavelength
       test ".setup returns setup status" do
         assert_predicate Status.setup, :setup?
         assert_not_predicate Status.setup, :guessing?
+        assert_not_predicate Status.setup, :clue?
+      end
+
+      test ".clue returns clue status" do
+        assert_predicate Status.clue, :clue?
+        assert_not_predicate Status.clue, :guessing?
       end
 
       test ".guessing returns guessing status" do
@@ -32,6 +38,7 @@ module Wavelength
 
       test ".parse builds status from a string" do
         assert_predicate Status.parse("setup"), :setup?
+        assert_predicate Status.parse("clue"), :clue?
         assert_predicate Status.parse("guessing"), :guessing?
         assert_predicate Status.parse("left_right"), :left_right?
         assert_predicate Status.parse("reveal"), :reveal?

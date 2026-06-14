@@ -73,16 +73,30 @@ module Wavelength
       opponent = game.players_on(Team.blue).first
       target = game.target.position
 
-      # The psychic is told to give a clue; the target shows by default and can
-      # be hidden, then shown again, via the toggle.
+      # The psychic sees the hidden target (shown by default, toggleable) plus
+      # a clue input the rest of the table must not see.
       using_session(session_for(psychic)) do
-        assert_text "Give your one-word clue out loud!", wait: 5
         assert_no_button "Lock it in"
+        assert_field "Your clue"
         assert_selector "[data-reveal-target='item']", visible: true
         click_on "Show / hide target"
         assert_no_selector "[data-reveal-target='item']", visible: true
         click_on "Show / hide target"
         assert_selector "[data-reveal-target='item']", visible: true
+      end
+
+      # A guesser waits out the clue phase with no clue input and no dial.
+      using_session(session_for(guesser)) do
+        assert_text "to give a clue", wait: 5
+        assert_no_field "Your clue"
+        assert_no_button "Send clue"
+        assert_no_button "Lock it in"
+      end
+
+      # The psychic sends the clue, which opens guessing for the team.
+      using_session(session_for(psychic)) do
+        fill_in "Your clue", with: "Banana"
+        click_on "Send clue"
       end
 
       # An opponent waits while the red team guesses (no dial controls).
@@ -154,9 +168,18 @@ module Wavelength
         game = GameRepo.find(game_id)
         break if game.status.completed?
 
+        psychic = game.psychic
         guesser = game.guessers.first
         opponent = game.players_on(game.current_team.opponent).first
         target = game.target.position
+
+        # Each round opens in the clue phase: the psychic sends a clue before
+        # the team can move the dial.
+        using_session(session_for(psychic)) do
+          assert_button "Send clue", wait: 5
+          fill_in "Your clue", with: "Banana"
+          click_on "Send clue"
+        end
 
         using_session(session_for(guesser)) do
           assert_button "Lock it in", wait: 5

@@ -1,9 +1,9 @@
-<%# locals: (game:, current_player:) %>
+<%# locals: (game:, current_player:, clue_form: nil) %>
 
 <div class="d-flex flex-column flex-md-row align-items-stretch align-items-md-start gap-2 mt-2">
   <div class="flex-grow-1">
     <div id="play_area">
-      <%= render "wavelength/games/play_area", game:, current_player: %>
+      <%= render "wavelength/games/play_area", game:, current_player:, clue_form: %>
     </div>
   </div>
 

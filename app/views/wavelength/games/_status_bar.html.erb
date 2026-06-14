@@ -41,7 +41,13 @@
             <div class="fs-5 fw-bold mb-0">
               <%= game.current_team.to_s.capitalize %> team's turn
             </div>
-            <small class="opacity-75">Psychic gives a one-word clue out loud</small>
+            <small class="opacity-75">
+              <% if game.clue.present? %>
+                Clue: <strong><%= game.clue %></strong>
+              <% else %>
+                Psychic is choosing a clue…
+              <% end %>
+            </small>
           </div>
         </div>
 

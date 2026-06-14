@@ -40,3 +40,44 @@ dialog::backdrop {
   background-image:
     repeating-linear-gradient(45deg, rgba(0, 0, 0, 0.18) 0 2px, transparent 2px 8px);
 }
+
+// Wavelength dial: a transparent native range input overlaid on the spectrum
+// track. The thumb is invisible — the visible marker is a separate element
+// (#wl_dial_marker) so every player's dial can be driven by broadcasts too.
+.wl-dial-range {
+  appearance: none;
+  -webkit-appearance: none;
+  background: transparent;
+  cursor: pointer;
+
+  &::-webkit-slider-runnable-track {
+    height: 3rem;
+    background: transparent;
+  }
+
+  &::-moz-range-track {
+    height: 3rem;
+    background: transparent;
+  }
+
+  &::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 4px;
+    height: 3rem;
+    border: 0;
+    background: transparent;
+  }
+
+  &::-moz-range-thumb {
+    width: 4px;
+    height: 3rem;
+    border: 0;
+    background: transparent;
+  }
+
+  &:focus-visible {
+    outline: 2px solid rgba(var(--bs-info-rgb), 0.5);
+    outline-offset: 2px;
+    border-radius: var(--bs-border-radius);
+  }
+}

@@ -1,0 +1,47 @@
+<%# locals: (new_game:) %>
+
+<div class="row justify-content-center py-4">
+  <div class="col-md-8 col-lg-6">
+    <%= link_to root_path, class: "btn btn-link ps-0 mb-3" do %>
+      <i class="bi bi-arrow-left me-1"></i>
+      Back to Games
+    <% end %>
+
+    <div class="card shadow">
+      <div class="card-body p-4">
+        <div class="text-center mb-4">
+          <h1 class="h2 text-info mb-2">
+            <i class="bi bi-speedometer2 me-2"></i>
+            Wavelength
+          </h1>
+          <p class="text-muted mb-0">
+            Start a new game and invite your friends to pick teams
+          </p>
+        </div>
+
+        <%= form_with(model: new_game, scope: :game, url: wavelength_games_path) do |form| %>
+          <div class="mb-4">
+            <%= form.label :player_name, "Your Name" %>
+            <%= form.text_field :player_name,
+                value: new_game.player_name_input,
+                maxlength: PlayerName::LENGTH.max,
+                placeholder: "Enter your name",
+                autofocus: true %>
+            <div class="form-text">
+              <%= PlayerName::LENGTH.min %>-<%= PlayerName::LENGTH.max %> characters
+            </div>
+          </div>
+
+          <%= form.submit "Create New Game", class: "btn-lg w-100 btn-info" %>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="text-center mt-3">
+      <small class="text-muted">
+        <i class="bi bi-info-circle me-1"></i>
+        Read your team's mind to land the dial on the hidden target!
+      </small>
+    </div>
+  </div>
+</div>

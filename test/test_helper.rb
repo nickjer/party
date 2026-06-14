@@ -10,6 +10,7 @@ SimpleCov.start "rails" do
   add_group "Burn Unit", "app/games/burn_unit"
   add_group "Codenames", "app/games/codenames"
   add_group "Loaded Questions", "app/games/loaded_questions"
+  add_group "Wavelength", "app/games/wavelength"
 end
 
 ENV["RAILS_ENV"] ||= "test"
@@ -55,6 +56,7 @@ module ActiveSupport
       when LoadedQuestions::Game then LoadedQuestions::GameRepo.find(game.id)
       when BurnUnit::Game        then BurnUnit::GameRepo.find(game.id)
       when Codenames::Game       then Codenames::GameRepo.find(game.id)
+      when Wavelength::Game      then Wavelength::GameRepo.find(game.id)
       else raise ArgumentError, "Unsupported game type: #{game.class}"
       end
     end

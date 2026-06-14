@@ -1,0 +1,26 @@
+<%# locals: (game:, current_player:, edit_player:) %>
+
+<%= turbo_frame_tag "game_frame" do %>
+  <div class="row justify-content-center py-4">
+    <div class="col-md-8 col-lg-6">
+      <div class="card shadow">
+        <div class="card-body p-4">
+          <h1 class="h4 text-info mb-3">Edit Your Name</h1>
+
+          <%= form_with(model: edit_player, scope: :player,
+            url: wavelength_game_player_path(game.id), method: :patch) do |form| %>
+            <div class="mb-3">
+              <%= render "players/name_field", form: %>
+            </div>
+
+            <div class="d-flex gap-2">
+              <%= form.submit "Update Name", class: "btn btn-info" %>
+              <%= link_to "Cancel", wavelength_game_path(game.id),
+                  class: "btn btn-outline-secondary" %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+<% end %>

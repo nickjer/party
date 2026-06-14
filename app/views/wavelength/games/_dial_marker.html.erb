@@ -1,0 +1,19 @@
+<%# locals: (game:, reveal:) %>
+<% position = game.guess %>
+<% marker_style = "left: #{position}%;" %>
+<div class="position-absolute top-0 bottom-0" style="<%= marker_style %>"
+     data-dial-target="marker" data-dial-position="<%= position %>">
+  <div class="position-absolute top-0 bottom-0 bg-dark"
+       style="left: 0; width: 3px; transform: translateX(-50%);"></div>
+  <span class="position-absolute badge rounded-pill bg-dark fs-6"
+        style="top: -1.6rem; left: 0; transform: translateX(-50%);"
+        data-dial-target="value"><%= position %></span>
+  <% if reveal && !game.status.guessing? %>
+    <%# Score is a reveal item so the psychic's toggle hides it with the target. %>
+    <span class="position-absolute badge rounded-pill bg-dark fs-6"
+          style="bottom: -1.4rem; left: 0; transform: translateX(-50%);"
+          data-reveal-target="item">
+      +<%= game.target.score_for(position) %>
+    </span>
+  <% end %>
+</div>

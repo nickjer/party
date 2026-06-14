@@ -1,0 +1,78 @@
+<%# locals: (game:, current_player:) %>
+
+<div id="team_panels">
+  <div class="row g-2">
+    <% [Wavelength::Team.red, Wavelength::Team.blue].each do |team| %>
+      <% color = team.red? ? "danger" : "primary" %>
+      <% border_color = team.red? ? "border-danger" : "border-primary" %>
+      <% header_color = team.red? ? "bg-danger" : "bg-primary" %>
+      <div class="col-12 col-md-6">
+        <div class="card h-100 <%= border_color %>">
+          <div class="card-header <%= header_color %> text-white d-flex align-items-center justify-content-between">
+            <span class="fw-bold text-uppercase"><%= team %> team</span>
+            <% if game.starting_team == team %>
+              <span class="badge text-bg-light">Starts</span>
+            <% end %>
+          </div>
+          <div class="card-body">
+            <% if game.players_on(team).any? %>
+              <%= render(partial: "wavelength/players/player",
+                collection: game.players_on(team),
+                as: :player,
+                locals: { current_player: }) %>
+            <% else %>
+              <p class="text-muted small fst-italic mb-0">No players yet</p>
+            <% end %>
+          </div>
+          <div class="card-footer">
+            <%= button_to join_team_wavelength_game_player_path(game.id),
+                method: :patch,
+                params: { player: { team: team.to_s } },
+                class: "btn btn-sm btn-outline-#{color} w-100" do %>
+              Join
+            <% end %>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+  <% if game.players.reject(&:team).any? %>
+    <div class="card mt-2">
+      <div class="card-header bg-light fw-bold">Not on a team yet</div>
+      <div class="card-body">
+        <%= render(partial: "wavelength/players/player",
+          collection: game.players.reject(&:team),
+          as: :player,
+          locals: { current_player: }) %>
+      </div>
+    </div>
+  <% end %>
+
+  <% teams_ready = game.players_on(Wavelength::Team.red).size >= 2 &&
+       game.players_on(Wavelength::Team.blue).size >= 2 %>
+  <% suggested = game.suggested_psychic %>
+  <% can_start = teams_ready && current_player.team == game.starting_team %>
+  <p class="text-center text-muted small mt-3 mb-2">
+    <% if !teams_ready %>
+      Each team needs at least two players to start.
+    <% elsif !can_start %>
+      Waiting for the <%= game.starting_team.to_s.capitalize %> team to start…
+      <% if suggested %><strong><%= suggested.name %></strong> is up.<% end %>
+    <% elsif suggested && suggested.id != current_player.id %>
+      <strong><%= suggested.name %></strong> is up next — but anyone on
+      <%= game.starting_team.to_s.capitalize %> can start and be the psychic.
+    <% else %>
+      You'll be the psychic — start when ready.
+    <% end %>
+  </p>
+  <% if can_start %>
+    <%= button_to start_wavelength_game_path(game.id),
+        method: :post,
+        form_class: "d-grid mt-1",
+        class: "btn btn-lg btn-info" do %>
+      <i class="bi bi-play-circle-fill me-1"></i>
+      Start game
+    <% end %>
+  <% end %>
+</div>

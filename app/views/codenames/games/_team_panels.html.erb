@@ -59,14 +59,13 @@
   <% end %>
 
   <% if current_player == game.spymaster_for(game.starting_team) %>
-    <div class="d-grid mt-3">
-      <%= button_to start_codenames_game_path(game.id),
-          method: :post,
-          class: "btn btn-lg btn-success" do %>
-        <i class="bi bi-play-circle-fill me-1"></i>
-        Start game
-      <% end %>
-    </div>
+    <%= button_to start_codenames_game_path(game.id),
+        method: :post,
+        form_class: "d-grid mt-3",
+        class: "btn btn-lg btn-success" do %>
+      <i class="bi bi-play-circle-fill me-1"></i>
+      Start game
+    <% end %>
   <% else %>
     <p class="text-center text-muted small mt-3 mb-0">
       Waiting for the <%= game.starting_team %> spymaster to start the game…

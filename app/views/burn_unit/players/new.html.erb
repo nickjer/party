@@ -19,14 +19,7 @@
 
         <%= form_with(model: new_player, scope: :player, url: burn_unit_game_player_path(new_player.game.id)) do |form| %>
           <div class="mb-4">
-            <%= form.label :name, "Your Name" %>
-            <%= form.text_field :name,
-                maxlength: PlayerName::LENGTH.max,
-                placeholder: "Enter your name",
-                autofocus: true %>
-            <div class="form-text">
-              <%= PlayerName::LENGTH.min %>-<%= PlayerName::LENGTH.max %> characters
-            </div>
+            <%= render "players/name_field", form: %>
           </div>
 
           <%= form.submit "Join Game", class: "btn-lg w-100 btn-danger" %>

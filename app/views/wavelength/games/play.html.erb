@@ -1,0 +1,7 @@
+<%# locals: (game:, current_player:) %>
+
+<%= render "wavelength/games/player_stream", current_player: %>
+
+<%= turbo_frame_tag "game_frame", data: { connection_monitor_target: "frame" } do %>
+  <%= render "wavelength/games/play_body", game:, current_player: %>
+<% end %>

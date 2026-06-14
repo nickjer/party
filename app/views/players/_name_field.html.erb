@@ -1,0 +1,10 @@
+<%# locals: (form:) %>
+
+<%= form.label :name, "Your Name" %>
+<%= form.text_field :name,
+    maxlength: PlayerName::LENGTH.max,
+    placeholder: "Enter your name",
+    autofocus: true %>
+<div class="form-text">
+  <%= PlayerName::LENGTH.min %>-<%= PlayerName::LENGTH.max %> characters
+</div>

@@ -179,7 +179,7 @@ module Wavelength
       assert_raises(RuntimeError) { game.move_dial(position: 30) }
     end
 
-    test "#lock_guess on a near-miss stores the guess and moves to left_right" do
+    test "#lock_guess stores the guess and moves to left_right" do
       game = build(:wl_guessing_game, target_position: 50) # red active
 
       game.lock_guess(position: 73) # 23 off the target -> no bullseye

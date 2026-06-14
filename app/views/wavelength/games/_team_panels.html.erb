@@ -51,17 +51,28 @@
 
   <% teams_ready = game.players_on(Wavelength::Team.red).size >= 2 &&
        game.players_on(Wavelength::Team.blue).size >= 2 %>
-  <% if teams_ready %>
+  <% suggested = game.suggested_psychic %>
+  <% can_start = teams_ready && current_player.team == game.starting_team %>
+  <p class="text-center text-muted small mt-3 mb-2">
+    <% if !teams_ready %>
+      Each team needs at least two players to start.
+    <% elsif !can_start %>
+      Waiting for the <%= game.starting_team.to_s.capitalize %> team to start…
+      <% if suggested %><strong><%= suggested.name %></strong> is up.<% end %>
+    <% elsif suggested && suggested.id != current_player.id %>
+      <strong><%= suggested.name %></strong> is up next — but anyone on
+      <%= game.starting_team.to_s.capitalize %> can start and be the psychic.
+    <% else %>
+      You'll be the psychic — start when ready.
+    <% end %>
+  </p>
+  <% if can_start %>
     <%= button_to start_wavelength_game_path(game.id),
         method: :post,
-        form_class: "d-grid mt-3",
+        form_class: "d-grid mt-1",
         class: "btn btn-lg btn-info" do %>
       <i class="bi bi-play-circle-fill me-1"></i>
       Start game
     <% end %>
-  <% else %>
-    <p class="text-center text-muted small mt-3 mb-0">
-      Each team needs at least two players to start.
-    </p>
   <% end %>
 </div>

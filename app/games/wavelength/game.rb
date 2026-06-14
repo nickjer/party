@@ -74,6 +74,12 @@ module Wavelength
       players_on(current_team).reject { |player| psychic?(player) }
     end
 
+    # The up-team member who's been psychic least; the suggested next psychic.
+    def suggested_psychic
+      team = status.reveal? ? current_team.opponent : current_team
+      players_on(team).min_by(&:psychic_count)
+    end
+
     def score_for(team) = team.red? ? document.red_score : document.blue_score
 
     def join_team(player:, team:)
@@ -81,10 +87,10 @@ module Wavelength
       self
     end
 
-    def start_game
+    def start_game(psychic:)
       raise "Game must be in setup status" unless status.setup?
 
-      psychic = assign_psychic(starting_team)
+      become_psychic(psychic, on: starting_team)
       @document = document.with(status: Status.guessing, psychic_id: psychic.id)
       self
     end
@@ -119,11 +125,11 @@ module Wavelength
       self
     end
 
-    def start_new_round(spectrum:, target:)
+    def start_new_round(psychic:, spectrum:, target:)
       raise "Game must be in reveal status" unless status.reveal?
 
       next_team = current_team.opponent
-      psychic = assign_psychic(next_team)
+      become_psychic(psychic, on: next_team)
       @document = document.with(
         status: Status.guessing, current_team: next_team,
         psychic_id: psychic.id, spectrum:, target:, guess: CENTER,
@@ -166,14 +172,11 @@ module Wavelength
     # @dynamic document
     attr_reader :document
 
-    # Picks the team's least-used psychic and bumps their counter.
-    def assign_psychic(team)
-      team_players = players_on(team)
-      raise "No players on #{team} team" if team_players.empty?
+    # Marks the claiming player as the psychic; they must be on the up team.
+    def become_psychic(player, on:)
+      raise "Psychic must be on the #{on} team" if player.team != on
 
-      psychic = team_players.min_by(&:psychic_count) #: Player
-      psychic.increment_psychic_count
-      psychic
+      player.increment_psychic_count
     end
 
     def award(active_points, opponent_correct)

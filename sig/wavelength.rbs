@@ -176,13 +176,14 @@ module Wavelength
     def psychic: () -> Player?
     def psychic?: (Player player) -> bool
     def guessers: () -> Array[Player]
+    def suggested_psychic: () -> Player?
     def score_for: (Team team) -> Integer
     def join_team: (player: Player, team: Team) -> self
-    def start_game: () -> self
+    def start_game: (psychic: Player) -> self
     def move_dial: (position: Integer) -> self
     def lock_guess: (position: Integer) -> self
     def guess_side: (side: String) -> self
-    def start_new_round: (spectrum: Spectrum, target: Target) -> self
+    def start_new_round: (psychic: Player, spectrum: Spectrum, target: Target) -> self
     def start_new_game: (spectrum: Spectrum, target: Target, ?starting_team: Team?) -> self
     def document_json: () -> String
 
@@ -196,7 +197,7 @@ module Wavelength
 
     attr_reader document: Document
 
-    def assign_psychic: (Team team) -> Player
+    def become_psychic: (Player player, on: Team) -> void
     def award: (Integer active_points, bool opponent_correct) -> [Integer, Integer]
     def resolve: (Integer new_red, Integer new_blue) -> [Status, bool]
     def leader: (Integer new_red, Integer new_blue) -> Team

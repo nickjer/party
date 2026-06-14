@@ -46,10 +46,11 @@ module Wavelength
     def start
       game = repo.find(params[:id])
       current_player = game.player_for!(current_user.id)
+      return head :forbidden if current_player.team != game.starting_team
 
       start_game = StartGameForm.new(game:)
       if start_game.valid?
-        game.start_game
+        game.start_game(psychic: current_player)
         repo.save(game)
         Broadcast::GameStarted.new(game:, player: current_player).call
         render :play, locals: { game:, current_player: }
@@ -112,9 +113,12 @@ module Wavelength
       game = repo.find(params[:id])
       current_player = game.player_for!(current_user.id)
       return head :forbidden unless game.status.reveal?
+      if current_player.team != game.current_team.opponent
+        return head :forbidden
+      end
 
-      game.start_new_round(spectrum: Spectrums.instance.sample,
-        target: Game::Target.generate)
+      game.start_new_round(psychic: current_player,
+        spectrum: Spectrums.instance.sample, target: Game::Target.generate)
       repo.save(game)
       Broadcast::RoundUpdated.new(game:, player: current_player).call
       render :play, locals: { game:, current_player: }

@@ -39,19 +39,19 @@ FactoryBot.define do
     end
 
     factory :wl_guessing_game, traits: %i[with_teams] do
-      after(:build, &:start_game)
+      after(:build) { |game| game.start_game(psychic: game.suggested_psychic) }
     end
 
     factory :wl_left_right_game, traits: %i[with_teams] do
       after(:build) do |game|
-        game.start_game
+        game.start_game(psychic: game.suggested_psychic)
         game.lock_guess(position: 50)
       end
     end
 
     factory :wl_reveal_game, traits: %i[with_teams] do
       after(:build) do |game|
-        game.start_game
+        game.start_game(psychic: game.suggested_psychic)
         game.lock_guess(position: 50)
         game.guess_side(side: "left")
       end
@@ -61,13 +61,14 @@ FactoryBot.define do
     # starting team reaches WIN_SCORE first (4 + 4 + 4 = 12 on its 3rd turn).
     factory :wl_completed_game, traits: %i[with_teams] do
       after(:build) do |game|
-        game.start_game
+        game.start_game(psychic: game.suggested_psychic)
         loop do
           game.lock_guess(position: 50)
           game.guess_side(side: "left")
           break if game.status.completed?
 
           game.start_new_round(
+            psychic: game.suggested_psychic,
             spectrum: Wavelength::Spectrums.instance.sample,
             target: Wavelength::Game::Target.new(position: 50)
           )

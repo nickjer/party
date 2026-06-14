@@ -71,27 +71,28 @@ module Wavelength
       assert(red.all? { |player| player.team == Team.red })
     end
 
-    test "#start_game moves to guessing and assigns a starting-team psychic" do
+    test "#start_game moves to guessing with the claiming player as psychic" do
       game = build(:wl_game, :with_teams) # red starts
+      claimer = game.players_on(Team.red).last
 
-      game.start_game
+      game.start_game(psychic: claimer)
 
       assert_predicate game.status, :guessing?
-      assert_includes game.players_on(Team.red), game.psychic
+      assert_equal claimer, game.psychic
     end
 
     test "#start_game raises unless in setup" do
       game = build(:wl_guessing_game)
+      psychic = game.psychic
 
-      assert_raises(RuntimeError) { game.start_game }
+      assert_raises(RuntimeError) { game.start_game(psychic:) }
     end
 
-    test "#start_game raises when the starting team has no players" do
-      game = build(:wl_game) # red starts, but no players
-      game.add_player(user_id: "u1", name: PlayerName.parse("Blue"),
-        team: Team.blue)
+    test "#start_game raises when the psychic is not on the starting team" do
+      game = build(:wl_game, :with_teams) # red starts
+      blue = game.players_on(Team.blue).first
 
-      assert_raises(RuntimeError) { game.start_game }
+      assert_raises(RuntimeError) { game.start_game(psychic: blue) }
     end
 
     test "#psychic? is true for the assigned psychic and false otherwise" do
@@ -107,6 +108,18 @@ module Wavelength
       assert_equal 1, game.guessers.size
       assert(game.guessers.all? { |player| player.team == Team.red })
       assert_not_includes game.guessers, game.psychic
+    end
+
+    test "#suggested_psychic picks the starting team's least-used psychic" do
+      game = build(:wl_game, :with_teams) # red starts, all counts zero
+
+      assert_includes game.players_on(Team.red), game.suggested_psychic
+    end
+
+    test "#suggested_psychic picks the up team between rounds" do
+      game = build(:wl_reveal_game) # red just played, blue is up
+
+      assert_includes game.players_on(Team.blue), game.suggested_psychic
     end
 
     test "#move_dial slides the dial and stays in guessing" do
@@ -228,23 +241,25 @@ module Wavelength
       assert_raises(RuntimeError) { game.guess_side(side: "left") }
     end
 
-    test "#start_new_round flips the team and rotates the psychic" do
+    test "#start_new_round flips the team and the claiming player is psychic" do
       game = build(:wl_reveal_game) # red just played, status reveal
-      first_psychic = game.psychic
+      claimer = game.players_on(Team.blue).last
 
-      game.start_new_round(spectrum: Spectrums.instance.sample,
+      game.start_new_round(psychic: claimer,
+        spectrum: Spectrums.instance.sample,
         target: Game::Target.new(position: 50))
 
       assert_predicate game.status, :guessing?
       assert_equal Team.blue, game.current_team
-      assert_includes game.players_on(Team.blue), game.psychic
-      assert_not_equal first_psychic, game.psychic
+      assert_equal claimer, game.psychic
     end
 
     test "#start_new_round recenters the dial and redraws" do
       game = build(:wl_reveal_game)
+      claimer = game.players_on(Team.blue).first
 
-      game.start_new_round(spectrum: Spectrums.instance.sample,
+      game.start_new_round(psychic: claimer,
+        spectrum: Spectrums.instance.sample,
         target: Game::Target.new(position: 12))
 
       assert_equal Game::CENTER, game.guess
@@ -252,11 +267,22 @@ module Wavelength
       assert_equal 12, game.target.position
     end
 
-    test "#start_new_round raises unless in reveal" do
-      game = build(:wl_guessing_game)
+    test "#start_new_round raises when the psychic is not on the up team" do
+      game = build(:wl_reveal_game) # red just played, blue is up
+      red = game.players_on(Team.red).first
 
       assert_raises(RuntimeError) do
-        game.start_new_round(spectrum: Spectrums.instance.sample,
+        game.start_new_round(psychic: red, spectrum: Spectrums.instance.sample,
+          target: Game::Target.new(position: 50))
+      end
+    end
+
+    test "#start_new_round raises unless in reveal" do
+      game = build(:wl_guessing_game)
+      blue = game.players_on(Team.blue).first
+
+      assert_raises(RuntimeError) do
+        game.start_new_round(psychic: blue, spectrum: Spectrums.instance.sample,
           target: Game::Target.new(position: 50))
       end
     end

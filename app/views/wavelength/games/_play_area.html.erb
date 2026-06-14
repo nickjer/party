@@ -10,10 +10,26 @@
 
 <% elsif game.status.reveal? %>
   <%= render "wavelength/games/dial", game:, reveal: true, interactive: false %>
-  <%= button_to next_round_wavelength_game_path(game.id), method: :post,
-      form_class: "d-grid mt-3", class: "btn btn-lg btn-info" do %>
-    <i class="bi bi-arrow-right-circle-fill me-1"></i>
-    Next round
+  <% up_team = game.current_team.opponent %>
+  <% suggested = game.suggested_psychic %>
+  <% on_up_team = current_player.team == up_team %>
+  <p class="text-center text-muted mt-3 mb-2">
+    <% if !on_up_team %>
+      Waiting for the <%= up_team.to_s.capitalize %> team to pick a psychic…
+      <% if suggested %><strong><%= suggested.name %></strong> is up.<% end %>
+    <% elsif suggested && suggested.id != current_player.id %>
+      <strong><%= suggested.name %></strong> is up next — but anyone on
+      <%= up_team.to_s.capitalize %> can continue and be the psychic.
+    <% else %>
+      You're up — continue to be the psychic.
+    <% end %>
+  </p>
+  <% if on_up_team %>
+    <%= button_to next_round_wavelength_game_path(game.id), method: :post,
+        form_class: "d-grid", class: "btn btn-lg btn-info" do %>
+      <i class="bi bi-arrow-right-circle-fill me-1"></i>
+      Next round
+    <% end %>
   <% end %>
 
 <% elsif game.status.left_right? %>

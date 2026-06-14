@@ -53,11 +53,15 @@ module Wavelength
         within("div.card.border-primary") { click_on "Join" }
       end
 
-      # With two per team, every player now sees the Start game button.
+      # With two per team, only the starting (red) team sees the Start button;
+      # blue waits. Whoever on red clicks it becomes the psychic.
       assert_button "Start game", wait: 5
-      using_session("cleo") { assert_button "Start game", wait: 5 }
+      using_session("cleo") do
+        assert_no_button "Start game", wait: 5
+        assert_text "Waiting for the Red team to start"
+      end
 
-      # Ada starts the game.
+      # Ada (on red) starts the game and so becomes the psychic.
       click_on "Start game"
       assert_selector "#play_area", wait: 5
       assert_text "Red team's turn"
@@ -127,19 +131,23 @@ module Wavelength
       assert_equal 4, GameRepo.find(game_id).score_for(Team.red)
       assert_equal 0, GameRepo.find(game_id).score_for(Team.blue)
 
-      # Everyone lands on the reveal with a Next round button (broadcast).
+      # On the reveal, only the up (blue) team can continue; the red psychic
+      # who just played waits while blue picks the next psychic (broadcast).
       using_session(session_for(psychic)) do
-        assert_button "Next round", wait: 5
+        assert_no_button "Next round", wait: 5
+        assert_text "Waiting for the Blue team to pick a psychic"
       end
       using_session(session_for(opponent)) do
         click_on "Next round"
       end
 
-      # The turn passes to blue and a fresh psychic is on the blue team.
+      # The turn passes to blue, and the opponent who continued is its psychic.
       using_session(session_for(guesser)) do
         assert_text "Blue team's turn", wait: 5
       end
-      assert_equal Team.blue, GameRepo.find(game_id).current_team
+      next_round = GameRepo.find(game_id)
+      assert_equal Team.blue, next_round.current_team
+      assert_equal opponent.id, next_round.psychic.id
 
       # ---- Drive the remaining rounds until red reaches the win score ----
       loop do
@@ -188,14 +196,16 @@ module Wavelength
       using_session("dana") { assert_text "Red team wins!", wait: 5 }
 
       # Ada starts a fresh game; teams are retained so it's ready immediately.
+      # The starting team flips to blue, so blue now owns the Start button.
       click_on "New game"
       assert_selector "#team_panels", wait: 5
-      assert_button "Start game"
+      assert_no_button "Start game" # Ada is on red; blue starts now
+      assert_text "Waiting for the Blue team to start"
 
-      # The reset is broadcast back to the lobby for the others, scores cleared.
+      # The reset is broadcast back to the lobby; blue (Cleo) can start.
       using_session("cleo") do
         assert_selector "#team_panels", wait: 5
-        assert_button "Start game"
+        assert_button "Start game", wait: 5
       end
 
       reset = GameRepo.find(game_id)
@@ -304,17 +314,30 @@ module Wavelength
         find("a[title='Edit name']").click
       end
 
-      assert_text "Edit your name", wait: 5
+      assert_text "Edit Your Name", wait: 5
+
+      # Cancel returns to the lobby without changing the name
+      click_on "Cancel"
+      assert_selector "#team_panels", wait: 5
+      assert_no_text "Edit Your Name"
+      within("div.card.border-danger") { assert_text "Ada" }
+
+      # Reopen the edit form to continue
+      within "div.card.border-danger" do
+        find("a[title='Edit name']").click
+      end
+      assert_text "Edit Your Name", wait: 5
+
       fill_in "Your Name", with: "Ad"
-      click_on "Save"
+      click_on "Update Name"
       assert_text "is too short", wait: 5
 
       fill_in "Your Name", with: "ben 🎉"
-      click_on "Save"
+      click_on "Update Name"
       assert_text "has already been taken", wait: 5
 
       fill_in "Your Name", with: "Alice"
-      click_on "Save"
+      click_on "Update Name"
       assert_selector "#team_panels", wait: 5
 
       # Ben sees Ada's new name in the red panel via broadcast.
@@ -349,9 +372,9 @@ module Wavelength
         within "#players" do
           find("a[title='Edit name']").click
         end
-        assert_text "Edit your name", wait: 5
+        assert_text "Edit Your Name", wait: 5
         fill_in "Your Name", with: "Cleopatra"
-        click_on "Save"
+        click_on "Update Name"
         assert_selector "#play_area", wait: 5
       end
 

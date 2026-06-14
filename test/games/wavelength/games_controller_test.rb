@@ -83,14 +83,25 @@ module Wavelength
       assert_dom "#play_area"
     end
 
-    test "#start transitions the game to guessing" do
+    test "#start transitions to guessing and makes the clicker psychic" do
       game = create(:wl_game, :with_teams)
-      sign_in(player_named(game, "RedOne").user_id)
+      red = player_named(game, "RedOne")
+      sign_in(red.user_id)
 
       post start_wavelength_game_path(game.id)
 
       assert_response :success
       assert_predicate reload(game:).status, :guessing?
+      assert_equal red.id, reload(game:).psychic.id
+    end
+
+    test "#start is forbidden for a player not on the starting team" do
+      game = create(:wl_game, :with_teams) # red starts
+      sign_in(player_named(game, "BlueOne").user_id)
+
+      post start_wavelength_game_path(game.id)
+
+      assert_response :forbidden
     end
 
     test "#start re-renders the lobby when the teams are incomplete" do
@@ -282,15 +293,26 @@ module Wavelength
       assert_response :forbidden
     end
 
-    test "#next_round starts the next round and flips the team" do
-      game = create(:wl_reveal_game) # red just played
-      sign_in(player_named(game, "RedOne").user_id)
+    test "#next_round starts the next round and makes the clicker psychic" do
+      game = create(:wl_reveal_game) # red just played, blue is up
+      blue = player_named(game, "BlueOne")
+      sign_in(blue.user_id)
 
       post next_round_wavelength_game_path(game.id)
 
       assert_response :success
       assert_predicate reload(game:).status, :guessing?
       assert_equal Team.blue, reload(game:).current_team
+      assert_equal blue.id, reload(game:).psychic.id
+    end
+
+    test "#next_round is forbidden for a player not on the up team" do
+      game = create(:wl_reveal_game) # red just played, blue is up
+      sign_in(player_named(game, "RedOne").user_id)
+
+      post next_round_wavelength_game_path(game.id)
+
+      assert_response :forbidden
     end
 
     test "#new_game resets a completed game to the lobby" do

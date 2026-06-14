@@ -4,14 +4,14 @@ require "test_helper"
 
 module Wavelength
   class GameTest < ActiveSupport::TestCase
-    test ".build starts in setup with zero scores and no psychic" do
-      game = build(:wl_game)
+    test ".build starts in setup with the second team's head start" do
+      game = build(:wl_game) # red starts
 
       assert_predicate game.status, :setup?
       assert_equal Team.red, game.current_team
       assert_equal Team.red, game.starting_team
       assert_equal 0, game.score_for(Team.red)
-      assert_equal 0, game.score_for(Team.blue)
+      assert_equal 1, game.score_for(Team.blue) # second team's head start
       assert_nil game.psychic
     end
 
@@ -159,13 +159,57 @@ module Wavelength
       assert_raises(RuntimeError) { game.move_dial(position: 30) }
     end
 
-    test "#lock_guess stores the guess and moves to left_right" do
-      game = build(:wl_guessing_game)
+    test "#lock_guess on a near-miss stores the guess and moves to left_right" do
+      game = build(:wl_guessing_game, target_position: 50) # red active
 
-      game.lock_guess(position: 73)
+      game.lock_guess(position: 73) # 23 off the target -> no bullseye
 
       assert_predicate game.status, :left_right?
       assert_equal 73, game.guess
+    end
+
+    test "#lock_guess on a bullseye scores the active team and skips reveal" do
+      game = build(:wl_guessing_game, target_position: 50) # red active
+
+      game.lock_guess(position: 50) # dead-center bullseye
+
+      assert_equal 4, game.score_for(Team.red)
+      assert_equal 1, game.score_for(Team.blue) # head start only; can't score
+      assert_predicate game.status, :reveal?
+      assert_nil game.opponent_guess # the opponent never gets to guess
+    end
+
+    test "#lock_guess treats the whole 4-point wedge as a bullseye" do
+      game = build(:wl_guessing_game, target_position: 50) # red active
+
+      game.lock_guess(position: 52) # off-center but inside the 4-point wedge
+
+      assert_predicate game.status, :reveal? # still skips the opponent
+      assert_equal 4, game.score_for(Team.red)
+      assert_equal 1, game.score_for(Team.blue) # head start only; can't score
+    end
+
+    test "#lock_guess on a bullseye scores the blue active team" do
+      game = build(:wl_guessing_game, starting_team: Team.blue,
+        target_position: 50)
+
+      game.lock_guess(position: 50) # bullseye
+
+      assert_equal 4, game.score_for(Team.blue)
+      assert_predicate game.status, :reveal?
+    end
+
+    test "#lock_guess completes the game when a team reaches the win score" do
+      game = build(:wl_completed_game)
+
+      assert_predicate game.status, :completed?
+      assert_equal Team.red, game.winner
+    end
+
+    test "#lock_guess lets the blue starting team win" do
+      game = build(:wl_completed_game, starting_team: Team.blue)
+
+      assert_equal Team.blue, game.winner
     end
 
     test "#lock_guess raises unless in guessing" do
@@ -174,25 +218,15 @@ module Wavelength
       assert_raises(RuntimeError) { game.lock_guess(position: 50) }
     end
 
-    test "#guess_side scores the active team and reveals" do
-      game = build(:wl_guessing_game, target_position: 50) # red active
-      game.lock_guess(position: 50) # bullseye
-
-      game.guess_side(side: "left")
-
-      assert_equal 4, game.score_for(Team.red)
-      assert_equal 0, game.score_for(Team.blue)
-      assert_predicate game.status, :reveal?
-      assert_equal "left", game.opponent_guess
-    end
-
     test "#guess_side gives the opponent a point for a correct side" do
       game = build(:wl_guessing_game, target_position: 70) # red active
-      game.lock_guess(position: 50) # target is RIGHT of 50
+      game.lock_guess(position: 50) # near-miss; target is RIGHT of 50
 
       game.guess_side(side: "right") # blue (opponent) correct
 
-      assert_equal 1, game.score_for(Team.blue)
+      assert_equal 2, game.score_for(Team.blue) # 1 head start + 1 steal
+      assert_predicate game.status, :reveal?
+      assert_equal "right", game.opponent_guess
     end
 
     test "#guess_side gives the opponent nothing for a wrong side" do
@@ -201,17 +235,7 @@ module Wavelength
 
       game.guess_side(side: "left") # blue (opponent) wrong
 
-      assert_equal 0, game.score_for(Team.blue)
-    end
-
-    test "#guess_side scores the blue team when blue is active" do
-      game = build(:wl_guessing_game, starting_team: Team.blue,
-        target_position: 50)
-      game.lock_guess(position: 50) # bullseye
-
-      game.guess_side(side: "left")
-
-      assert_equal 4, game.score_for(Team.blue)
+      assert_equal 1, game.score_for(Team.blue) # head start only, wrong side
     end
 
     test "#guess_side gives the red opponent a point when blue is active" do
@@ -221,36 +245,23 @@ module Wavelength
 
       game.guess_side(side: "right") # red (opponent) correct
 
-      assert_equal 1, game.score_for(Team.red)
-    end
-
-    test "#guess_side completes the game when a team reaches the win score" do
-      game = build(:wl_completed_game)
-
-      assert_predicate game.status, :completed?
-      assert_equal Team.red, game.winner
-    end
-
-    test "#guess_side lets the blue starting team win" do
-      game = build(:wl_completed_game, starting_team: Team.blue)
-
-      assert_equal Team.blue, game.winner
+      assert_equal 2, game.score_for(Team.red) # 1 head start + 1 steal
     end
 
     test "#guess_side resolves a win-score tie to the team that just scored" do
-      # Red 6, blue 9. Red locks a bullseye (red -> 10) while the target sits
-      # just left of the dial, so blue guesses "left" correctly (blue -> 10).
-      # The 10-10 tie resolves to the active (current) team: red.
+      # Red 7, blue 9. Red locks a near-miss (3 points -> red 10) just left of
+      # the target, so blue guesses "right" correctly (blue -> 10). The 10-10
+      # tie resolves to the active (current) team: red.
       document = Game::Document.new(
         status: Game::Status.left_right, starting_team: Team.red,
         current_team: Team.red, psychic_id: "p1", clue: "Clue",
         spectrum: Game::Spectrum.new(left: "A", right: "B"),
-        target: Game::Target.new(position: 58), guess: 60,
-        opponent_guess: nil, red_score: 6, blue_score: 9, winner: nil
+        target: Game::Target.new(position: 55), guess: 50,
+        opponent_guess: nil, red_score: 7, blue_score: 9, winner: nil
       )
       game = Game.new(id: "g1", document:, players: [])
 
-      game.guess_side(side: "left")
+      game.guess_side(side: "right")
 
       assert_equal 10, game.score_for(Team.red)
       assert_equal 10, game.score_for(Team.blue)
@@ -310,7 +321,7 @@ module Wavelength
       end
     end
 
-    test "#start_new_game resets scores and flips the starting team" do
+    test "#start_new_game flips the starting team and resets with head start" do
       game = build(:wl_completed_game) # red started and won
 
       game.start_new_game(spectrum: Spectrums.instance.sample,
@@ -318,8 +329,8 @@ module Wavelength
 
       assert_predicate game.status, :setup?
       assert_equal Team.blue, game.starting_team
-      assert_equal 0, game.score_for(Team.red)
-      assert_equal 0, game.score_for(Team.blue)
+      assert_equal 0, game.score_for(Team.blue) # new starting team
+      assert_equal 1, game.score_for(Team.red)  # second team's head start
       assert_equal 4, game.players.size
     end
 

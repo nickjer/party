@@ -116,10 +116,14 @@ module Wavelength
         within("#wl_dial_marker_#{game_id}") { assert_text "30", wait: 5 }
       end
 
-      # The active guesser drags the dial onto the target and locks it in.
+      # The active guesser locks a near-miss (10 off the target, toward center
+      # to stay in range): not a bullseye, so the opponent gets a real
+      # left/right call. The active team then waits on that guess.
+      locked = target >= 50 ? target - 10 : target + 10
+      correct_side = target > locked ? "Right →" : "← Left"
       using_session(session_for(guesser)) do
         assert_button "Lock it in", wait: 5
-        lock_dial(target)
+        lock_dial(locked)
         assert_text "Waiting", wait: 5 # active team now waits on the opponent
       end
 
@@ -132,18 +136,19 @@ module Wavelength
         assert_no_selector "[data-reveal-target='item']", visible: true
       end
 
-      # The opponent now sees the left/right catch-up via broadcast.
+      # The opponent now sees the left/right catch-up via broadcast and nails
+      # the correct side.
       using_session(session_for(opponent)) do
         assert_text "Is the target left or right", wait: 5
-        click_on "← Left"
+        click_on correct_side
         # Wait for the reveal before reading state (the PATCH is async).
         assert_button "Next round", wait: 5
       end
 
-      # A bullseye scores 4 for red; the exact target means the opponent's
-      # left/right guess can never be right, so blue stays at 0.
-      assert_equal 4, GameRepo.find(game_id).score_for(Team.red)
-      assert_equal 0, GameRepo.find(game_id).score_for(Team.blue)
+      # The near-miss scores 2 for red; blue's correct side steals 1 on top of
+      # its 1-point head start (the team that goes second).
+      assert_equal 2, GameRepo.find(game_id).score_for(Team.red)
+      assert_equal 2, GameRepo.find(game_id).score_for(Team.blue)
 
       # On the reveal, only the up (blue) team can continue; the red psychic
       # who just played waits while blue picks the next psychic (broadcast).
@@ -163,14 +168,14 @@ module Wavelength
       assert_equal Team.blue, next_round.current_team
       assert_equal opponent.id, next_round.psychic.id
 
-      # ---- Drive the remaining rounds until red reaches the win score ----
+      # ---- Drive the remaining rounds with bullseyes until a team wins ----
       loop do
         game = GameRepo.find(game_id)
         break if game.status.completed?
 
         psychic = game.psychic
         guesser = game.guessers.first
-        opponent = game.players_on(game.current_team.opponent).first
+        up_player = game.players_on(game.current_team.opponent).first
         target = game.target.position
 
         # Each round opens in the clue phase: the psychic sends a clue before
@@ -183,17 +188,18 @@ module Wavelength
 
         using_session(session_for(guesser)) do
           assert_button "Lock it in", wait: 5
-          lock_dial(target)
-          assert_text "Waiting", wait: 5
+          lock_dial(target) # dead-on bullseye: the opponent gets no guess
+          # The lock resolves to a reveal ("Waiting") or, on the final turn,
+          # the win banner.
+          assert_text(/Waiting|wins!/, wait: 5)
         end
 
+        # A bullseye settles the round outright, so the up team never sees the
+        # left/right step — they land straight on the reveal (or win banner).
         completed = false
-        using_session(session_for(opponent)) do
-          assert_text "Is the target left or right", wait: 5
-          click_on "← Left"
-          # The round ends on either a reveal or, on the winning turn, the
-          # completed banner. Wait for whichever lands.
+        using_session(session_for(up_player)) do
           assert_selector ".btn", text: /Next round|New game/, wait: 5
+          assert_no_text "Is the target left or right"
           completed = has_text?("team wins!")
           next if completed
 
@@ -205,18 +211,20 @@ module Wavelength
         break if completed
       end
 
-      # Red wins 12-8 (a bullseye each of its three active turns).
+      # Blue wins 10-6: its 1-point head start, the round-1 steal (1), and two
+      # bullseyes (4 + 4); red managed its round-1 near-miss (2) plus one
+      # bullseye (4) before blue closed it out.
       game = GameRepo.find(game_id)
       assert_predicate game.status, :completed?
-      assert_equal Team.red, game.winner
-      assert_equal 12, game.score_for(Team.red)
-      assert_equal 8, game.score_for(Team.blue)
+      assert_equal Team.blue, game.winner
+      assert_equal 6, game.score_for(Team.red)
+      assert_equal 10, game.score_for(Team.blue)
 
       # The win is visible to every session.
-      assert_text "Red team wins!", wait: 5
-      using_session("ben") { assert_text "Red team wins!", wait: 5 }
-      using_session("cleo") { assert_text "Red team wins!", wait: 5 }
-      using_session("dana") { assert_text "Red team wins!", wait: 5 }
+      assert_text "Blue team wins!", wait: 5
+      using_session("ben") { assert_text "Blue team wins!", wait: 5 }
+      using_session("cleo") { assert_text "Blue team wins!", wait: 5 }
+      using_session("dana") { assert_text "Blue team wins!", wait: 5 }
 
       # Ada starts a fresh game; teams are retained so it's ready immediately.
       # The starting team flips to blue, so blue now owns the Start button.
@@ -233,8 +241,8 @@ module Wavelength
 
       reset = GameRepo.find(game_id)
       assert_predicate reset.status, :setup?
-      assert_equal 0, reset.score_for(Team.red)
-      assert_equal 0, reset.score_for(Team.blue)
+      assert_equal 0, reset.score_for(Team.blue) # new starting team
+      assert_equal 1, reset.score_for(Team.red)  # second team's head start
     end
 
     test "validation errors and mid-game joining" do

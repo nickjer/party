@@ -153,6 +153,8 @@ module Wavelength
 
     def self.build: (spectrum: Game::Spectrum, target: Game::Target,
       ?starting_team: Team?, ?id: String?) -> Game
+    def self.fresh_document: (spectrum: Game::Spectrum, target: Game::Target,
+      starting_team: Team) -> Game::Document
 
     attr_reader id: String
     attr_reader players: Array[Player]
@@ -202,7 +204,7 @@ module Wavelength
 
     def become_psychic: (Player player, on: Team) -> void
     def award: (Integer active_points, bool opponent_correct) -> [Integer, Integer]
-    def resolve: (Integer new_red, Integer new_blue) -> [Status, bool]
+    def settle_round: (opponent_guess: String?) -> void
     def leader: (Integer new_red, Integer new_blue) -> Team
 
     public
@@ -312,6 +314,7 @@ module Wavelength
       def eql?: (untyped other) -> bool
       def hash: () -> Integer
       def score_for: (Integer dial) -> Integer
+      def bullseye?: (Integer dial) -> bool
       def side_of: (Integer dial) -> Symbol
 
       private

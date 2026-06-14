@@ -287,6 +287,18 @@ module Wavelength
       assert_equal 42, reload(game:).guess
     end
 
+    test "#lock_guess settles the round immediately on a bullseye" do
+      game = create(:wl_guessing_game, target_position: 50)
+      sign_in(game.guessers.first.user_id)
+
+      patch lock_guess_wavelength_game_path(game.id),
+        params: { guess: { position: 50 } }
+
+      assert_response :success
+      assert_predicate reload(game:).status, :reveal?
+      assert_equal 4, reload(game:).score_for(Team.red)
+    end
+
     test "#guess_side is forbidden when the game is not in left_right" do
       game = create(:wl_guessing_game)
       sign_in(player_named(game, "BlueOne").user_id)

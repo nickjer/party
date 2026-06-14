@@ -49,20 +49,23 @@ FactoryBot.define do
       end
     end
 
+    # An off-center lock (no bullseye) so the opponent still gets a left/right
+    # guess; the game waits in the left_right phase.
     factory :wl_left_right_game, traits: %i[with_teams] do
       after(:build) do |game|
         game.start_game(psychic: game.suggested_psychic)
         game.submit_clue(text: "Clue")
-        game.lock_guess(position: 50)
+        game.lock_guess(position: 70)
       end
     end
 
+    # A dead-center bullseye settles the round outright (no left/right step),
+    # landing in the reveal phase.
     factory :wl_reveal_game, traits: %i[with_teams] do
       after(:build) do |game|
         game.start_game(psychic: game.suggested_psychic)
         game.submit_clue(text: "Clue")
         game.lock_guess(position: 50)
-        game.guess_side(side: "left")
       end
     end
 
@@ -74,7 +77,6 @@ FactoryBot.define do
         game.submit_clue(text: "Clue")
         loop do
           game.lock_guess(position: 50)
-          game.guess_side(side: "left")
           break if game.status.completed?
 
           game.start_new_round(

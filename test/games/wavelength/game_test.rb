@@ -188,7 +188,7 @@ module Wavelength
       assert_equal 73, game.guess
     end
 
-    test "#lock_guess on a bullseye scores the active team and skips reveal" do
+    test "#lock_guess on a bullseye scores the team and skips left/right" do
       game = build(:wl_guessing_game, target_position: 50) # red active
 
       game.lock_guess(position: 50) # dead-center bullseye

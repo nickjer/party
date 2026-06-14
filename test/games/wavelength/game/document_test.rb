@@ -18,14 +18,15 @@ module Wavelength
 
       test ".parse round-trips through to_h" do
         original = document.with(status: Status.completed, psychic_id: "p1",
-          clue: "Banana", guess: 30, opponent_guess: "left", red_score: 10,
-          blue_score: 4, winner: Team.red)
+          clue: NormalizedString.new("Banana"), guess: 30,
+          opponent_guess: "left", red_score: 10, blue_score: 4,
+          winner: Team.red)
 
         parsed = Document.parse(original.to_h)
 
         assert_predicate parsed.status, :completed?
         assert_equal "p1", parsed.psychic_id
-        assert_equal "Banana", parsed.clue
+        assert_equal "Banana", parsed.clue.to_s
         assert_equal spectrum, parsed.spectrum
         assert_equal 42, parsed.target.position
         assert_equal 30, parsed.guess

@@ -7,6 +7,6 @@
     <%= form.text_field :text, placeholder: "Type your clue for the team",
         autocomplete: "off", autofocus: true, required: true,
         maxlength: Wavelength::Game::CLUE_LENGTH.max %>
-    <%= form.submit "Send clue", class: "btn-info w-100 mt-2" %>
+    <%= form.button "Send clue", class: "btn btn-info w-100 mt-2" %>
   </div>
 <% end %>

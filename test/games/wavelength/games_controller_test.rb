@@ -128,7 +128,7 @@ module Wavelength
 
       assert_response :success
       assert_predicate reload(game:).status, :guessing?
-      assert_equal "Banana", reload(game:).clue
+      assert_equal "Banana", reload(game:).clue.to_s
     end
 
     test "#submit_clue is forbidden when not in the clue phase" do

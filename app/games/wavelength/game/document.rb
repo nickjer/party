@@ -7,12 +7,13 @@ module Wavelength
       class << self
         def parse(hash)
           winner = hash.fetch(:winner)
+          clue = hash.fetch(:clue)
           new(
             status: Status.parse(hash.fetch(:status)),
             starting_team: Team.parse(hash.fetch(:starting_team)),
             current_team: Team.parse(hash.fetch(:current_team)),
             psychic_id: hash.fetch(:psychic_id),
-            clue: hash.fetch(:clue),
+            clue: clue ? ::NormalizedString.new(clue) : nil,
             spectrum: Spectrum.parse(hash.fetch(:spectrum)),
             target: Target.new(position: hash.fetch(:target)),
             guess: hash.fetch(:guess),
@@ -64,7 +65,7 @@ module Wavelength
           starting_team: starting_team.to_s,
           current_team: current_team.to_s,
           psychic_id:,
-          clue:,
+          clue: clue&.to_s,
           spectrum: spectrum.to_h,
           target: target.position,
           guess:,

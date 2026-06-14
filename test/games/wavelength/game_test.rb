@@ -99,22 +99,42 @@ module Wavelength
     test "#submit_clue stores the clue and moves to guessing" do
       game = build(:wl_clue_game)
 
-      game.submit_clue(text: "Banana")
+      game.submit_clue(text: NormalizedString.new("Banana"))
 
       assert_predicate game.status, :guessing?
-      assert_equal "Banana", game.clue
+      assert_equal "Banana", game.clue.to_s
+    end
+
+    test "#submit_clue stores the normalized (squished) clue" do
+      game = build(:wl_clue_game)
+
+      game.submit_clue(text: NormalizedString.new("  Banana   split  "))
+
+      assert_equal "Banana split", game.clue.to_s
     end
 
     test "#submit_clue raises unless in the clue phase" do
       game = build(:wl_guessing_game)
 
-      assert_raises(RuntimeError) { game.submit_clue(text: "Banana") }
+      assert_raises(RuntimeError) do
+        game.submit_clue(text: NormalizedString.new("Banana"))
+      end
+    end
+
+    test "#submit_clue raises for a blank clue" do
+      game = build(:wl_clue_game)
+
+      assert_raises(ArgumentError) do
+        game.submit_clue(text: NormalizedString.new("   "))
+      end
     end
 
     test "#submit_clue raises for a clue that is too long" do
       game = build(:wl_clue_game)
 
-      assert_raises(ArgumentError) { game.submit_clue(text: "x" * 51) }
+      assert_raises(ArgumentError) do
+        game.submit_clue(text: NormalizedString.new("x" * 51))
+      end
     end
 
     test "#psychic? is true for the assigned psychic and false otherwise" do

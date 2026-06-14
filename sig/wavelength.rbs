@@ -163,7 +163,7 @@ module Wavelength
 
     def add_player: (user_id: String, name: ::PlayerName, ?team: Team?) -> Player
     def blue_team: () -> Array[Player]
-    def clue: () -> String?
+    def clue: () -> ::NormalizedString?
     def current_team: () -> Team
     def guess: () -> Integer
     def opponent_guess: () -> String?
@@ -184,7 +184,7 @@ module Wavelength
     def score_for: (Team team) -> Integer
     def join_team: (player: Player, team: Team) -> self
     def start_game: (psychic: Player) -> self
-    def submit_clue: (text: String) -> self
+    def submit_clue: (text: ::NormalizedString) -> self
     def move_dial: (position: Integer) -> self
     def lock_guess: (position: Integer) -> self
     def guess_side: (side: String) -> self
@@ -221,7 +221,7 @@ module Wavelength
       attr_reader starting_team: Team
       attr_reader current_team: Team
       attr_reader psychic_id: String?
-      attr_reader clue: String?
+      attr_reader clue: ::NormalizedString?
       attr_reader spectrum: Spectrum
       attr_reader target: Target
       attr_reader guess: Integer
@@ -233,12 +233,12 @@ module Wavelength
       def self.parse: (json hash) -> Document
 
       def initialize: (status: Status, starting_team: Team, current_team: Team,
-        psychic_id: String?, clue: String?, spectrum: Spectrum, target: Target,
-        guess: Integer, opponent_guess: String?, red_score: Integer,
-        blue_score: Integer, winner: Team?) -> void
+        psychic_id: String?, clue: ::NormalizedString?, spectrum: Spectrum,
+        target: Target, guess: Integer, opponent_guess: String?,
+        red_score: Integer, blue_score: Integer, winner: Team?) -> void
 
       def with: (?status: Status, ?starting_team: Team, ?current_team: Team,
-        ?psychic_id: String?, ?clue: String?, ?spectrum: Spectrum,
+        ?psychic_id: String?, ?clue: ::NormalizedString?, ?spectrum: Spectrum,
         ?target: Target, ?guess: Integer, ?opponent_guess: String?,
         ?red_score: Integer, ?blue_score: Integer, ?winner: Team?) -> Document
 
@@ -417,7 +417,7 @@ module Wavelength
   end
 
   class ClueForm
-    attr_reader text: String
+    attr_reader text: ::NormalizedString
     attr_reader errors: ::Errors
 
     def initialize: (?text: _ToS?) -> void

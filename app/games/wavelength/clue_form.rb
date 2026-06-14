@@ -10,7 +10,7 @@ module Wavelength
     attr_reader :errors
 
     def initialize(text: nil)
-      @text = text.to_s.strip
+      @text = ::NormalizedString.new(text)
       @errors = Errors.new
     end
 

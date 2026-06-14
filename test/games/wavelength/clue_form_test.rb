@@ -8,14 +8,14 @@ module Wavelength
       form = ClueForm.new(text: "Banana")
 
       assert_predicate form, :valid?
-      assert_equal "Banana", form.text
+      assert_equal "Banana", form.text.to_s
     end
 
-    test "#valid? strips surrounding whitespace" do
-      form = ClueForm.new(text: "  Banana  ")
+    test "#valid? normalizes surrounding and repeated whitespace" do
+      form = ClueForm.new(text: "  Banana   split  ")
 
       assert form.valid?
-      assert_equal "Banana", form.text
+      assert_equal "Banana split", form.text.to_s
     end
 
     test "#valid? is false for a blank clue" do

@@ -45,7 +45,7 @@ FactoryBot.define do
     factory :wl_guessing_game, traits: %i[with_teams] do
       after(:build) do |game|
         game.start_game(psychic: game.suggested_psychic)
-        game.submit_clue(text: "Clue")
+        game.submit_clue(text: NormalizedString.new("Clue"))
       end
     end
 
@@ -54,7 +54,7 @@ FactoryBot.define do
     factory :wl_left_right_game, traits: %i[with_teams] do
       after(:build) do |game|
         game.start_game(psychic: game.suggested_psychic)
-        game.submit_clue(text: "Clue")
+        game.submit_clue(text: NormalizedString.new("Clue"))
         game.lock_guess(position: 70)
       end
     end
@@ -64,7 +64,7 @@ FactoryBot.define do
     factory :wl_reveal_game, traits: %i[with_teams] do
       after(:build) do |game|
         game.start_game(psychic: game.suggested_psychic)
-        game.submit_clue(text: "Clue")
+        game.submit_clue(text: NormalizedString.new("Clue"))
         game.lock_guess(position: 50)
       end
     end
@@ -74,7 +74,7 @@ FactoryBot.define do
     factory :wl_completed_game, traits: %i[with_teams] do
       after(:build) do |game|
         game.start_game(psychic: game.suggested_psychic)
-        game.submit_clue(text: "Clue")
+        game.submit_clue(text: NormalizedString.new("Clue"))
         loop do
           game.lock_guess(position: 50)
           break if game.status.completed?
@@ -84,7 +84,7 @@ FactoryBot.define do
             spectrum: Wavelength::Spectrums.instance.sample,
             target: Wavelength::Game::Target.new(position: 50)
           )
-          game.submit_clue(text: "Clue")
+          game.submit_clue(text: NormalizedString.new("Clue"))
         end
       end
     end

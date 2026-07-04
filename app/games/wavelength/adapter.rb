@@ -1,14 +1,7 @@
 # frozen_string_literal: true
 
 module Wavelength
-  # Game-side handler invoked by PlayerChannel on subscribe/unsubscribe.
-  class Adapter
-    def on_player_connected(player_id)
-      Broadcast::PlayerConnected.new(player_id:).call
-    end
-
-    def on_player_disconnected(player_id)
-      Broadcast::PlayerDisconnected.new(player_id:).call
-    end
-  end
+  # PlayerChannel adapter: presence changes re-render the player's row.
+  Adapter = PresenceAdapter.new(repo: GameRepo,
+    template: "wavelength/players/presence")
 end

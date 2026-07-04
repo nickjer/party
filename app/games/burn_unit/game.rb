@@ -2,7 +2,7 @@
 
 module BurnUnit
   # Aggregate for a Burn Unit game. Persistence goes through GameRepo.
-  # Identity methods delegate to ::Game for Rails interop (dom_id, GlobalID).
+  # Identity methods delegate to GlobalIdentity for Rails interop.
   class Game
     QUESTION_LENGTH = LengthValidator.new(min: 3, max: 160, field: :question)
 
@@ -19,6 +19,7 @@ module BurnUnit
 
     def initialize(id:, document:, players:)
       @id = id
+      @identity = GlobalIdentity.new(model: ::Game, id:)
       @document = document
       @players = players
     end
@@ -78,24 +79,15 @@ module BurnUnit
 
     def document_json = document.to_json
 
-    def model_name = ::Game.model_name
-    def to_key = [id]
-    def to_param = id
-
-    def to_global_id(options = {})
-      GlobalID.new(URI::GID.build(
-        app: options.fetch(:app) { GlobalID.app },
-        model_name: "Game",
-        model_id: id,
-        params: options.except(:app, :verifier, :for)
-      ))
-    end
-
-    def to_gid_param(options = {}) = to_global_id(options).to_param
+    def model_name = identity.model_name
+    def to_key = identity.to_key
+    def to_param = identity.to_param
+    def to_global_id(options = {}) = identity.to_global_id(options)
+    def to_gid_param(options = {}) = identity.to_gid_param(options)
 
     private
 
-    # @dynamic document
-    attr_reader :document
+    # @dynamic document, identity
+    attr_reader :document, :identity
   end
 end

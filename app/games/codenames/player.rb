@@ -2,7 +2,7 @@
 
 module Codenames
   # Aggregate for a Codenames player. Persistence goes through GameRepo
-  # (via the parent game). Identity methods delegate to ::Player for Rails.
+  # (via the parent game). Identity methods delegate to GlobalIdentity.
   class Player
     class << self
       def build(game_id:, user_id:, name:, team: nil, spymaster: false, id: nil)
@@ -17,6 +17,7 @@ module Codenames
 
     def initialize(id:, game_id:, user_id:, name:, document:)
       @id = id
+      @identity = GlobalIdentity.new(model: ::Player, id:)
       @game_id = game_id
       @user_id = user_id
       @name = name
@@ -57,20 +58,11 @@ module Codenames
 
     def document_json = document.to_json
 
-    def model_name = ::Player.model_name
-    def to_key = [id]
-    def to_param = id
-
-    def to_global_id(options = {})
-      GlobalID.new(URI::GID.build(
-        app: options.fetch(:app) { GlobalID.app },
-        model_name: "Player",
-        model_id: id,
-        params: options.except(:app, :verifier, :for)
-      ))
-    end
-
-    def to_gid_param(options = {}) = to_global_id(options).to_param
+    def model_name = identity.model_name
+    def to_key = identity.to_key
+    def to_param = identity.to_param
+    def to_global_id(options = {}) = identity.to_global_id(options)
+    def to_gid_param(options = {}) = identity.to_gid_param(options)
 
     protected
 
@@ -83,7 +75,7 @@ module Codenames
 
     private
 
-    # @dynamic document
-    attr_reader :document
+    # @dynamic document, identity
+    attr_reader :document, :identity
   end
 end

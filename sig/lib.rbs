@@ -10,6 +10,25 @@ interface _ToParam
   def to_param: () -> String
 end
 
+interface _GlobalIdentity
+  def model_name: () -> ::ActiveModel::Name
+  def to_key: () -> [String]
+  def to_param: () -> String
+  def to_global_id: (?Hash[Symbol, untyped] options) -> ::GlobalID
+  def to_gid_param: (?Hash[Symbol, untyped] options) -> String
+end
+
+class GlobalIdentity
+  include _GlobalIdentity
+
+  def initialize: (model: singleton(::Game) | singleton(::Player), id: String) -> void
+
+  private
+
+  attr_reader model: singleton(::Game) | singleton(::Player)
+  attr_reader id: String
+end
+
 class NormalizedString
   CONFUSABLES: Hash[String, String]
   CONFUSABLE_PATTERN: Regexp
@@ -88,6 +107,36 @@ class PlayerBroadcaster[T < _Online & _ToGidParam]
   private
 
   attr_reader players: Array[T]
+end
+
+interface _PresencePlayer
+  include _Online
+  include _ToGidParam
+
+  def id: () -> String
+end
+
+interface _PresenceGame[P]
+  def find_player: (String id) -> P
+  def players: () -> Array[P]
+end
+
+interface _PresenceRepo[G]
+  def find: (String id) -> G
+end
+
+class PresenceAdapter[P < _PresencePlayer, G < _PresenceGame[P]]
+  def initialize: (repo: _PresenceRepo[G], template: String) -> void
+
+  def on_player_connected: (String player_id) -> void
+  def on_player_disconnected: (String player_id) -> void
+
+  private
+
+  attr_reader repo: _PresenceRepo[G]
+  attr_reader template: String
+
+  def broadcast: (String player_id) -> void
 end
 
 interface _StoredPlayer

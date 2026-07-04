@@ -29,12 +29,12 @@ Document-oriented design: **Games** have `kind` enum and `document` json for all
 
 Games live under `/app/games/{game_name}/`:
 
-**Aggregate Wrappers** (`game.rb`, `player.rb`): AR-ignorant domain objects. Hold an immutable `Document` value object plus identity (`id`); mutations call `document.with(...)`. Implement `.build` for construction; identity methods (`to_param`, `to_global_id`, `model_name`) delegate to `::Game`/`::Player` for Rails interop.
+**Aggregate Wrappers** (`game.rb`, `player.rb`): AR-ignorant domain objects. Hold an immutable `Document` value object plus identity (`id`); mutations call `document.with(...)`. Implement `.build` for construction; identity methods (`to_param`, `to_global_id`, `model_name`) delegate to a shared `GlobalIdentity` (built in the constructor with `model: ::Game`/`::Player`) for Rails interop.
 **Persistence** (`game_repo.rb`, `game_mapping.rb`): The shared `GameStore` (`app/lib/`) owns the AR mechanics (query, transaction, player diffing) and is the only thing that touches `::Game`/`::Player`. Each game's `game_repo.rb` is a one-line constant — `GameRepo = GameStore.new(mapping: GameMapping.new)` — and `game_mapping.rb` supplies the per-game `kind` plus `load_game`/`load_player` construction. `GameStore.generate_game_id`/`generate_player_id` mint ids.
 **Controllers**: Namespaced, reference the `GameRepo` constant, handle Turbo Frame responses, use form objects, trigger broadcasts.
 **Form Objects**: Validation with `Errors` collection, return `#valid?`. `NewPlayerForm`/`EditPlayerForm` are game-agnostic and shared in `app/forms/`; game-specific forms live in the namespace.
 **Broadcasts** (`broadcast/*.rb`): Per-event service objects that fan out Turbo Streams to online players.
-**Adapter** (`adapter.rb`): Implements the `_GameAdapter` interface; `PlayerChannel` dispatches connection events through it.
+**Adapter** (`adapter.rb`): A one-line wiring constant — `Adapter = PresenceAdapter.new(repo:, template:)`; `PlayerChannel` dispatches connection events through it.
 **Domain Models** (`game/`, `player/`): Value objects for `Document`, `Status`, and game-specific collections.
 
 ### Shared Infrastructure (`/app/lib/`)
@@ -44,10 +44,12 @@ Games live under `/app/games/{game_name}/`:
 **Errors**: Lightweight error container with `#add(attribute, message:)`, `#added?`, `#empty?`, `#[]`
 **PlayerBroadcaster**: Iterates a player collection, sends Turbo Stream content to each online player via `Turbo::StreamsChannel`, and skips when the block returns `nil`.
 **LengthValidator**: Field-aware min/max length validator used by aggregates and forms.
+**PresenceAdapter**: Shared `_GameAdapter` implementation; on connect/disconnect it re-renders the acting player's row (the game's `players/presence` turbo_stream template) to the other online players.
+**GlobalIdentity**: Rails interop identity (dom_id, routing, GlobalID) for aggregate wrappers — `GlobalIdentity.new(model:, id:)`; aggregates delegate `model_name`/`to_key`/`to_param`/`to_global_id`/`to_gid_param` to it (RBS: the `_GlobalIdentity` interface is included by each aggregate sig).
 
 ### Real-time Communication
 
-**PlayerChannel**: GlobalID-based streams with connection tracking and first/last connection optimization. Dispatches `on_player_connected` / `on_player_disconnected` to a per-game adapter (`LoadedQuestions::Adapter`, `BurnUnit::Adapter`) selected via `player.game.kind`.
+**PlayerChannel**: GlobalID-based streams with connection tracking and first/last connection optimization. Dispatches `on_player_connected` / `on_player_disconnected` to a per-game `Adapter` constant (a `PresenceAdapter` instance) selected via `player.game.kind`.
 
 **Broadcast Patterns**: Each broadcast is a small class under `{game}/broadcast/`. Initialize with the wrapper aggregates it needs (`game:`, optionally `player:`), build the player set, and use `PlayerBroadcaster` to render a turbo_stream template per online recipient. Skip with `next` (e.g., the guesser, or the originating player).
 
@@ -73,7 +75,7 @@ Type signatures in `/sig/`: `models.rbs`, `lib.rbs` (incl. generic `GameStore`),
 - Persistence: `GameRepo` (a `GameStore` constant), `GameMapping` (`kind`, `load_game`, `load_player`)
 - Value Objects: `Game::Document`, `Game::Status` (`polling?`, `guessing?`, `completed?`), `Game::Guesses` (`assign`, `score`, `complete?`, `for_completed_view`), `Game::GuessedAnswer`, `Game::Guesses::CompletedGuess` (`correct?`)
 - Forms: `NewGameForm`, `NewPlayerForm`, `EditPlayerForm`, `AnswerForm`, `NewRoundForm`, `GuessingRoundForm`, `CompletedRoundForm`
-- Broadcasts (9): `PlayerCreated`, `PlayerConnected`, `PlayerDisconnected`, `PlayerNameUpdated`, `AnswerCreated`, `RoundCreated`, `GuessingRoundStarted`, `GuessesUpdated`, `RoundCompleted`
+- Broadcasts (7): `PlayerCreated`, `PlayerNameUpdated`, `AnswerCreated`, `RoundCreated`, `GuessingRoundStarted`, `GuessesUpdated`, `RoundCompleted` (presence is handled by the shared `PresenceAdapter`)
 - Questions: Loaded from `config/loaded_questions/questions.yml` singleton
 
 ## Burn Unit Game
@@ -86,7 +88,7 @@ Type signatures in `/sig/`: `models.rbs`, `lib.rbs` (incl. generic `GameStore`),
 - Aggregates: `Game` (`.build`, `question`, `status`, `judge`, `players`, `add_player`, `start_new_round`, ...), `Player` (`judge?`, `playing?`, `vote`, `online?`, `score`)
 - Persistence: `GameRepo` (a `GameStore` constant), `GameMapping`
 - Forms: `NewGameForm`, `NewPlayerForm`, `EditPlayerForm`, `VoteForm`, `NewRoundForm`, `CompletedRoundForm`
-- Broadcasts: `PlayerCreated`, `PlayerConnected`, `PlayerDisconnected`, `PlayerNameUpdated`, `CandidateAdded`, `VoteCreated`, `RoundCreated`, `RoundCompleted`
+- Broadcasts: `PlayerCreated`, `PlayerNameUpdated`, `CandidateAdded`, `VoteCreated`, `RoundCreated`, `RoundCompleted`
 - Questions: Loaded from `config/burn_unit/questions.yml` singleton
 
 ## Codenames Game
@@ -106,7 +108,7 @@ A digital companion for in-person play (a faithful 5×5 / two-team Codenames). *
 - Value Objects: `Team` (top-level `Codenames::Team`, shared by game + player), `Game::Status` (`setup?`/`playing?`/`completed?`), `Game::Identity` (red/blue/bystander/assassin), `Game::Card`, `Game::Board` (`generate`, `reveal`, `remaining`, `all_revealed?`), `Game::Clue` (`word`, `number`, `unlimited?`, `guess_limit`, `number_display`)
 - Persistence: `GameRepo` (a `GameStore` constant), `GameMapping`
 - Forms: `NewGameForm`, `NewPlayerForm`, `EditPlayerForm`, `JoinTeamForm`, `StartGameForm`, `ClueForm` (word + number select, `parsed_number`)
-- Broadcasts: `PlayerCreated`, `PlayerConnected`, `PlayerDisconnected`, `PlayerNameUpdated`, `TeamUpdated`, `GameStarted`, `BoardUpdated`, `NewGameStarted` (`BoardUpdated` also fires after clue submission)
+- Broadcasts: `PlayerCreated`, `PlayerNameUpdated`, `TeamUpdated`, `GameStarted`, `BoardUpdated`, `NewGameStarted` (`BoardUpdated` also fires after clue submission)
 - Reveals/pass use `button_to` + Turbo (reveal carries `data-turbo-confirm`); the clue form posts `patch :submit_clue`; a `spymaster-key` Stimulus controller toggles the key (hidden by default)
 - Words: Loaded from `config/codenames/words.yml` singleton (`Words.instance.sample(25)`)
 
@@ -127,7 +129,7 @@ A digital companion for the telepathy party game. Each round a **psychic** sees 
 - Value Objects: `Team` (top-level `Wavelength::Team`, shared by game + player; `red?`/`opponent`), `Game::Status` (`setup?`/`clue?`/`guessing?`/`left_right?`/`reveal?`/`completed?`), `Game::Spectrum` (`left`, `right`), `Game::Target` (`position`, `score_for`, `bullseye?`, `side_of`, `bands`)
 - Persistence: `GameRepo` (a `GameStore` constant), `GameMapping`
 - Forms: `NewGameForm`, `NewPlayerForm`, `EditPlayerForm`, `JoinTeamForm`, `StartGameForm`, `ClueForm`
-- Broadcasts: `PlayerCreated`, `PlayerConnected`, `PlayerDisconnected`, `PlayerNameUpdated`, `TeamUpdated`, `GameStarted`, `DialMoved`, `RoundUpdated`, `NewGameStarted`
+- Broadcasts: `PlayerCreated`, `PlayerNameUpdated`, `TeamUpdated`, `GameStarted`, `DialMoved`, `RoundUpdated`, `NewGameStarted`
 - The psychic sees the hidden target via a toggle (hidden by default); the dial is a range input, and `lock_guess`/`guess_side`/`next_round` post via `button_to` + Turbo
 - Spectrums: Loaded from `config/wavelength/spectrums.yml` singleton (`Spectrums.instance.sample`)
 
@@ -182,7 +184,7 @@ end
    - Controllers (`games_controller.rb`, `players_controller.rb`)
 4. Add namespaced routes in `config/routes.rb`
 5. Create broadcast service objects in `broadcast/` directory
-6. Create `adapter.rb` implementing the `_GameAdapter` interface (`on_player_connected` / `on_player_disconnected`) and add a branch in `PlayerChannel#adapter` for the new game kind
+6. Wire `Adapter = PresenceAdapter.new(repo:, template:)` in `adapter.rb` (plus a `players/presence.turbo_stream.erb` template) and add a branch in `PlayerChannel#adapter` for the new game kind
 7. Create RBS signatures in `sig/{game_name}.rbs`
 8. Create test files mirroring structure in `test/games/{game_name}/`
 9. Add factory definitions in `test/factories/`

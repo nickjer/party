@@ -90,16 +90,18 @@ module Codenames
         assert_no_button own_word
       end
 
-      # Ada, the on-turn spymaster, types the clue for her team.
+      # Ada, the on-turn spymaster, types the clue for her team. The clue
+      # chip uppercases the word for display.
       fill_in "Your clue", with: "Ocean"
       select "∞", from: "Number"
       click_on "Send clue"
-      assert_text "Clue: Ocean · ∞"
+      assert_text "OCEAN"
+      assert_text "Unlimited guesses"
 
       # Bob (active operative) reveals one of his team's agents; turn
       # continues. End turn only appears once his team has guessed.
       using_session("bob") do
-        assert_text "Clue: Ocean · ∞", wait: 5
+        assert_text "OCEAN", wait: 5
         assert_no_button "End turn"
         click_button(own_word, exact: true)
         within("dialog[open]") { click_button "Confirm" }

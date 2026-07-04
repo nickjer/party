@@ -20,6 +20,7 @@ Rails.application.routes.draw do
     resources :games, only: %i[create new show] do
       member do
         post :start
+        patch :submit_clue
         patch :reveal
         patch :pass
         post :new_game

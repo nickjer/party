@@ -21,19 +21,25 @@
     </div>
 
     <p class="text-secondary small">
-      This app runs the board, the secret key, turn order, and scoring.
-      Clues are spoken out loud — never typed here.
+      This app runs the board, the secret key, clues, turn order, and
+      scoring. Spymasters type their clues right here.
     </p>
 
     <div class="d-flex gap-3 mb-3">
       <i class="bi bi-binoculars-fill fs-4 text-secondary"></i>
       <div>
         <div class="fw-semibold">Spymasters (one per team)</div>
-        <p class="mb-0 small text-secondary">
+        <p class="mb-1 small text-secondary">
           Tap <strong>Show key</strong> to see which cards are yours. On your
-          team's turn, say <strong>one word</strong> plus a
+          team's turn, type <strong>one word</strong> plus a
           <strong>number</strong> — e.g. <em>"Ocean, 2"</em> — where the number
           is how many cards on the board relate to that word. Nothing else.
+        </p>
+        <p class="mb-0 small text-secondary">
+          Two special numbers: <strong>0</strong> means <em>none</em> of your
+          words relate to the clue (steer your team away), and
+          <strong>∞</strong> means several unguessed words relate but you're
+          not saying how many. Both let your team guess without limit.
         </p>
       </div>
     </div>
@@ -51,9 +57,10 @@
           <li>The assassin → your team loses instantly.</li>
         </ul>
         <p class="mb-0 small text-secondary">
-          You may guess up to the clue's number, <strong>plus one</strong> bonus
-          guess (so <em>"Ocean, 2"</em> allows up to 3). Stop any time, or tap
-          <strong>End turn</strong> when you're done.
+          You get the clue's number <strong>plus one</strong> bonus guess (so
+          <em>"Ocean, 2"</em> allows up to 3) — the turn ends on its own when
+          they're used up. Clues of 0 or ∞ have no limit. You must guess at
+          least once; after that, tap <strong>End turn</strong> to stop.
         </p>
       </div>
     </div>

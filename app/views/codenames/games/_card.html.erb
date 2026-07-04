@@ -24,7 +24,8 @@
     <i class="bi <%= identity_icon %> fs-6" aria-hidden="true"></i>
     <span><%= card.word %></span>
   </div>
-<% elsif game.status.playing? && current_player.operative? && current_player.team == game.current_team %>
+<% elsif game.status.playing? && game.clue && current_player.operative? &&
+    current_player.team == game.current_team %>
   <%= button_to reveal_codenames_game_path(game.id),
       params: { reveal: { index: } },
       method: :patch,

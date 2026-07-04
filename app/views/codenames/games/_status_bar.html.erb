@@ -38,7 +38,28 @@
             <div class="fs-5 fw-bold mb-0">
               <%= game.current_team.to_s.capitalize %> team's turn
             </div>
-            <small class="opacity-75">Spymaster gives a clue out loud</small>
+            <% if (clue = game.clue) %>
+              <% text_color = game.current_team.red? ? "text-danger" : "text-primary" %>
+              <div class="d-flex flex-wrap align-items-center gap-2 mt-1">
+                <span class="badge rounded-pill bg-white text-uppercase text-wrap <%= text_color %>"
+                      style="font-size: .875rem;" title="Current clue">
+                  <span class="visually-hidden">Clue:</span>
+                  <%= clue.word %> · <%= clue.number_display %>
+                </span>
+                <small class="opacity-75">
+                  <% if (remaining = game.guesses_remaining) %>
+                    <%= pluralize(remaining, "guess") %> left
+                  <% else %>
+                    Unlimited guesses
+                  <% end %>
+                </small>
+              </div>
+            <% elsif current_player.spymaster? &&
+                current_player.team == game.current_team %>
+              <small class="opacity-75">Type a clue for your team below</small>
+            <% else %>
+              <small class="opacity-75">Spymaster is choosing a clue…</small>
+            <% end %>
           </div>
         </div>
 
@@ -51,7 +72,9 @@
             <i class="bi bi-people-fill me-1"></i>
             <%= game.board.remaining(Codenames::Team.blue) %>
           </span>
-          <% if current_player.operative? && current_player.team == game.current_team %>
+          <% if current_player.operative? &&
+              current_player.team == game.current_team &&
+              game.clue && game.guesses_made >= 1 %>
             <%= button_to pass_codenames_game_path(game.id),
                 method: :patch,
                 class: "btn btn-sm btn-light",

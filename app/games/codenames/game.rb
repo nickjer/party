@@ -4,6 +4,8 @@ module Codenames
   # Aggregate for a Codenames game. Persistence goes through GameRepo.
   # Identity methods delegate to ::Game for Rails interop (dom_id, GlobalID).
   class Game
+    CLUE_LENGTH = LengthValidator.new(min: 1, max: 50, field: :clue)
+
     class << self
       def build(words:, starting_team: nil, id: nil)
         id ||= GameStore.generate_game_id
@@ -13,6 +15,8 @@ module Codenames
           starting_team: team,
           current_team: team,
           winner: nil,
+          clue: nil,
+          guesses_made: 0,
           board: Board.generate(words:, starting_team: team)
         )
         new(id:, document:, players: [])
@@ -40,10 +44,19 @@ module Codenames
 
     def board = document.board
 
+    def clue = document.clue
+
     def current_team = document.current_team
 
     def find_player(id)
       players.find { |player| player.id == id } || raise("Player not found")
+    end
+
+    def guesses_made = document.guesses_made
+
+    def guesses_remaining
+      limit = clue&.guess_limit
+      limit ? limit - guesses_made : nil
     end
 
     def operatives = players.select(&:operative?)
@@ -86,8 +99,21 @@ module Codenames
       self
     end
 
+    def submit_clue(word:, number:)
+      raise "Game must be in playing status" unless status.playing?
+      raise "Clue already submitted" unless clue.nil?
+
+      CLUE_LENGTH.validate!(word)
+      @document = document.with(clue: Clue.new(word:, number:),
+        guesses_made: 0)
+      self
+    end
+
     def reveal(index:)
       raise "Game must be in playing status" unless status.playing?
+
+      current_clue = clue
+      raise "Clue must be submitted before revealing" if current_clue.nil?
 
       card = board.card(index)
       raise "Card already revealed" if card.revealed?
@@ -95,26 +121,31 @@ module Codenames
       new_board = board.reveal(index)
       @document =
         if card.identity.assassin?
-          document.with(board: new_board, status: Status.completed,
-            winner: current_team.opponent)
+          completed_document(board: new_board, winner: current_team.opponent)
         elsif new_board.all_revealed?(Team.red)
-          document.with(board: new_board, status: Status.completed,
-            winner: Team.red)
+          completed_document(board: new_board, winner: Team.red)
         elsif new_board.all_revealed?(Team.blue)
-          document.with(board: new_board, status: Status.completed,
-            winner: Team.blue)
+          completed_document(board: new_board, winner: Team.blue)
         elsif card.identity.team == current_team
-          document.with(board: new_board) # correct guess: keep guessing
+          guessed = guesses_made + 1
+          limit = current_clue.guess_limit
+          if limit && guessed >= limit # guesses used up: turn ends
+            next_turn_document(board: new_board)
+          else
+            document.with(board: new_board, guesses_made: guessed)
+          end
         else
-          document.with(board: new_board, current_team: current_team.opponent)
+          next_turn_document(board: new_board)
         end
       self
     end
 
     def pass_turn
       raise "Game must be in playing status" unless status.playing?
+      raise "Clue must be submitted before passing" if clue.nil?
+      raise "Must guess at least once before passing" if guesses_made < 1
 
-      @document = document.with(current_team: current_team.opponent)
+      @document = next_turn_document
       self
     end
 
@@ -153,5 +184,17 @@ module Codenames
 
     # @dynamic document
     attr_reader :document
+
+    # Play passes to the other team: flip the turn and clear the clue.
+    def next_turn_document(board: document.board)
+      document.with(board:, current_team: current_team.opponent, clue: nil,
+        guesses_made: 0)
+    end
+
+    # The game is over: record the winner and clear the clue.
+    def completed_document(board:, winner:)
+      document.with(board:, status: Status.completed, winner:, clue: nil,
+        guesses_made: 0)
+    end
   end
 end

@@ -121,6 +121,28 @@ module Codenames
       end
     end
 
+    test "#guesses_remaining is nil before a clue is submitted" do
+      game = build(:cn_playing_game)
+
+      assert_nil game.guesses_remaining
+    end
+
+    test "#guesses_remaining is nil for an unlimited clue" do
+      game = build(:cn_guessing_game) # unlimited by default
+
+      assert_nil game.guesses_remaining
+    end
+
+    test "#guesses_remaining subtracts the guesses made from the limit" do
+      game = build(:cn_guessing_game, clue_number: 2) # 2 + 1 bonus = 3
+
+      assert_equal 3, game.guesses_remaining
+
+      game.reveal(index: red_agent_index(game))
+
+      assert_equal 2, game.guesses_remaining
+    end
+
     test "#reveal of own agent keeps the turn and counts the guess" do
       game = build(:cn_guessing_game) # red starts
 

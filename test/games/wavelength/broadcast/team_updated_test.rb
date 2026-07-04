@@ -10,8 +10,8 @@ module Wavelength
 
       test "#call broadcasts the team panels to other online players" do
         game = create(:wl_game, :with_teams)
-        actor = player_named(game, "RedOne")
-        other = player_named(game, "BlueOne")
+        actor = player_named(game:, name: "RedOne")
+        other = player_named(game:, name: "BlueOne")
         PlayerConnections.instance.increment(other.id)
 
         streams = capture_turbo_stream_broadcasts other do
@@ -24,18 +24,12 @@ module Wavelength
 
       test "#call does not broadcast to the acting player" do
         game = create(:wl_game, :with_teams)
-        actor = player_named(game, "RedOne")
+        actor = player_named(game:, name: "RedOne")
         PlayerConnections.instance.increment(actor.id)
 
         assert_turbo_stream_broadcasts actor, count: 0 do
           TeamUpdated.new(game:, player: actor).call
         end
-      end
-
-      private
-
-      def player_named(game, name)
-        game.players.find { |player| player.name.to_s == name }
       end
     end
   end

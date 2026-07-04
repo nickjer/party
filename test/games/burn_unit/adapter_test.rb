@@ -1,27 +1,23 @@
 # frozen_string_literal: true
 
 require "test_helper"
+require "turbo/broadcastable/test_helper"
 
 module BurnUnit
   class AdapterTest < ActiveSupport::TestCase
-    test "#on_player_connected delegates to Broadcast::PlayerConnected" do
-      player_id = "player-123"
-      broadcaster = mock
-      broadcaster.expects(:call).once
-      Broadcast::PlayerConnected
-        .expects(:new).with(player_id:).returns(broadcaster)
+    include Turbo::Broadcastable::TestHelper
 
-      Adapter.new.on_player_connected(player_id)
-    end
+    test "#on_player_connected broadcasts the player's row to other online " \
+      "players" do
+      game = create(:bu_polling_game, player_names: %w[Alice Bob])
+      alice = player_named(game:, name: "Alice")
+      bob = player_named(game:, name: "Bob")
+      ::PlayerConnections.instance.increment(alice.id)
+      ::PlayerConnections.instance.increment(bob.id)
 
-    test "#on_player_disconnected delegates to Broadcast::PlayerDisconnected" do
-      player_id = "player-456"
-      broadcaster = mock
-      broadcaster.expects(:call).once
-      Broadcast::PlayerDisconnected
-        .expects(:new).with(player_id:).returns(broadcaster)
-
-      Adapter.new.on_player_disconnected(player_id)
+      assert_turbo_stream_broadcasts bob, count: 1 do
+        Adapter.on_player_connected(alice.id)
+      end
     end
   end
 end

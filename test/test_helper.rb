@@ -60,5 +60,9 @@ module ActiveSupport
       else raise ArgumentError, "Unsupported game type: #{game.class}"
       end
     end
+
+    def player_named(game:, name:)
+      game.players.find { |player| player.name.to_s == name }
+    end
   end
 end

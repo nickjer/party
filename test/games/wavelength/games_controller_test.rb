@@ -42,7 +42,7 @@ module Wavelength
 
     test "#show renders the lobby during setup" do
       game = create(:wl_game, :with_teams)
-      sign_in(player_named(game, "RedOne").user_id)
+      sign_in(player_named(game:, name: "RedOne").user_id)
 
       get wavelength_game_path(game.id)
 
@@ -52,7 +52,7 @@ module Wavelength
 
     test "#show renders the play area while guessing" do
       game = create(:wl_guessing_game)
-      sign_in(player_named(game, "RedOne").user_id)
+      sign_in(player_named(game:, name: "RedOne").user_id)
 
       get wavelength_game_path(game.id)
 
@@ -75,7 +75,7 @@ module Wavelength
 
     test "#show renders the play area for a completed game" do
       game = create(:wl_completed_game)
-      sign_in(player_named(game, "RedOne").user_id)
+      sign_in(player_named(game:, name: "RedOne").user_id)
 
       get wavelength_game_path(game.id)
 
@@ -85,7 +85,7 @@ module Wavelength
 
     test "#start transitions to the clue phase and makes the clicker psychic" do
       game = create(:wl_game, :with_teams)
-      red = player_named(game, "RedOne")
+      red = player_named(game:, name: "RedOne")
       sign_in(red.user_id)
 
       post start_wavelength_game_path(game.id)
@@ -97,7 +97,7 @@ module Wavelength
 
     test "#start is forbidden for a player not on the starting team" do
       game = create(:wl_game, :with_teams) # red starts
-      sign_in(player_named(game, "BlueOne").user_id)
+      sign_in(player_named(game:, name: "BlueOne").user_id)
 
       post start_wavelength_game_path(game.id)
 
@@ -165,7 +165,7 @@ module Wavelength
 
     test "#move_dial is forbidden when the game is not guessing" do
       game = create(:wl_game, :with_teams) # still in setup
-      sign_in(player_named(game, "RedTwo").user_id)
+      sign_in(player_named(game:, name: "RedTwo").user_id)
 
       patch move_dial_wavelength_game_path(game.id),
         params: { guess: { position: 30 } }
@@ -175,7 +175,7 @@ module Wavelength
 
     test "#move_dial is forbidden for an off-team player" do
       game = create(:wl_guessing_game) # red's turn
-      sign_in(player_named(game, "BlueOne").user_id)
+      sign_in(player_named(game:, name: "BlueOne").user_id)
 
       patch move_dial_wavelength_game_path(game.id),
         params: { guess: { position: 30 } }
@@ -227,7 +227,7 @@ module Wavelength
 
     test "#lock_guess is forbidden when the game is not guessing" do
       game = create(:wl_game, :with_teams) # still in setup
-      sign_in(player_named(game, "RedTwo").user_id)
+      sign_in(player_named(game:, name: "RedTwo").user_id)
 
       patch lock_guess_wavelength_game_path(game.id),
         params: { guess: { position: 50 } }
@@ -237,7 +237,7 @@ module Wavelength
 
     test "#lock_guess is forbidden for an off-team player" do
       game = create(:wl_guessing_game) # red's turn
-      sign_in(player_named(game, "BlueOne").user_id)
+      sign_in(player_named(game:, name: "BlueOne").user_id)
 
       patch lock_guess_wavelength_game_path(game.id),
         params: { guess: { position: 50 } }
@@ -301,7 +301,7 @@ module Wavelength
 
     test "#guess_side is forbidden when the game is not in left_right" do
       game = create(:wl_guessing_game)
-      sign_in(player_named(game, "BlueOne").user_id)
+      sign_in(player_named(game:, name: "BlueOne").user_id)
 
       patch guess_side_wavelength_game_path(game.id),
         params: { guess: { side: "left" } }
@@ -311,7 +311,7 @@ module Wavelength
 
     test "#guess_side is forbidden for a player on the active team" do
       game = create(:wl_left_right_game) # red active, blue guesses side
-      sign_in(player_named(game, "RedOne").user_id)
+      sign_in(player_named(game:, name: "RedOne").user_id)
 
       patch guess_side_wavelength_game_path(game.id),
         params: { guess: { side: "left" } }
@@ -321,7 +321,7 @@ module Wavelength
 
     test "#guess_side is forbidden for an unknown side" do
       game = create(:wl_left_right_game)
-      sign_in(player_named(game, "BlueOne").user_id)
+      sign_in(player_named(game:, name: "BlueOne").user_id)
 
       patch guess_side_wavelength_game_path(game.id),
         params: { guess: { side: "up" } }
@@ -331,7 +331,7 @@ module Wavelength
 
     test "#guess_side scores the round and reveals" do
       game = create(:wl_left_right_game)
-      sign_in(player_named(game, "BlueOne").user_id)
+      sign_in(player_named(game:, name: "BlueOne").user_id)
 
       patch guess_side_wavelength_game_path(game.id),
         params: { guess: { side: "left" } }
@@ -342,7 +342,7 @@ module Wavelength
 
     test "#next_round is forbidden unless the game is in reveal" do
       game = create(:wl_guessing_game)
-      sign_in(player_named(game, "RedOne").user_id)
+      sign_in(player_named(game:, name: "RedOne").user_id)
 
       post next_round_wavelength_game_path(game.id)
 
@@ -351,7 +351,7 @@ module Wavelength
 
     test "#next_round starts the next round and makes the clicker psychic" do
       game = create(:wl_reveal_game) # red just played, blue is up
-      blue = player_named(game, "BlueOne")
+      blue = player_named(game:, name: "BlueOne")
       sign_in(blue.user_id)
 
       post next_round_wavelength_game_path(game.id)
@@ -364,7 +364,7 @@ module Wavelength
 
     test "#next_round is forbidden for a player not on the up team" do
       game = create(:wl_reveal_game) # red just played, blue is up
-      sign_in(player_named(game, "RedOne").user_id)
+      sign_in(player_named(game:, name: "RedOne").user_id)
 
       post next_round_wavelength_game_path(game.id)
 
@@ -373,7 +373,7 @@ module Wavelength
 
     test "#new_game resets a completed game to the lobby" do
       game = create(:wl_completed_game)
-      sign_in(player_named(game, "RedOne").user_id)
+      sign_in(player_named(game:, name: "RedOne").user_id)
 
       post new_game_wavelength_game_path(game.id)
 
@@ -383,17 +383,11 @@ module Wavelength
 
     test "#new_game is forbidden unless the game is completed" do
       game = create(:wl_guessing_game)
-      sign_in(player_named(game, "RedOne").user_id)
+      sign_in(player_named(game:, name: "RedOne").user_id)
 
       post new_game_wavelength_game_path(game.id)
 
       assert_response :forbidden
-    end
-
-    private
-
-    def player_named(game, name)
-      game.players.find { |player| player.name.to_s == name }
     end
   end
 end

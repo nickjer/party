@@ -34,15 +34,12 @@ class PlayerChannel < ApplicationCable::Channel
   attr_reader :player
 
   def adapter
-    @adapter ||= begin
-      kind = player.game.kind
-      case kind
-      when :loaded_questions then LoadedQuestions::Adapter.new
-      when :burn_unit then BurnUnit::Adapter.new
-      when :codenames then Codenames::Adapter.new
-      when :wavelength then Wavelength::Adapter.new
-      else raise "Unknown game kind: #{kind.inspect}"
-      end
+    case (kind = player.game.kind)
+    when :loaded_questions then LoadedQuestions::Adapter
+    when :burn_unit then BurnUnit::Adapter
+    when :codenames then Codenames::Adapter
+    when :wavelength then Wavelength::Adapter
+    else raise "Unknown game kind: #{kind.inspect}"
     end
   end
 end

@@ -16,7 +16,7 @@ module Wavelength
 
     test "#new redirects an existing player to the game" do
       game = create(:wl_game, :with_teams)
-      sign_in(player_named(game, "RedOne").user_id)
+      sign_in(player_named(game:, name: "RedOne").user_id)
 
       get new_wavelength_game_player_path(game.id)
 
@@ -56,7 +56,7 @@ module Wavelength
 
     test "#edit renders the name form for an existing player" do
       game = create(:wl_game, :with_teams)
-      sign_in(player_named(game, "RedOne").user_id)
+      sign_in(player_named(game:, name: "RedOne").user_id)
 
       get edit_wavelength_game_player_path(game.id)
 
@@ -76,7 +76,7 @@ module Wavelength
 
     test "#update renames an existing player" do
       game = create(:wl_game, :with_teams)
-      player = player_named(game, "RedOne")
+      player = player_named(game:, name: "RedOne")
       sign_in(player.user_id)
 
       patch wavelength_game_player_path(game.id),
@@ -89,7 +89,7 @@ module Wavelength
 
     test "#update re-renders on an invalid name" do
       game = create(:wl_game, :with_teams)
-      sign_in(player_named(game, "RedOne").user_id)
+      sign_in(player_named(game:, name: "RedOne").user_id)
 
       patch wavelength_game_player_path(game.id),
         params: { player: { name: "ab" } }
@@ -152,7 +152,7 @@ module Wavelength
 
     test "#join_team re-renders the gate when switching teams mid-game" do
       game = create(:wl_guessing_game)
-      player = player_named(game, "RedOne")
+      player = player_named(game:, name: "RedOne")
       sign_in(player.user_id)
 
       patch join_team_wavelength_game_player_path(game.id),
@@ -174,12 +174,6 @@ module Wavelength
 
       assert_response :unprocessable_content
       assert_match(/Game is over/, response.body)
-    end
-
-    private
-
-    def player_named(game, name)
-      game.players.find { |player| player.name.to_s == name }
     end
   end
 end

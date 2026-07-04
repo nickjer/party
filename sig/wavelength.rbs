@@ -20,32 +20,9 @@ module Wavelength
 
   GameRepo: GameStore[Player, Game]
 
-  class Adapter
-    def on_player_connected: (String player_id) -> void
-    def on_player_disconnected: (String player_id) -> void
-  end
+  Adapter: PresenceAdapter[Player, Game]
 
   module Broadcast
-    class PlayerConnected
-      def initialize: (player_id: String) -> void
-
-      def call: () -> void
-
-      private
-
-      attr_reader connected_player: ::Player
-    end
-
-    class PlayerDisconnected
-      def initialize: (player_id: String) -> void
-
-      def call: () -> void
-
-      private
-
-      attr_reader disconnected_player: ::Player
-    end
-
     class PlayerCreated
       def initialize: (game: Game, player: Player) -> void
 
@@ -192,15 +169,12 @@ module Wavelength
     def start_new_game: (spectrum: Spectrum, target: Target, ?starting_team: Team?) -> self
     def document_json: () -> String
 
-    def model_name: () -> ::ActiveModel::Name
-    def to_key: () -> [String]
-    def to_param: () -> String
-    def to_global_id: (?Hash[Symbol, untyped] options) -> ::GlobalID
-    def to_gid_param: (?Hash[Symbol, untyped] options) -> String
+    include _GlobalIdentity
 
     private
 
     attr_reader document: Document
+    attr_reader identity: GlobalIdentity
 
     def become_psychic: (Player player, on: Team) -> void
     def award: (Integer active_points, bool opponent_correct) -> [Integer, Integer]
@@ -346,16 +320,13 @@ module Wavelength
     def team: () -> Team?
     def team=: (Team? new_team) -> void
     def document_json: () -> String
-    def model_name: () -> ::ActiveModel::Name
-    def to_key: () -> [String]
-    def to_param: () -> String
-    def to_global_id: (?Hash[Symbol, untyped] options) -> ::GlobalID
-    def to_gid_param: (?Hash[Symbol, untyped] options) -> String
+    include _GlobalIdentity
     def team_rank: () -> Integer
 
     private
 
     attr_reader document: Document
+    attr_reader identity: GlobalIdentity
 
     class Document
       type json = { team: String?, psychic_count: Integer }

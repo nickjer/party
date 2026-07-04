@@ -1,27 +1,23 @@
 # frozen_string_literal: true
 
 require "test_helper"
+require "turbo/broadcastable/test_helper"
 
 module Wavelength
   class AdapterTest < ActiveSupport::TestCase
-    test "#on_player_connected dispatches to PlayerConnected" do
-      adapter = Adapter.new
-      broadcast = mock
-      broadcast.expects(:call)
-      Broadcast::PlayerConnected.expects(:new).with(player_id: "p1")
-        .returns(broadcast)
+    include Turbo::Broadcastable::TestHelper
 
-      adapter.on_player_connected("p1")
-    end
+    test "#on_player_connected broadcasts the player's row to other online " \
+      "players" do
+      game = create(:wl_guessing_game)
+      actor = player_named(game:, name: "RedOne")
+      other = player_named(game:, name: "BlueOne")
+      ::PlayerConnections.instance.increment(actor.id)
+      ::PlayerConnections.instance.increment(other.id)
 
-    test "#on_player_disconnected dispatches to PlayerDisconnected" do
-      adapter = Adapter.new
-      broadcast = mock
-      broadcast.expects(:call)
-      Broadcast::PlayerDisconnected.expects(:new).with(player_id: "p1")
-        .returns(broadcast)
-
-      adapter.on_player_disconnected("p1")
+      assert_turbo_stream_broadcasts other, count: 1 do
+        Adapter.on_player_connected(actor.id)
+      end
     end
   end
 end

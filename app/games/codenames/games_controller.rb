@@ -76,8 +76,9 @@ module Codenames
       return head :forbidden if current_player.team != game.current_team
       return head :forbidden unless game.clue.nil?
 
-      clue_form = ClueForm.new(word: submit_clue_params[:word],
-        number: submit_clue_params[:number])
+      clue_params = submit_clue_params
+      clue_form = ClueForm.new(word: clue_params[:word],
+        number: clue_params[:number])
       if clue_form.valid?
         game.submit_clue(word: clue_form.word, number: clue_form.parsed_number)
         repo.save(game)

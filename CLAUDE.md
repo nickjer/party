@@ -95,7 +95,7 @@ A digital companion for in-person play (a faithful 5×5 / two-team Codenames). *
 
 **Phases**: Setup (lobby: pick team + role) → Playing (spymaster submits a clue, then operatives reveal cards) → Completed (a team won or the assassin was hit). There is no separate clue status: within Playing the sub-phase is derived from clue presence (`clue.nil?` = waiting for the spymaster; reveals/pass are forbidden until a clue exists).
 
-**Clue rules (official)**: number is **0–9 or unlimited** (`Clue#number` is `Integer?`, nil = ∞). For 1–9 operatives get **number + 1 guesses** and the turn auto-ends when they're used up (`Clue#guess_limit`); 0 and ∞ have no cap (`guess_limit` nil). Operatives must guess **at least once** before End turn (`guesses_made >= 1`). A wrong/bystander guess still ends the turn immediately; the clue is cleared whenever the turn flips (`Game#next_turn_document`).
+**Clue rules (official)**: number is **0–9 or unlimited** (`Clue#number` is `Integer?`, nil = ∞). For 1–9 operatives get **number + 1 guesses** and the turn auto-ends when they're used up (`Clue#guess_limit`); 0 and ∞ have no cap (`guess_limit` nil). Operatives must guess **at least once** before End turn (`guesses_made >= 1`). A wrong/bystander guess still ends the turn immediately; the clue is cleared whenever the turn flips (`Game#next_turn_document`) and when the game completes (`Game#completed_document`).
 
 **Roles**: Each team (red/blue) has exactly **one spymaster** (sees the key) and one or more **operatives** (reveal cards). Board key per game: **9 starting-team agents, 8 other-team, 7 bystanders, 1 assassin**. Only the starting team's spymaster can start; teams/roles lock once playing (a mid-game joiner may pick any team as an operative). No spectators.
 

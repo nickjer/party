@@ -194,6 +194,8 @@ module Codenames
 
       assert_predicate game.status, :completed?
       assert_equal Team.blue, game.winner
+      assert_nil game.clue
+      assert_equal 0, game.guesses_made
     end
 
     test "#reveal of the last agent wins for that team" do
@@ -227,6 +229,8 @@ module Codenames
 
       assert_predicate game.status, :completed?
       assert_equal Team.red, game.winner
+      assert_nil game.clue
+      assert_equal 0, game.guesses_made
     end
 
     test "#reveal raises unless playing" do

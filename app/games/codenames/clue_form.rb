@@ -37,5 +37,12 @@ module Codenames
       raw = number
       raw.nil? || raw == "unlimited" ? nil : Integer(raw)
     end
+
+    # What the number select preselects: the submitted number, or the
+    # default when it is missing or invalid.
+    def selected_number
+      raw = number
+      NUMBERS.include?(raw) ? raw : "1" #: String
+    end
   end
 end

@@ -18,7 +18,7 @@
               Codenames::ClueForm::NUMBERS.map { |number|
                 [number == "unlimited" ? "∞" : number, number]
               },
-              selected: clue_form.number || "1" %>
+              selected: clue_form.selected_number %>
         </div>
         <div class="col-8 col-sm-auto">
           <%= form.button "Send clue", class: "btn btn-success w-100",

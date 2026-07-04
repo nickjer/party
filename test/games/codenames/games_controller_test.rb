@@ -213,6 +213,18 @@ module Codenames
       assert_nil reload(game:).clue
     end
 
+    test "#submit_clue re-render preselects the default for an invalid " \
+      "number" do
+      game = create(:cn_playing_game)
+      sign_in(game.spymaster_for(Team.red).user_id)
+
+      patch submit_clue_codenames_game_path(game.id),
+        params: { clue: { word: "Ocean", number: "10" } }
+
+      assert_response :unprocessable_content
+      assert_dom "#clue_number option[selected][value=?]", "1"
+    end
+
     test "#reveal is forbidden for an off-turn operative" do
       game = create(:cn_guessing_game) # red's turn
       blue_op = game.players.find { |player| player.name.to_s == "BlueOp" }

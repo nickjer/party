@@ -51,10 +51,8 @@ FactoryBot.define do
       end
     end
 
-    factory :cn_completed_game, traits: %i[with_teams] do
+    factory :cn_completed_game, parent: :cn_guessing_game do
       after(:build) do |game|
-        game.start_game
-        game.submit_clue(word: NormalizedString.new("Hint"), number: nil)
         game.board.cards.each_with_index do |card, index|
           next if card.identity.team != game.starting_team
           next if game.status.completed?

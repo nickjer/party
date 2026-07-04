@@ -170,6 +170,7 @@ module Codenames
     attr_reader document: Document
 
     def next_turn_document: (?board: Board) -> Document
+    def completed_document: (board: Board, winner: Team) -> Document
 
     class Document
       type json = {
@@ -430,6 +431,7 @@ module Codenames
 
     def valid?: () -> bool
     def parsed_number: () -> Integer?
+    def selected_number: () -> String
   end
 
   class StartGameForm

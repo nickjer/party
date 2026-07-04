@@ -121,14 +121,11 @@ module Codenames
       new_board = board.reveal(index)
       @document =
         if card.identity.assassin?
-          document.with(board: new_board, status: Status.completed,
-            winner: current_team.opponent)
+          completed_document(board: new_board, winner: current_team.opponent)
         elsif new_board.all_revealed?(Team.red)
-          document.with(board: new_board, status: Status.completed,
-            winner: Team.red)
+          completed_document(board: new_board, winner: Team.red)
         elsif new_board.all_revealed?(Team.blue)
-          document.with(board: new_board, status: Status.completed,
-            winner: Team.blue)
+          completed_document(board: new_board, winner: Team.blue)
         elsif card.identity.team == current_team
           guessed = guesses_made + 1
           limit = current_clue.guess_limit
@@ -161,8 +158,6 @@ module Codenames
         starting_team: team,
         current_team: team,
         winner: nil,
-        clue: nil,
-        guesses_made: 0,
         board: Board.generate(words:, starting_team: team)
       )
       self
@@ -193,6 +188,12 @@ module Codenames
     # Play passes to the other team: flip the turn and clear the clue.
     def next_turn_document(board: document.board)
       document.with(board:, current_team: current_team.opponent, clue: nil,
+        guesses_made: 0)
+    end
+
+    # The game is over: record the winner and clear the clue.
+    def completed_document(board:, winner:)
+      document.with(board:, status: Status.completed, winner:, clue: nil,
         guesses_made: 0)
     end
   end

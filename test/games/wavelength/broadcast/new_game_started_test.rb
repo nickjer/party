@@ -12,8 +12,8 @@ module Wavelength
         game = create(:wl_completed_game)
         game.start_new_game(spectrum: Spectrums.instance.sample,
           target: Game::Target.new(position: 50))
-        actor = player_named(game, "RedOne")
-        other = player_named(game, "BlueOne")
+        actor = player_named(game:, name: "RedOne")
+        other = player_named(game:, name: "BlueOne")
         PlayerConnections.instance.increment(other.id)
 
         streams = capture_turbo_stream_broadcasts other do
@@ -28,18 +28,12 @@ module Wavelength
         game = create(:wl_completed_game)
         game.start_new_game(spectrum: Spectrums.instance.sample,
           target: Game::Target.new(position: 50))
-        actor = player_named(game, "RedOne")
+        actor = player_named(game:, name: "RedOne")
         PlayerConnections.instance.increment(actor.id)
 
         assert_turbo_stream_broadcasts actor, count: 0 do
           NewGameStarted.new(game:, player: actor).call
         end
-      end
-
-      private
-
-      def player_named(game, name)
-        game.players.find { |player| player.name.to_s == name }
       end
     end
   end

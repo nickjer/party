@@ -13,8 +13,8 @@ module Wavelength
         game.players.each do |player|
           PlayerConnections.instance.increment(player.id)
         end
-        renamed = player_named(game, "RedOne")
-        other = player_named(game, "BlueOne")
+        renamed = player_named(game:, name: "RedOne")
+        other = player_named(game:, name: "BlueOne")
 
         streams = capture_turbo_stream_broadcasts other do
           PlayerNameUpdated.new(game:, player: renamed).call
@@ -29,8 +29,8 @@ module Wavelength
         game.players.each do |player|
           PlayerConnections.instance.increment(player.id)
         end
-        renamed = player_named(game, "RedOne")
-        other = player_named(game, "BlueOne")
+        renamed = player_named(game:, name: "RedOne")
+        other = player_named(game:, name: "BlueOne")
 
         streams = capture_turbo_stream_broadcasts other do
           PlayerNameUpdated.new(game:, player: renamed).call
@@ -41,18 +41,12 @@ module Wavelength
 
       test "#call does not broadcast to the renamed player" do
         game = create(:wl_guessing_game)
-        renamed = player_named(game, "RedOne")
+        renamed = player_named(game:, name: "RedOne")
         PlayerConnections.instance.increment(renamed.id)
 
         assert_turbo_stream_broadcasts renamed, count: 0 do
           PlayerNameUpdated.new(game:, player: renamed).call
         end
-      end
-
-      private
-
-      def player_named(game, name)
-        game.players.find { |player| player.name.to_s == name }
       end
     end
   end

@@ -29,5 +29,6 @@ class PlayerChannel < ::ApplicationCable::Channel
   private
 
   attr_reader player: ::Player
-  attr_reader adapter: _GameAdapter
+
+  def adapter: () -> _GameAdapter
 end

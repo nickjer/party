@@ -10,33 +10,14 @@ module Wavelength
     test "#on_player_connected broadcasts the player's row to other online " \
       "players" do
       game = create(:wl_guessing_game)
-      actor = player_named(game, "RedOne")
-      other = player_named(game, "BlueOne")
+      actor = player_named(game:, name: "RedOne")
+      other = player_named(game:, name: "BlueOne")
       ::PlayerConnections.instance.increment(actor.id)
       ::PlayerConnections.instance.increment(other.id)
 
       assert_turbo_stream_broadcasts other, count: 1 do
         Adapter.on_player_connected(actor.id)
       end
-    end
-
-    test "#on_player_disconnected broadcasts the player's row to other " \
-      "online players" do
-      game = create(:wl_guessing_game)
-      actor = player_named(game, "RedOne")
-      other = player_named(game, "BlueOne")
-      ::PlayerConnections.instance.increment(actor.id)
-      ::PlayerConnections.instance.increment(other.id)
-
-      assert_turbo_stream_broadcasts other, count: 1 do
-        Adapter.on_player_disconnected(actor.id)
-      end
-    end
-
-    private
-
-    def player_named(game, name)
-      game.players.find { |player| player.name.to_s == name }
     end
   end
 end

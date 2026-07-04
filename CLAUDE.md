@@ -207,7 +207,7 @@ bin/rails test path/to/file_test.rb:10  # Specific line
 
 **Assertions**: Use `assert_predicate`/`assert_not_predicate` for predicates, `assert_not` (not `refute`), `assert_dom`/`assert_not_dom` for DOM. System tests: `wait: 5` for async, `sleep 0.5` for transitions.
 
-**Helpers**: `sign_in(user_id)`, `reload(game:)`. Global setup stubs fresh PlayerConnections per test.
+**Helpers**: `sign_in(user_id)`, `reload(game:)`, `player_named(game:, name:)`. Global setup stubs fresh PlayerConnections per test.
 
 ### Testing Broadcast Service Objects
 

@@ -126,10 +126,9 @@ interface _PresenceRepo[G]
 end
 
 class PresenceAdapter[P < _PresencePlayer, G < _PresenceGame[P]]
-  def initialize: (repo: _PresenceRepo[G], template: String) -> void
+  include _GameAdapter
 
-  def on_player_connected: (String player_id) -> void
-  def on_player_disconnected: (String player_id) -> void
+  def initialize: (repo: _PresenceRepo[G], template: String) -> void
 
   private
 

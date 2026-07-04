@@ -120,6 +120,8 @@ module Codenames
   end
 
   class Game
+    CLUE_LENGTH: LengthValidator
+
     def self.build: (words: Array[String], ?starting_team: Team?, ?id: String?) -> Game
 
     attr_reader id: String
@@ -134,8 +136,11 @@ module Codenames
     def add_player: (user_id: String, name: ::PlayerName, ?team: Team?, ?spymaster: bool) -> Player
     def blue_team: () -> Array[Player]
     def board: () -> Board
+    def clue: () -> Clue?
     def current_team: () -> Team
     def find_player: (String id) -> Player
+    def guesses_made: () -> Integer
+    def guesses_remaining: () -> Integer?
     def operatives: () -> Array[Player]
     def player_for: (String user_id) -> Player?
     def player_for!: (String user_id) -> Player
@@ -148,6 +153,7 @@ module Codenames
     def winner: () -> Team?
     def join_team: (player: Player, team: Team, spymaster: bool) -> self
     def start_game: () -> self
+    def submit_clue: (word: ::NormalizedString, number: Integer?) -> self
     def reveal: (index: Integer) -> self
     def pass_turn: () -> self
     def start_new_game: (words: Array[String], ?starting_team: Team?) -> self
@@ -163,12 +169,16 @@ module Codenames
 
     attr_reader document: Document
 
+    def next_turn_document: (?board: Board) -> Document
+
     class Document
       type json = {
         status: String,
         starting_team: String,
         current_team: String,
         winner: String?,
+        clue: Clue::json?,
+        guesses_made: Integer?,
         board: Array[Card::json]
       }
 
@@ -176,6 +186,8 @@ module Codenames
       attr_reader starting_team: Team
       attr_reader current_team: Team
       attr_reader winner: Team?
+      attr_reader clue: Clue?
+      attr_reader guesses_made: Integer
       attr_reader board: Board
 
       def self.parse: (json hash) -> Document
@@ -185,6 +197,8 @@ module Codenames
         starting_team: Team,
         current_team: Team,
         winner: Team?,
+        clue: Clue?,
+        guesses_made: Integer,
         board: Board
       ) -> void
 
@@ -193,10 +207,34 @@ module Codenames
         ?starting_team: Team,
         ?current_team: Team,
         ?winner: Team?,
+        ?clue: Clue?,
+        ?guesses_made: Integer,
         ?board: Board
       ) -> Document
 
       def to_h: () -> json
+    end
+
+    class Clue
+      type json = {
+        word: String,
+        number: Integer?
+      }
+
+      def self.parse: (json hash) -> Clue
+
+      attr_reader word: ::NormalizedString
+      attr_reader number: Integer?
+
+      def initialize: (word: ::NormalizedString, number: Integer?) -> void
+
+      def ==: (untyped other) -> bool
+      def eql?: (untyped other) -> bool
+      def guess_limit: () -> Integer?
+      def hash: () -> Integer
+      def number_display: () -> String
+      def to_h: () -> json
+      def unlimited?: () -> bool
     end
 
     class Status
@@ -381,6 +419,19 @@ module Codenames
     def validate_spymaster_seat: (Team selected_team) -> void
   end
 
+  class ClueForm
+    NUMBERS: Array[String]
+
+    attr_reader word: ::NormalizedString
+    attr_reader number: String?
+    attr_reader errors: ::Errors
+
+    def initialize: (?word: _ToS?, ?number: _ToS?) -> void
+
+    def valid?: () -> bool
+    def parsed_number: () -> Integer?
+  end
+
   class StartGameForm
     attr_reader errors: ::Errors
 
@@ -416,6 +467,7 @@ module Codenames
     def create: () -> untyped
     def show: () -> untyped
     def start: () -> untyped
+    def submit_clue: () -> untyped
     def reveal: () -> untyped
     def pass: () -> untyped
     def new_game: () -> untyped
@@ -426,6 +478,7 @@ module Codenames
 
     def new_game_params: () -> ::ActionController::Parameters
     def reveal_params: () -> ::ActionController::Parameters
+    def submit_clue_params: () -> ::ActionController::Parameters
     def revealable?: (Game game, Integer index) -> bool
   end
 

@@ -1,8 +1,13 @@
-<%# locals: (game:, current_player:) %>
+<%# locals: (game:, current_player:, clue_form: nil) %>
 
 <%= render "codenames/games/status_bar", game:, current_player: %>
 
 <% if game.status.playing? %>
+  <% if game.clue.nil? && current_player.spymaster? &&
+      current_player.team == game.current_team %>
+    <%= render "codenames/games/clue_form", game:,
+        clue_form: clue_form || Codenames::ClueForm.new %>
+  <% end %>
   <% ring_color = game.current_team.red? ? "border-danger" : "border-primary" %>
   <div class="border border-2 rounded p-2 <%= ring_color %>">
     <%= render "codenames/games/board", game:, current_player: %>

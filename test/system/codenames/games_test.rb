@@ -84,11 +84,27 @@ module Codenames
       own_word = board.cards.find { |c| c.identity.team == Team.red }.word
       assassin_word = board.cards.find { |c| c.identity.assassin? }.word
 
-      # Bob (active operative) reveals one of his team's agents; turn continues.
+      # Bob cannot reveal until his spymaster posts a clue.
       using_session("bob") do
+        assert_text "Spymaster is choosing a clue…"
+        assert_no_button own_word
+      end
+
+      # Ada, the on-turn spymaster, types the clue for her team.
+      fill_in "Your clue", with: "Ocean"
+      select "∞", from: "Number"
+      click_on "Send clue"
+      assert_text "Clue: Ocean · ∞"
+
+      # Bob (active operative) reveals one of his team's agents; turn
+      # continues. End turn only appears once his team has guessed.
+      using_session("bob") do
+        assert_text "Clue: Ocean · ∞", wait: 5
+        assert_no_button "End turn"
         click_button(own_word, exact: true)
         within("dialog[open]") { click_button "Confirm" }
         assert_text "Red team's turn"
+        assert_button "End turn"
 
         # Then Bob hits the assassin and his team loses.
         click_button(assassin_word, exact: true)

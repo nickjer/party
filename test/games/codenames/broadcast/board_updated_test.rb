@@ -55,6 +55,7 @@ module Codenames
         )
         PlayerConnections.instance.increment(latecomer.id)
         assassin = game.board.cards.index { |card| card.identity.assassin? }
+        game.submit_clue(word: NormalizedString.new("Hint"), number: nil)
         game.reveal(index: assassin)
         assert_predicate game.status, :completed?
 

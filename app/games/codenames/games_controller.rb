@@ -68,12 +68,34 @@ module Codenames
       end
     end
 
+    def submit_clue
+      game = repo.find(params[:id])
+      current_player = game.player_for!(current_user.id)
+      return head :forbidden unless game.status.playing?
+      return head :forbidden unless current_player.spymaster?
+      return head :forbidden if current_player.team != game.current_team
+      return head :forbidden unless game.clue.nil?
+
+      clue_form = ClueForm.new(word: submit_clue_params[:word],
+        number: submit_clue_params[:number])
+      if clue_form.valid?
+        game.submit_clue(word: clue_form.word, number: clue_form.parsed_number)
+        repo.save(game)
+        Broadcast::BoardUpdated.new(game:, player: current_player).call
+        render :play, locals: { game:, current_player: }
+      else
+        render :play, locals: { game:, current_player:, clue_form: },
+          status: :unprocessable_content
+      end
+    end
+
     def reveal
       game = repo.find(params[:id])
       current_player = game.player_for!(current_user.id)
       return head :forbidden unless game.status.playing?
       return head :forbidden unless current_player.operative?
       return head :forbidden if current_player.team != game.current_team
+      return head :forbidden if game.clue.nil?
 
       index = Integer(reveal_params[:index], exception: false)
       return head :forbidden if index.nil? || !revealable?(game, index)
@@ -90,6 +112,7 @@ module Codenames
       return head :forbidden unless game.status.playing?
       return head :forbidden unless current_player.operative?
       return head :forbidden if current_player.team != game.current_team
+      return head :forbidden if game.clue.nil? || game.guesses_made < 1
 
       game.pass_turn
       repo.save(game)
@@ -118,6 +141,10 @@ module Codenames
 
     def reveal_params
       params.expect(reveal: %w[index])
+    end
+
+    def submit_clue_params
+      params.expect(clue: %w[word number])
     end
 
     def revealable?(game, index)

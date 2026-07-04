@@ -91,21 +91,23 @@ Type signatures in `/sig/`: `models.rbs`, `lib.rbs` (incl. generic `GameStore`),
 
 ## Codenames Game
 
-A digital companion for in-person play (a faithful 5×5 / two-team Codenames). **Clues are spoken aloud and never entered or tracked** — the app owns the board, the secret key, reveal tracking, automatic turn switching, and win detection.
+A digital companion for in-person play (a faithful 5×5 / two-team Codenames). **The on-turn spymaster types the clue (word + number) in-app** — the app owns the board, the secret key, the clue, guess-limit enforcement, reveal tracking, automatic turn switching, and win detection.
 
-**Phases**: Setup (lobby: pick team + role) → Playing (operatives reveal cards) → Completed (a team won or the assassin was hit)
+**Phases**: Setup (lobby: pick team + role) → Playing (spymaster submits a clue, then operatives reveal cards) → Completed (a team won or the assassin was hit). There is no separate clue status: within Playing the sub-phase is derived from clue presence (`clue.nil?` = waiting for the spymaster; reveals/pass are forbidden until a clue exists).
+
+**Clue rules (official)**: number is **0–9 or unlimited** (`Clue#number` is `Integer?`, nil = ∞). For 1–9 operatives get **number + 1 guesses** and the turn auto-ends when they're used up (`Clue#guess_limit`); 0 and ∞ have no cap (`guess_limit` nil). Operatives must guess **at least once** before End turn (`guesses_made >= 1`). A wrong/bystander guess still ends the turn immediately; the clue is cleared whenever the turn flips (`Game#next_turn_document`).
 
 **Roles**: Each team (red/blue) has exactly **one spymaster** (sees the key) and one or more **operatives** (reveal cards). Board key per game: **9 starting-team agents, 8 other-team, 7 bystanders, 1 assassin**. Only the starting team's spymaster can start; teams/roles lock once playing (a mid-game joiner may pick any team as an operative). No spectators.
 
-**Documents**: Game has `{ status, starting_team, current_team, winner, board }` (board = 25 `{ word, identity, revealed }`); Player has `{ team, spymaster }`. `current_team` is non-nil from construction (initialized to `starting_team`).
+**Documents**: Game has `{ status, starting_team, current_team, winner, clue, guesses_made, board }` (board = 25 `{ word, identity, revealed }`; clue = `{ word, number }` or nil; `Document.parse` is nil-safe for `clue`/`guesses_made` so pre-clue documents load); Player has `{ team, spymaster }`. `current_team` is non-nil from construction (initialized to `starting_team`).
 
 **Key Classes**:
-- Aggregates: `Game` (`.build`, `board`, `status`, `current_team`, `starting_team`, `winner`, `players_on`, `spymaster_for`, `operatives`, `add_player`, `join_team`, `start_game`, `reveal`, `pass_turn`, `start_new_game`), `Player` (`team`, `spymaster?`, `operative?`, `online?`)
-- Value Objects: `Team` (top-level `Codenames::Team`, shared by game + player), `Game::Status` (`setup?`/`playing?`/`completed?`), `Game::Identity` (red/blue/bystander/assassin), `Game::Card`, `Game::Board` (`generate`, `reveal`, `remaining`, `all_revealed?`)
+- Aggregates: `Game` (`.build`, `CLUE_LENGTH`, `board`, `status`, `clue`, `guesses_made`, `guesses_remaining`, `current_team`, `starting_team`, `winner`, `players_on`, `spymaster_for`, `operatives`, `add_player`, `join_team`, `start_game`, `submit_clue`, `reveal`, `pass_turn`, `start_new_game`), `Player` (`team`, `spymaster?`, `operative?`, `online?`)
+- Value Objects: `Team` (top-level `Codenames::Team`, shared by game + player), `Game::Status` (`setup?`/`playing?`/`completed?`), `Game::Identity` (red/blue/bystander/assassin), `Game::Card`, `Game::Board` (`generate`, `reveal`, `remaining`, `all_revealed?`), `Game::Clue` (`word`, `number`, `unlimited?`, `guess_limit`, `number_display`)
 - Persistence: `GameRepo` (a `GameStore` constant), `GameMapping`
-- Forms: `NewGameForm`, `NewPlayerForm`, `EditPlayerForm`, `JoinTeamForm`, `StartGameForm`
-- Broadcasts: `PlayerCreated`, `PlayerConnected`, `PlayerDisconnected`, `PlayerNameUpdated`, `TeamUpdated`, `GameStarted`, `BoardUpdated`, `NewGameStarted`
-- Reveals/pass use `button_to` + Turbo (reveal carries `data-turbo-confirm`); a `spymaster-key` Stimulus controller toggles the key (hidden by default)
+- Forms: `NewGameForm`, `NewPlayerForm`, `EditPlayerForm`, `JoinTeamForm`, `StartGameForm`, `ClueForm` (word + number select, `parsed_number`)
+- Broadcasts: `PlayerCreated`, `PlayerConnected`, `PlayerDisconnected`, `PlayerNameUpdated`, `TeamUpdated`, `GameStarted`, `BoardUpdated`, `NewGameStarted` (`BoardUpdated` also fires after clue submission)
+- Reveals/pass use `button_to` + Turbo (reveal carries `data-turbo-confirm`); the clue form posts `patch :submit_clue`; a `spymaster-key` Stimulus controller toggles the key (hidden by default)
 - Words: Loaded from `config/codenames/words.yml` singleton (`Words.instance.sample(25)`)
 
 ## Wavelength Game

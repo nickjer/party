@@ -38,11 +38,23 @@ FactoryBot.define do
 
     factory :cn_playing_game, traits: %i[with_teams] do
       after(:build, &:start_game)
+
+      factory :cn_guessing_game do
+        transient do
+          clue_number { nil }
+        end
+
+        after(:build) do |game, context|
+          game.submit_clue(word: NormalizedString.new("Hint"),
+            number: context.clue_number)
+        end
+      end
     end
 
     factory :cn_completed_game, traits: %i[with_teams] do
       after(:build) do |game|
         game.start_game
+        game.submit_clue(word: NormalizedString.new("Hint"), number: nil)
         game.board.cards.each_with_index do |card, index|
           next if card.identity.team != game.starting_team
           next if game.status.completed?

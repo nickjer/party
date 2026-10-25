@@ -109,7 +109,9 @@ module BurnUnit
     def player_for!: (String user_id) -> Player
     def question: () -> NormalizedString
     def status: () -> Status
-    def complete_round: () -> self
+    def require_judge: (Player player) -> void
+    def require_non_judge: (Player player) -> void
+    def complete_round: (player: Player) -> self
     def start_new_round: (question: NormalizedString, judge: Player) -> self
     def document_json: () -> String
 
@@ -119,6 +121,7 @@ module BurnUnit
 
     attr_reader document: Document
     attr_reader identity: GlobalIdentity
+    def reject: (String message) -> bot
 
     class Document
       type json = {
@@ -308,7 +311,6 @@ module BurnUnit
 
     def new_game_params: () -> ::ActionController::Parameters
     def new_round_params: () -> ::ActionController::Parameters
-    def set_candidate: (game: Game, player: Player) -> void
   end
 
   class PlayersController < ::ApplicationController

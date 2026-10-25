@@ -18,8 +18,10 @@ module LoadedQuestions
 
         # Assign swapped guesses
         # (Bob gets Charlie's "red", Charlie gets Bob's "Red")
-        game.assign_guess(player_id: bob.id, answer_id: charlie.answer.id)
-        game.assign_guess(player_id: charlie.id, answer_id: bob.answer.id)
+        game.assign_guess(player: game.guesser, player_id: bob.id,
+          answer_id: charlie.answer.id)
+        game.assign_guess(player: game.guesser, player_id: charlie.id,
+          answer_id: bob.answer.id)
 
         # Get updated guesses
         bob_guess = game.guesses.find(bob.id)

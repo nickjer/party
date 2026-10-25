@@ -57,7 +57,7 @@ FactoryBot.define do
     factory :bu_polling_game, traits: %i[with_judge with_players]
 
     factory :bu_completed_game, traits: %i[with_judge with_players] do
-      after(:build, &:complete_round)
+      after(:build) { |game| game.complete_round(player: game.judge) }
     end
   end
 end

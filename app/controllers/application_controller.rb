@@ -9,6 +9,12 @@ class ApplicationController < ActionController::Base
 
   before_action :require_user
 
+  # An aggregate refused the request: wrong phase, wrong player, or a stale
+  # view of the game. A well-behaved client never offers the action.
+  rescue_from GameStore::Rejected do
+    head :forbidden
+  end
+
   private
 
   # @return [::User]

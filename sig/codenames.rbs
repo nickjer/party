@@ -129,10 +129,11 @@ module Codenames
     def status: () -> Status
     def winner: () -> Team?
     def join_team: (player: Player, team: Team, spymaster: bool) -> self
-    def start_game: () -> self
-    def submit_clue: (word: ::NormalizedString, number: Integer?) -> self
-    def reveal: (index: Integer) -> self
-    def pass_turn: () -> self
+    def require_starting_spymaster: (Player player) -> void
+    def start_game: (player: Player) -> self
+    def submit_clue: (player: Player, word: ::NormalizedString, number: Integer?) -> self
+    def reveal: (player: Player, index: Integer) -> self
+    def pass_turn: (player: Player) -> self
     def start_new_game: (words: Array[String], ?starting_team: Team?) -> self
     def document_json: () -> String
 
@@ -145,6 +146,9 @@ module Codenames
 
     def next_turn_document: (?board: Board) -> Document
     def completed_document: (board: Board, winner: Team) -> Document
+    def reject: (String message) -> bot
+    def spymaster_up?: (Player player) -> bool
+    def operative_up?: (Player player) -> bool
 
     class Document
       type json = {
@@ -452,7 +456,6 @@ module Codenames
     def new_game_params: () -> ::ActionController::Parameters
     def reveal_params: () -> ::ActionController::Parameters
     def submit_clue_params: () -> ::ActionController::Parameters
-    def revealable?: (Game game, Integer index) -> bool
   end
 
   class PlayersController < ::ApplicationController

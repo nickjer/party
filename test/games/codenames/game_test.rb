@@ -42,7 +42,7 @@ module Codenames
       game = build(:cn_game)
       game.add_player(user_id: "u1", name: PlayerName.parse("Alice"))
 
-      assert_raises(RuntimeError) do
+      assert_raises(GameStore::Rejected) do
         game.add_player(user_id: "u1", name: PlayerName.parse("Bob"))
       end
     end
@@ -75,7 +75,7 @@ module Codenames
     test "#start_game transitions setup to playing" do
       game = build(:cn_game, :with_teams)
 
-      game.start_game
+      game.start_game(player: game.spymaster_for(game.starting_team))
 
       assert_predicate game.status, :playing?
     end
@@ -83,13 +83,16 @@ module Codenames
     test "#start_game raises unless in setup" do
       game = build(:cn_playing_game)
 
-      assert_raises(RuntimeError) { game.start_game }
+      assert_raises(GameStore::Rejected) do
+        game.start_game(player: game.spymaster_for(game.starting_team))
+      end
     end
 
     test "#submit_clue stores the clue and resets the guess count" do
       game = build(:cn_playing_game)
 
-      game.submit_clue(word: NormalizedString.new("Ocean"), number: 2)
+      game.submit_clue(player: spymaster(game),
+        word: NormalizedString.new("Ocean"), number: 2)
 
       clue = game.clue
       assert_equal "Ocean", clue.word.to_s
@@ -100,16 +103,18 @@ module Codenames
     test "#submit_clue raises unless playing" do
       game = build(:cn_game, :with_teams)
 
-      assert_raises(RuntimeError) do
-        game.submit_clue(word: NormalizedString.new("Ocean"), number: 2)
+      assert_raises(GameStore::Rejected) do
+        game.submit_clue(player: spymaster(game),
+          word: NormalizedString.new("Ocean"), number: 2)
       end
     end
 
     test "#submit_clue raises when a clue is already submitted" do
       game = build(:cn_guessing_game)
 
-      assert_raises(RuntimeError) do
-        game.submit_clue(word: NormalizedString.new("Ocean"), number: 2)
+      assert_raises(GameStore::Rejected) do
+        game.submit_clue(player: spymaster(game),
+          word: NormalizedString.new("Ocean"), number: 2)
       end
     end
 
@@ -117,7 +122,38 @@ module Codenames
       game = build(:cn_playing_game)
 
       assert_raises(ArgumentError) do
-        game.submit_clue(word: NormalizedString.new("x" * 51), number: 2)
+        game.submit_clue(player: spymaster(game),
+          word: NormalizedString.new("x" * 51), number: 2)
+      end
+    end
+
+    test "#start_game rejects anyone but the starting team's spymaster" do
+      game = build(:cn_game, :with_teams)
+
+      assert_raises(GameStore::Rejected) do
+        game.start_game(player: game.spymaster_for(Team.blue))
+      end
+      assert_raises(GameStore::Rejected) do
+        game.start_game(player: operative(game))
+      end
+      assert_predicate game.status, :setup?
+    end
+
+    test "#submit_clue rejects an operative" do
+      game = build(:cn_playing_game)
+
+      assert_raises(GameStore::Rejected) do
+        game.submit_clue(player: operative(game),
+          word: NormalizedString.new("Ocean"), number: 2)
+      end
+    end
+
+    test "#submit_clue rejects the other team's spymaster" do
+      game = build(:cn_playing_game)
+
+      assert_raises(GameStore::Rejected) do
+        game.submit_clue(player: game.spymaster_for(Team.blue),
+          word: NormalizedString.new("Ocean"), number: 2)
       end
     end
 
@@ -138,7 +174,7 @@ module Codenames
 
       assert_equal 3, game.guesses_remaining
 
-      game.reveal(index: red_agent_index(game))
+      game.reveal(player: operative(game), index: red_agent_index(game))
 
       assert_equal 2, game.guesses_remaining
     end
@@ -146,7 +182,7 @@ module Codenames
     test "#reveal of own agent keeps the turn and counts the guess" do
       game = build(:cn_guessing_game) # red starts
 
-      game.reveal(index: red_agent_index(game))
+      game.reveal(player: operative(game), index: red_agent_index(game))
 
       assert_equal Team.red, game.current_team
       assert_predicate game.status, :playing?
@@ -156,7 +192,7 @@ module Codenames
     test "#reveal of enemy agent ends the turn and clears the clue" do
       game = build(:cn_guessing_game)
 
-      game.reveal(index: blue_agent_index(game))
+      game.reveal(player: operative(game), index: blue_agent_index(game))
 
       assert_equal Team.blue, game.current_team
       assert_nil game.clue
@@ -167,7 +203,7 @@ module Codenames
       game = build(:cn_guessing_game)
       bystander = index_of(game) { |card| card.identity.bystander? }
 
-      game.reveal(index: bystander)
+      game.reveal(player: operative(game), index: bystander)
 
       assert_equal Team.blue, game.current_team
       assert_predicate game.status, :playing?
@@ -178,12 +214,12 @@ module Codenames
       game = build(:cn_guessing_game, clue_number: 1) # 1 + 1 bonus = 2 guesses
       first, second = red_agent_indexes(game)
 
-      game.reveal(index: first)
+      game.reveal(player: operative(game), index: first)
 
       assert_equal Team.red, game.current_team
       assert_equal 1, game.guesses_made
 
-      game.reveal(index: second)
+      game.reveal(player: operative(game), index: second)
 
       assert_equal Team.blue, game.current_team
       assert_nil game.clue
@@ -193,7 +229,9 @@ module Codenames
     test "#reveal never ends the turn by count for a zero clue" do
       game = build(:cn_guessing_game, clue_number: 0)
 
-      red_agent_indexes(game).first(3).each { |index| game.reveal(index:) }
+      red_agent_indexes(game).first(3).each do |index|
+        game.reveal(player: operative(game), index:)
+      end
 
       assert_equal Team.red, game.current_team
       assert_equal 3, game.guesses_made
@@ -202,7 +240,9 @@ module Codenames
     test "#reveal never ends the turn by count for an unlimited clue" do
       game = build(:cn_guessing_game) # unlimited by default
 
-      red_agent_indexes(game).first(3).each { |index| game.reveal(index:) }
+      red_agent_indexes(game).first(3).each do |index|
+        game.reveal(player: operative(game), index:)
+      end
 
       assert_equal Team.red, game.current_team
       assert_equal 3, game.guesses_made
@@ -212,7 +252,7 @@ module Codenames
       game = build(:cn_guessing_game)
       assassin = index_of(game) { |card| card.identity.assassin? }
 
-      game.reveal(index: assassin)
+      game.reveal(player: operative(game), index: assassin)
 
       assert_predicate game.status, :completed?
       assert_equal Team.blue, game.winner
@@ -225,7 +265,7 @@ module Codenames
       game.board.cards.each_with_index do |card, index|
         next if card.identity.team != Team.red || game.status.completed?
 
-        game.reveal(index:)
+        game.reveal(player: operative(game), index:)
       end
 
       assert_predicate game.status, :completed?
@@ -237,7 +277,7 @@ module Codenames
       game.board.cards.each_with_index do |card, index|
         next if card.identity.team != Team.blue || game.status.completed?
 
-        game.reveal(index:)
+        game.reveal(player: operative(game), index:)
       end
 
       assert_predicate game.status, :completed?
@@ -247,7 +287,9 @@ module Codenames
     test "#reveal that wins on the last allowed guess completes the game" do
       game = build(:cn_guessing_game, clue_number: 8) # limit 9 = all agents
 
-      red_agent_indexes(game).each { |index| game.reveal(index:) }
+      red_agent_indexes(game).each do |index|
+        game.reveal(player: operative(game), index:)
+      end
 
       assert_predicate game.status, :completed?
       assert_equal Team.red, game.winner
@@ -258,28 +300,28 @@ module Codenames
     test "#reveal raises unless playing" do
       game = build(:cn_game, :with_teams)
 
-      assert_raises(RuntimeError) { game.reveal(index: 0) }
+      assert_raises(GameStore::Rejected) { game.reveal(player: operative(game), index: 0) }
     end
 
     test "#reveal raises when no clue is submitted" do
       game = build(:cn_playing_game)
 
-      assert_raises(RuntimeError) { game.reveal(index: 0) }
+      assert_raises(GameStore::Rejected) { game.reveal(player: operative(game), index: 0) }
     end
 
     test "#reveal raises when the card is already revealed" do
       game = build(:cn_guessing_game)
       index = red_agent_index(game)
-      game.reveal(index:)
+      game.reveal(player: operative(game), index:)
 
-      assert_raises(RuntimeError) { game.reveal(index:) }
+      assert_raises(GameStore::Rejected) { game.reveal(player: operative(game), index:) }
     end
 
     test "#pass_turn flips the current team and clears the clue" do
       game = build(:cn_guessing_game)
-      game.reveal(index: red_agent_index(game))
+      game.reveal(player: operative(game), index: red_agent_index(game))
 
-      game.pass_turn
+      game.pass_turn(player: operative(game))
 
       assert_equal Team.blue, game.current_team
       assert_nil game.clue
@@ -289,19 +331,56 @@ module Codenames
     test "#pass_turn raises unless playing" do
       game = build(:cn_game, :with_teams)
 
-      assert_raises(RuntimeError) { game.pass_turn }
+      assert_raises(GameStore::Rejected) { game.pass_turn(player: operative(game)) }
     end
 
     test "#pass_turn raises when no clue is submitted" do
       game = build(:cn_playing_game)
 
-      assert_raises(RuntimeError) { game.pass_turn }
+      assert_raises(GameStore::Rejected) { game.pass_turn(player: operative(game)) }
     end
 
     test "#pass_turn raises before the team has guessed" do
       game = build(:cn_guessing_game)
 
-      assert_raises(RuntimeError) { game.pass_turn }
+      assert_raises(GameStore::Rejected) { game.pass_turn(player: operative(game)) }
+    end
+
+    test "#reveal rejects a spymaster" do
+      game = build(:cn_guessing_game)
+
+      assert_raises(GameStore::Rejected) do
+        game.reveal(player: spymaster(game), index: red_agent_index(game))
+      end
+    end
+
+    test "#reveal rejects an operative on the other team" do
+      game = build(:cn_guessing_game)
+      blue_operative = game.players_on(Team.blue).find(&:operative?)
+
+      assert_raises(GameStore::Rejected) do
+        game.reveal(player: blue_operative, index: red_agent_index(game))
+      end
+    end
+
+    test "#reveal rejects an index off the board" do
+      game = build(:cn_guessing_game)
+
+      assert_raises(GameStore::Rejected) do
+        game.reveal(player: operative(game), index: Game::Board::SIZE)
+      end
+      assert_raises(GameStore::Rejected) do
+        game.reveal(player: operative(game), index: -1)
+      end
+    end
+
+    test "#pass_turn rejects a spymaster" do
+      game = build(:cn_guessing_game)
+      game.reveal(player: operative(game), index: red_agent_index(game))
+
+      assert_raises(GameStore::Rejected) do
+        game.pass_turn(player: spymaster(game))
+      end
     end
 
     test "#start_new_game regenerates the board and keeps players" do
@@ -339,7 +418,7 @@ module Codenames
     test "#start_new_game raises unless completed" do
       game = build(:cn_playing_game)
 
-      assert_raises(RuntimeError) do
+      assert_raises(GameStore::Rejected) do
         game.start_new_game(words: Words.instance.sample)
       end
     end
@@ -377,6 +456,12 @@ module Codenames
     private
 
     def index_of(game, &) = game.board.cards.index(&)
+
+    def spymaster(game) = game.spymaster_for(game.current_team)
+
+    def operative(game)
+      game.players_on(game.current_team).find(&:operative?)
+    end
 
     def red_agent_index(game)
       index_of(game) { |card| card.identity.team == Team.red }

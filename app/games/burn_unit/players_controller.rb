@@ -16,20 +16,19 @@ module BurnUnit
     end
 
     def create
-      game = repo.find(params[:game_id])
-      new_player = NewPlayerForm.new(game:, user_id: current_user.id,
-        name: new_player_params[:name])
+      game, new_player = repo.join(params[:game_id]) do |game|
+        new_player = NewPlayerForm.new(game:, user_id: current_user.id,
+          name: new_player_params[:name])
+        if new_player.valid?
+          name = new_player.player_name #: ::PlayerName
+          game.add_player(user_id: current_user.id, name:)
+        end
+        new_player
+      end
 
-      if new_player.valid?
-        name = new_player.player_name #: ::PlayerName
-        player = game.add_player(
-          user_id: current_user.id,
-          name:
-        )
-        repo.save(game)
-
+      if new_player.errors.empty?
+        player = game.player_for!(current_user.id)
         Broadcast::PlayerCreated.new(game:, player:).call
-
         redirect_to_game(game)
       else
         render :new, locals: { new_player: }, status: :unprocessable_content
@@ -46,16 +45,19 @@ module BurnUnit
     end
 
     def update
-      game = repo.find(params[:game_id])
-      current_player = game.player_for(current_user.id)
-      return redirect_to_new_player(game) if current_player.nil?
+      user_id = current_user.id
+      game, current_player, edit_player =
+        repo.update(params[:game_id], user_id:) do |game, current_player|
+          edit_player = EditPlayerForm.new(game:, current_player:,
+            name: update_player_params[:name])
+          if edit_player.valid?
+            new_name = edit_player.player_name #: ::PlayerName
+            current_player.name = new_name
+          end
+          edit_player
+        end
 
-      edit_player = EditPlayerForm.new(game:, current_player:,
-        name: update_player_params[:name])
-      if edit_player.valid?
-        new_name = edit_player.player_name #: ::PlayerName
-        current_player.name = new_name
-        repo.save(game)
+      if edit_player.errors.empty?
         Broadcast::PlayerNameUpdated.new(game:, player: current_player).call
         redirect_to_game(game)
       else
@@ -65,23 +67,25 @@ module BurnUnit
     end
 
     def vote
-      game = repo.find(params[:game_id])
-      current_player = game.player_for(current_user.id)
-      return redirect_to_new_player(game) if current_player.nil?
-
-      vote_form = VoteForm.new(game:, current_player:,
-        candidate_id: vote_params[:candidate_id])
-      if vote_form.valid?
-        had_vote = current_player.voted?
-        current_player.vote = vote_form.candidate_id
-        repo.save(game)
-        unless had_vote
-          Broadcast::VoteCreated.new(game:,
-            player: current_player).call
+      had_vote = false
+      user_id = current_user.id
+      game, current_player, vote_form =
+        repo.update(params[:game_id], user_id:) do |game, current_player|
+          vote_form = VoteForm.new(game:, current_player:,
+            candidate_id: vote_params[:candidate_id])
+          if vote_form.valid?
+            had_vote = current_player.voted?
+            current_player.vote = vote_form.candidate_id
+          end
+          vote_form
         end
+
+      valid = vote_form.errors.empty?
+      if valid && !had_vote
+        Broadcast::VoteCreated.new(game:, player: current_player).call
       end
 
-      status = vote_form.valid? ? :ok : :unprocessable_content
+      status = valid ? :ok : :unprocessable_content
       if current_player.judge?
         completed_round_form = CompletedRoundForm.new(game:)
         render "burn_unit/games/polling_judge",

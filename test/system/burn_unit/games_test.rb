@@ -599,7 +599,7 @@ module BurnUnit
 
         # Open the Tally Votes modal
         click_on "Tally Votes"
-        assert_selector "dialog[open]", visible: true
+        assert_selector "dialog[open]", visible: :visible
 
         # Try to submit with insufficient votes
         within("dialog[open]") do
@@ -665,7 +665,7 @@ module BurnUnit
       using_session("default") do
         # Open the Tally Votes modal
         click_on "Tally Votes"
-        assert_selector "dialog[open]", visible: true
+        assert_selector "dialog[open]", visible: :visible
         assert_text "Are you ready to tally the votes?"
 
         # Click the X button to close
@@ -677,7 +677,7 @@ module BurnUnit
 
         # Open modal again
         click_on "Tally Votes"
-        assert_selector "dialog[open]", visible: true
+        assert_selector "dialog[open]", visible: :visible
 
         # Click the Close button
         within("dialog[open]") do

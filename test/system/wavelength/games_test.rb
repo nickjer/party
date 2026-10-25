@@ -78,11 +78,11 @@ module Wavelength
       using_session(session_for(psychic)) do
         assert_no_button "Lock it in"
         assert_field "Your clue"
-        assert_selector "[data-reveal-target='item']", visible: true
+        assert_selector "[data-reveal-target='item']", visible: :visible
         click_on "Show / hide target"
-        assert_no_selector "[data-reveal-target='item']", visible: true
+        assert_no_selector "[data-reveal-target='item']", visible: :visible
         click_on "Show / hide target"
-        assert_selector "[data-reveal-target='item']", visible: true
+        assert_selector "[data-reveal-target='item']", visible: :visible
       end
 
       # A guesser waits out the clue phase with no clue input and no dial.
@@ -131,9 +131,10 @@ module Wavelength
       # guess's score (two reveal items); the toggle hides both at once.
       using_session(session_for(psychic)) do
         assert_text "Waiting", wait: 5
-        assert_selector "[data-reveal-target='item']", visible: true, minimum: 2
+        assert_selector "[data-reveal-target='item']", visible: :visible,
+          minimum: 2
         click_on "Show / hide target"
-        assert_no_selector "[data-reveal-target='item']", visible: true
+        assert_no_selector "[data-reveal-target='item']", visible: :visible
       end
 
       # The opponent now sees the left/right catch-up via broadcast and nails
@@ -426,7 +427,7 @@ module Wavelength
 
     def lock_dial(position)
       within "#play_area" do
-        find("input[type='range']").set(position)
+        find_field(type: "range").set(position)
         click_on "Lock it in"
       end
     end

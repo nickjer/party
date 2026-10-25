@@ -23,39 +23,6 @@ module Turbo
   end
 end
 
-module ActionCable
-  module Channel
-    module Streams
-      def stream_from: (String broadcasting, ?untyped callback, ?coder: untyped) ?{ () -> void } -> void
-    end
-
-    class Base
-      include Streams
-
-      def reject: () -> void
-    end
-  end
-
-  module Connection
-    module Identification
-      module ClassMethods
-        def identified_by: (*Symbol identifiers) -> void
-      end
-    end
-
-    module Authorization
-      def reject_unauthorized_connection: () -> bot
-    end
-
-    class Base
-      extend Identification::ClassMethods
-      include Authorization
-
-      def cookies: () -> untyped
-    end
-  end
-end
-
 module ActiveRecord
   class Base
     include GlobalID::Identification

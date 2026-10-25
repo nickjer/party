@@ -1,11 +1,5 @@
 <%# locals: (game:, completed_round_form:) %>
 
-<style>
-  .answer-pool .unassign-btn { display: none; }
-  .player-slot .answer-card { width: 100%; }
-  .player-slot .answer-text { flex: 1; }
-</style>
-
 <%= render "loaded_questions/games/question_card", question: game.question %>
 
 <% unless completed_round_form.errors[:base].empty? %>

@@ -518,7 +518,7 @@ module LoadedQuestions
 
         # Guesser clicks the X button on Blue answer in Alice's slot
         within(alice_slot) do
-          find(".answer-card", text: "Blue").find(".unassign-btn").click
+          within(".answer-card", text: "Blue") { find(".unassign-btn").click }
         end
         sleep 0.5
 
@@ -877,7 +877,7 @@ module LoadedQuestions
 
         # Open the modal
         click_on "Begin Guessing"
-        assert_selector "dialog[open]", visible: true
+        assert_selector "dialog[open]", visible: :visible
 
         # Try to submit with insufficient answers
         within("dialog[open]") do
@@ -1010,7 +1010,7 @@ module LoadedQuestions
         click_on "Begin Guessing"
 
         # Modal should be visible
-        assert_selector "dialog[open]", visible: true
+        assert_selector "dialog[open]", visible: :visible
         assert_text "Are you ready to begin guessing?"
 
         # Click the X button to close
@@ -1022,7 +1022,7 @@ module LoadedQuestions
 
         # Open modal again
         click_on "Begin Guessing"
-        assert_selector "dialog[open]", visible: true
+        assert_selector "dialog[open]", visible: :visible
 
         # Click the Close button
         within("dialog[open]") do
@@ -1126,7 +1126,7 @@ module LoadedQuestions
         click_on "Complete Matching"
 
         # Modal should be visible
-        assert_selector "dialog[open]", visible: true
+        assert_selector "dialog[open]", visible: :visible
         assert_text "Are you sure you would like to finalize your matched " \
           "answers?"
 
@@ -1139,7 +1139,7 @@ module LoadedQuestions
 
         # Open modal again
         click_on "Complete Matching"
-        assert_selector "dialog[open]", visible: true
+        assert_selector "dialog[open]", visible: :visible
 
         # Click the Close button
         within("dialog[open]") do

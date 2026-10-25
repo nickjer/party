@@ -71,6 +71,65 @@ class GameStoreTest < ActiveSupport::TestCase
     assert_predicate store.find(game.id).status, :guessing?
   end
 
+  test "#update loads the game, yields the acting player, and saves" do
+    game = build_game(players: %w[Alice Bob])
+    store.save(game)
+    alice = game.players.find { |player| player.name.to_s == "Alice" }
+
+    loaded, player, value = store.update(game.id, user_id: alice.user_id) do |fresh, acting|
+      acting.score = 3
+      fresh.begin_guessing
+      :done
+    end
+
+    assert_equal game.id, loaded.id
+    assert_equal alice.id, player.id
+    assert_equal :done, value
+    assert_predicate store.find(game.id).status, :guessing?
+    assert_equal 3, store.find(game.id).find_player(alice.id).score
+  end
+
+  test "#update raises when the user is not a player" do
+    game = build_game(players: %w[Alice])
+    store.save(game)
+
+    assert_raises(ActiveRecord::RecordNotFound) do
+      store.update(game.id, user_id: "nobody") { |_fresh, _acting| nil }
+    end
+  end
+
+  test "#update writes nothing when the block raises" do
+    game = build_game(players: %w[Alice Bob])
+    store.save(game)
+    alice = game.players.find { |player| player.name.to_s == "Alice" }
+
+    assert_raises(GameStore::Rejected) do
+      store.update(game.id, user_id: alice.user_id) do |fresh, acting|
+        acting.score = 3
+        fresh.begin_guessing
+        raise GameStore::Rejected, "nope"
+      end
+    end
+
+    reloaded = store.find(game.id)
+    assert_predicate reloaded.status, :polling?
+    assert_equal 0, reloaded.find_player(alice.id).score
+  end
+
+  test "#join loads the game, yields it, and saves the new player" do
+    game = build_game(players: %w[Alice])
+    store.save(game)
+    user = create(:user)
+
+    loaded, added = store.join(game.id) do |fresh|
+      fresh.add_player(user_id: user.id, name: PlayerName.parse("Bob"))
+    end
+
+    assert_equal game.id, loaded.id
+    assert_equal "Bob", added.name.to_s
+    assert_equal added.id, store.find(game.id).player_for!(user.id).id
+  end
+
   private
 
   def store = GameStore.new(mapping: LoadedQuestions::GameMapping.new)

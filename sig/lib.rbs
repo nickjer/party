@@ -150,6 +150,7 @@ interface _StoredGame[P]
   def id: () -> String
   def document_json: () -> String
   def players: () -> Array[P]
+  def player_for!: (String user_id) -> P
 end
 
 interface _GameMapping[G, P]
@@ -159,11 +160,16 @@ interface _GameMapping[G, P]
 end
 
 class GameStore[P < _StoredPlayer, G < _StoredGame[P]]
+  class Rejected < StandardError
+  end
+
   def self.generate_game_id: () -> String
   def self.generate_player_id: () -> String
 
   def initialize: (mapping: _GameMapping[G, P]) -> void
   def find: (String id) -> G
+  def update: [R] (String id, user_id: String) { (G game, P player) -> R } -> [G, P, R]
+  def join: [R] (String id) { (G game) -> R } -> [G, R]
   def save: (G game) -> void
 
   private

@@ -294,7 +294,7 @@ module Codenames
     test "#pass switches the turn" do
       game = create(:cn_guessing_game)
       index = game.board.cards.index { |card| card.identity.team == Team.red }
-      game.reveal(index:)
+      game.reveal(player: red_operative(game), index:)
       GameRepo.save(game)
       sign_in(red_operative(game).user_id)
 

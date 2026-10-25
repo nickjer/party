@@ -30,7 +30,8 @@ module LoadedQuestions
     end
 
     def find_player(id)
-      players.find { |player| player.id == id } || raise("Player not found")
+      players.find { |player| player.id == id } ||
+        reject("Player not found")
     end
 
     def guesser
@@ -56,20 +57,36 @@ module LoadedQuestions
     def status = document.status
 
     def add_player(user_id:, name:, guesser: false)
-      raise "Player already exists for user" if player_for(user_id)
+      reject "Player already exists for user" if player_for(user_id)
 
       player = Player.build(game_id: id, user_id:, name:, guesser:)
       @players << player
       player
     end
 
-    def assign_guess(player_id:, answer_id:)
+    # Raises unless the player is the guesser. The guesser-only operations call
+    # this themselves; controllers call it before validating a form so a
+    # non-guesser is rejected instead of shown the form's errors.
+    def require_guesser(player)
+      reject "Only the guesser can do that" unless player.guesser?
+    end
+
+    # The guesser hands the next round to someone else.
+    def require_non_guesser(player)
+      reject "The guesser cannot open the next round" if player.guesser?
+    end
+
+    def assign_guess(player:, player_id:, answer_id:)
+      require_guesser(player)
+      reject "Game must be in guessing status" unless status.guessing?
+
       @guesses = guesses.assign(player_id:, answer_id:)
       @document = document.with(guesses_data: @guesses.map(&:to_h))
     end
 
-    def begin_guessing
-      raise "Game must be in polling status" unless status.polling?
+    def begin_guessing(player:)
+      require_guesser(player)
+      reject "Game must be in polling status" unless status.polling?
 
       answered = players.select(&:answered?)
       new_guesses = answered.map do |player|
@@ -83,16 +100,19 @@ module LoadedQuestions
       self
     end
 
-    def complete_round
-      raise "Game must be in guessing status" unless status.guessing?
+    def complete_round(player:)
+      require_guesser(player)
+      reject "Game must be in guessing status" unless status.guessing?
 
       guesser.score += guesses.score
       @document = document.with(status: Status.completed)
       self
     end
 
+    # The next round's guesser is whoever opens it; the current guesser may not.
     def start_new_round(question:, guesser:)
-      raise "Game must be in completed status" unless status.completed?
+      reject "Game must be in completed status" unless status.completed?
+      require_non_guesser(guesser)
 
       @guesses = Guesses.empty
       @document = document.with(
@@ -119,5 +139,7 @@ module LoadedQuestions
 
     # @dynamic document, identity
     attr_reader :document, :identity
+
+    def reject(message) = raise(GameStore::Rejected, message)
   end
 end

@@ -83,7 +83,7 @@ module LoadedQuestions
 
       game.add_player(user_id: user.id, name: PlayerName.parse("Alice"))
 
-      error = assert_raises(RuntimeError) do
+      error = assert_raises(GameStore::Rejected) do
         game.add_player(user_id: user.id, name: PlayerName.parse("Bob"))
       end
 
@@ -95,7 +95,7 @@ module LoadedQuestions
       existing_player = game.players.first
       user_id = existing_player.user_id
 
-      error = assert_raises(RuntimeError) do
+      error = assert_raises(GameStore::Rejected) do
         game.add_player(user_id:, name: PlayerName.parse("Bob"))
       end
 
@@ -126,7 +126,8 @@ module LoadedQuestions
       bob, charlie = game.guesses.map(&:player)
 
       # Assign Bob's answer to Charlie's slot
-      game.assign_guess(player_id: charlie.id, answer_id: bob.answer.id)
+      game.assign_guess(player: game.guesser, player_id: charlie.id,
+        answer_id: bob.answer.id)
       GameRepo.save(game)
 
       # Reload from database to verify persistence
@@ -145,7 +146,7 @@ module LoadedQuestions
         { name: "Charlie", answer: "" }
       ])
 
-      game.begin_guessing
+      game.begin_guessing(player: game.guesser)
 
       assert_equal 2, game.guesses.size
 
@@ -158,12 +159,67 @@ module LoadedQuestions
       end
     end
 
+    test "#begin_guessing rejects a non-guesser" do
+      game = build(:lq_polling_game, :with_answers, player_names: %w[Alice Bob])
+      non_guesser = game.players.reject(&:guesser?).first
+
+      assert_raises(GameStore::Rejected) { game.begin_guessing(player: non_guesser) }
+      assert_predicate game.status, :polling?
+    end
+
+    test "#complete_round rejects a non-guesser" do
+      game = build(:lq_matching_game, player_names: %w[Alice Bob])
+      non_guesser = game.players.reject(&:guesser?).first
+
+      assert_raises(GameStore::Rejected) { game.complete_round(player: non_guesser) }
+      assert_predicate game.status, :guessing?
+    end
+
+    test "#assign_guess rejects a non-guesser" do
+      game = build(:lq_matching_game, player_names: %w[Alice Bob])
+      alice = player_named(game:, name: "Alice")
+      non_guesser = game.players.reject(&:guesser?).first
+
+      assert_raises(GameStore::Rejected) do
+        game.assign_guess(player: non_guesser, player_id: alice.id,
+          answer_id: alice.answer.id)
+      end
+    end
+
+    test "#assign_guess rejects when the game is not guessing" do
+      game = build(:lq_polling_game, :with_answers, player_names: %w[Alice Bob])
+      alice = player_named(game:, name: "Alice")
+
+      assert_raises(GameStore::Rejected) do
+        game.assign_guess(player: game.guesser, player_id: alice.id,
+          answer_id: alice.answer.id)
+      end
+    end
+
+    test "#start_new_round rejects the current guesser" do
+      game = build(:lq_completed_game, player_names: %w[Alice Bob])
+      question = NormalizedString.new("What is your favorite animal?")
+
+      assert_raises(GameStore::Rejected) do
+        game.start_new_round(question:, guesser: game.guesser)
+      end
+      assert_predicate game.status, :completed?
+    end
+
+    test "#require_guesser rejects a non-guesser and passes the guesser" do
+      game = build(:lq_polling_game, player_names: %w[Alice Bob])
+      non_guesser = game.players.reject(&:guesser?).first
+
+      assert_raises(GameStore::Rejected) { game.require_guesser(non_guesser) }
+      assert_nil game.require_guesser(game.guesser)
+    end
+
     test "#begin_guessing raises error when game is not in polling status" do
       game = build(:lq_matching_game, player_names: %w[Alice Bob])
 
       assert_predicate game.status, :guessing?
 
-      error = assert_raises(RuntimeError) { game.begin_guessing }
+      error = assert_raises(GameStore::Rejected) { game.begin_guessing(player: game.guesser) }
 
       assert_equal "Game must be in polling status", error.message
     end
@@ -174,7 +230,7 @@ module LoadedQuestions
         { name: "Bob", answer: "Red" }
       ])
 
-      assert_equal game, game.begin_guessing
+      assert_equal game, game.begin_guessing(player: game.guesser)
     end
 
     test "#begin_guessing transitions game from polling to guessing status" do
@@ -185,7 +241,7 @@ module LoadedQuestions
 
       assert_predicate game.status, :polling?
 
-      game.begin_guessing
+      game.begin_guessing(player: game.guesser)
 
       assert_predicate game.status, :guessing?
     end
@@ -196,7 +252,7 @@ module LoadedQuestions
         { name: "Bob", answer: "Red" }
       ])
 
-      game.begin_guessing
+      game.begin_guessing(player: game.guesser)
       GameRepo.save(game)
 
       reloaded_game = reload(game:)
@@ -212,13 +268,16 @@ module LoadedQuestions
 
       # Make one guess correct, swap the other two
       player1, player2, player3 = game.players.reject(&:guesser?)
-      game.assign_guess(player_id: player1.id, answer_id: player1.answer.id)
-      game.assign_guess(player_id: player2.id, answer_id: player3.answer.id)
-      game.assign_guess(player_id: player3.id, answer_id: player2.answer.id)
+      game.assign_guess(player: game.guesser, player_id: player1.id,
+        answer_id: player1.answer.id)
+      game.assign_guess(player: game.guesser, player_id: player2.id,
+        answer_id: player3.answer.id)
+      game.assign_guess(player: game.guesser, player_id: player3.id,
+        answer_id: player2.answer.id)
 
       assert_equal 1, game.guesses.score
 
-      game.complete_round
+      game.complete_round(player: game.guesser)
 
       assert_equal 6, game.guesser.score
     end
@@ -228,7 +287,7 @@ module LoadedQuestions
 
       assert_predicate game.status, :polling?
 
-      error = assert_raises(RuntimeError) { game.complete_round }
+      error = assert_raises(GameStore::Rejected) { game.complete_round(player: game.guesser) }
 
       assert_equal "Game must be in guessing status", error.message
     end
@@ -236,7 +295,7 @@ module LoadedQuestions
     test "#complete_round returns the game" do
       game = build(:lq_matching_game, player_names: %w[Alice Bob])
 
-      assert_equal game, game.complete_round
+      assert_equal game, game.complete_round(player: game.guesser)
     end
 
     test "#complete_round transitions game from guessing to completed status" do
@@ -244,7 +303,7 @@ module LoadedQuestions
 
       assert_predicate game.status, :guessing?
 
-      game.complete_round
+      game.complete_round(player: game.guesser)
 
       assert_predicate game.status, :completed?
     end
@@ -257,13 +316,13 @@ module LoadedQuestions
 
       # Make all guesses correct
       game.guesses.each do |guess|
-        game.assign_guess(player_id: guess.player.id,
+        game.assign_guess(player: game.guesser, player_id: guess.player.id,
           answer_id: guess.player.answer.id)
       end
 
       assert_equal 2, game.guesses.score
 
-      game.complete_round
+      game.complete_round(player: game.guesser)
 
       assert_equal 2, game.guesser.score
     end
@@ -316,7 +375,7 @@ module LoadedQuestions
 
       assert_predicate game.status, :polling?
 
-      error = assert_raises(RuntimeError) do
+      error = assert_raises(GameStore::Rejected) do
         game.start_new_round(question:, guesser: new_guesser)
       end
 

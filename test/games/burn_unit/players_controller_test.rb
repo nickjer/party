@@ -61,7 +61,7 @@ module BurnUnit
       assert_dom "select[aria-label='Vote for player']"
     end
 
-    test "#vote redirects to new player when current player is nil" do
+    test "#vote responds not found when current player is nil" do
       game = create(:bu_game)
       user = create(:user)
       sign_in(user.id)
@@ -72,7 +72,7 @@ module BurnUnit
         }
       }
 
-      assert_redirected_to new_burn_unit_game_player_path(game.id)
+      assert_response :not_found
     end
 
     test "#vote renders polling_judge view for judge" do
@@ -244,7 +244,7 @@ module BurnUnit
       assert_match(/has already been taken/, response.body)
     end
 
-    test "#update redirects to new player when current player is nil" do
+    test "#update responds not found when current player is nil" do
       game = create(:bu_game)
       user = create(:user)
       sign_in(user.id)
@@ -255,7 +255,7 @@ module BurnUnit
         }
       }
 
-      assert_redirected_to new_burn_unit_game_player_path(game.id)
+      assert_response :not_found
     end
   end
 end

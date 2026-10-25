@@ -46,7 +46,7 @@ module LoadedQuestions
       game = build(:lq_matching_game)
       # Assign all guesses
       game.guesses.each do |guess|
-        game.assign_guess(player_id: guess.player.id,
+        game.assign_guess(player: game.guesser, player_id: guess.player.id,
           answer_id: guess.player.answer.id)
       end
 

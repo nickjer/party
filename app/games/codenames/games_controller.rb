@@ -50,16 +50,16 @@ module Codenames
     end
 
     def start
-      game = repo.find(params[:id])
-      current_player = game.player_for!(current_user.id)
-      if current_player != game.spymaster_for(game.starting_team)
-        return head :forbidden
-      end
+      user_id = current_user.id
+      game, current_player, start_game =
+        repo.update(params[:id], user_id:) do |game, current_player|
+          game.require_starting_spymaster(current_player)
+          start_game = StartGameForm.new(game:)
+          game.start_game(player: current_player) if start_game.valid?
+          start_game
+        end
 
-      start_game = StartGameForm.new(game:)
-      if start_game.valid?
-        game.start_game
-        repo.save(game)
+      if start_game.errors.empty?
         Broadcast::GameStarted.new(game:, player: current_player).call
         render :play, locals: { game:, current_player: }
       else
@@ -69,19 +69,20 @@ module Codenames
     end
 
     def submit_clue
-      game = repo.find(params[:id])
-      current_player = game.player_for!(current_user.id)
-      return head :forbidden unless game.status.playing?
-      return head :forbidden unless current_player.spymaster?
-      return head :forbidden if current_player.team != game.current_team
-      return head :forbidden unless game.clue.nil?
-
+      user_id = current_user.id
       clue_params = submit_clue_params
-      clue_form = ClueForm.new(word: clue_params[:word],
-        number: clue_params[:number])
-      if clue_form.valid?
-        game.submit_clue(word: clue_form.word, number: clue_form.parsed_number)
-        repo.save(game)
+      game, current_player, clue_form =
+        repo.update(params[:id], user_id:) do |game, current_player|
+          clue_form = ClueForm.new(word: clue_params[:word],
+            number: clue_params[:number])
+          if clue_form.valid?
+            game.submit_clue(player: current_player, word: clue_form.word,
+              number: clue_form.parsed_number)
+          end
+          clue_form
+        end
+
+      if clue_form.errors.empty?
         Broadcast::BoardUpdated.new(game:, player: current_player).call
         render :play, locals: { game:, current_player: }
       else
@@ -91,43 +92,34 @@ module Codenames
     end
 
     def reveal
-      game = repo.find(params[:id])
-      current_player = game.player_for!(current_user.id)
-      return head :forbidden unless game.status.playing?
-      return head :forbidden unless current_player.operative?
-      return head :forbidden if current_player.team != game.current_team
-      return head :forbidden if game.clue.nil?
-
       index = Integer(reveal_params[:index], exception: false)
-      return head :forbidden if index.nil? || !revealable?(game, index)
+      return head :forbidden if index.nil?
 
-      game.reveal(index:)
-      repo.save(game)
+      user_id = current_user.id
+      game, current_player =
+        repo.update(params[:id], user_id:) do |game, current_player|
+          game.reveal(player: current_player, index:)
+        end
       Broadcast::BoardUpdated.new(game:, player: current_player).call
       render :play, locals: { game:, current_player: }
     end
 
     def pass
-      game = repo.find(params[:id])
-      current_player = game.player_for!(current_user.id)
-      return head :forbidden unless game.status.playing?
-      return head :forbidden unless current_player.operative?
-      return head :forbidden if current_player.team != game.current_team
-      return head :forbidden if game.clue.nil? || game.guesses_made < 1
-
-      game.pass_turn
-      repo.save(game)
+      user_id = current_user.id
+      game, current_player =
+        repo.update(params[:id], user_id:) do |game, current_player|
+          game.pass_turn(player: current_player)
+        end
       Broadcast::BoardUpdated.new(game:, player: current_player).call
       render :play, locals: { game:, current_player: }
     end
 
     def new_game
-      game = repo.find(params[:id])
-      current_player = game.player_for!(current_user.id)
-      return head :forbidden unless game.status.completed?
-
-      game.start_new_game(words: Words.instance.sample)
-      repo.save(game)
+      user_id = current_user.id
+      game, current_player =
+        repo.update(params[:id], user_id:) do |game, _current_player|
+          game.start_new_game(words: Words.instance.sample)
+        end
       Broadcast::NewGameStarted.new(game:, player: current_player).call
 
       start_game = StartGameForm.new(game:)
@@ -146,11 +138,6 @@ module Codenames
 
     def submit_clue_params
       params.expect(clue: %w[word number])
-    end
-
-    def revealable?(game, index)
-      index.between?(0, Game::Board::SIZE - 1) &&
-        !game.board.card(index).revealed?
     end
 
     def repo = GameRepo

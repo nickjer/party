@@ -34,7 +34,9 @@ module Codenames
     end
 
     def add_player(user_id:, name:, team: nil, spymaster: false)
-      raise "Player already exists for user" if player_for(user_id)
+      if player_for(user_id)
+        raise GameStore::Rejected, "Player already exists for user"
+      end
 
       player = Player.build(game_id: id, user_id:, name:, team:, spymaster:)
       @players << player
@@ -50,7 +52,8 @@ module Codenames
     def current_team = document.current_team
 
     def find_player(id)
-      players.find { |player| player.id == id } || raise("Player not found")
+      players.find { |player| player.id == id } ||
+        raise(GameStore::Rejected, "Player not found")
     end
 
     def guesses_made = document.guesses_made
@@ -93,16 +96,30 @@ module Codenames
       self
     end
 
-    def start_game
-      raise "Game must be in setup status" unless status.setup?
+    # Only the starting team's spymaster can start the game.
+    # Raises unless the player is the starting team's spymaster. Controllers
+    # call it before validating the lobby so anyone else is rejected instead
+    # of shown the form's errors.
+    def require_starting_spymaster(player)
+      return if player == spymaster_for(starting_team)
+
+      reject "Only the starting team's spymaster can start"
+    end
+
+    def start_game(player:)
+      reject "Game must be in setup status" unless status.setup?
+      require_starting_spymaster(player)
 
       @document = document.with(status: Status.playing)
       self
     end
 
-    def submit_clue(word:, number:)
-      raise "Game must be in playing status" unless status.playing?
-      raise "Clue already submitted" unless clue.nil?
+    def submit_clue(player:, word:, number:)
+      reject "Game must be in playing status" unless status.playing?
+      unless spymaster_up?(player)
+        reject "Only the current spymaster can give a clue"
+      end
+      reject "Clue already submitted" unless clue.nil?
 
       CLUE_LENGTH.validate!(word)
       @document = document.with(clue: Clue.new(word:, number:),
@@ -110,14 +127,16 @@ module Codenames
       self
     end
 
-    def reveal(index:)
-      raise "Game must be in playing status" unless status.playing?
+    def reveal(player:, index:)
+      reject "Game must be in playing status" unless status.playing?
+      reject "Only a current operative can reveal" unless operative_up?(player)
 
       current_clue = clue
-      raise "Clue must be submitted before revealing" if current_clue.nil?
+      reject "Clue must be submitted before revealing" if current_clue.nil?
+      reject "Card index out of range" unless index.between?(0, Board::SIZE - 1)
 
       card = board.card(index)
-      raise "Card already revealed" if card.revealed?
+      reject "Card already revealed" if card.revealed?
 
       new_board = board.reveal(index)
       @document =
@@ -141,17 +160,18 @@ module Codenames
       self
     end
 
-    def pass_turn
-      raise "Game must be in playing status" unless status.playing?
-      raise "Clue must be submitted before passing" if clue.nil?
-      raise "Must guess at least once before passing" if guesses_made < 1
+    def pass_turn(player:)
+      reject "Game must be in playing status" unless status.playing?
+      reject "Only a current operative can pass" unless operative_up?(player)
+      reject "Clue must be submitted before passing" if clue.nil?
+      reject "Must guess at least once before passing" if guesses_made < 1
 
       @document = next_turn_document
       self
     end
 
     def start_new_game(words:, starting_team: nil)
-      raise "Game must be in completed status" unless status.completed?
+      reject "Game must be in completed status" unless status.completed?
 
       team = starting_team || document.starting_team.opponent
       @document = document.with(
@@ -176,6 +196,16 @@ module Codenames
 
     # @dynamic document, identity
     attr_reader :document, :identity
+
+    def reject(message) = raise(GameStore::Rejected, message)
+
+    def spymaster_up?(player)
+      player.spymaster? && player.team == current_team
+    end
+
+    def operative_up?(player)
+      player.operative? && player.team == current_team
+    end
 
     # Play passes to the other team: flip the turn and clear the clue.
     def next_turn_document(board: document.board)

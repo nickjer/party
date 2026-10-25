@@ -77,21 +77,21 @@ module LoadedQuestions
 
     # POST /loaded_questions/games/:id/create_round
     def create_round
-      game = repo.find(params[:id])
-      current_player = game.player_for!(current_user.id)
-      return head :forbidden if current_player.guesser?
+      user_id = current_user.id
+      game, current_player, new_round =
+        repo.update(params[:id], user_id:) do |game, current_player|
+          game.require_non_guesser(current_player)
+          new_round = NewRoundForm.new(game:,
+            question: new_round_params[:question])
+          if new_round.valid?
+            game.start_new_round(question: new_round.question,
+              guesser: current_player)
+          end
+          new_round
+        end
 
-      new_round = NewRoundForm.new(
-        game:,
-        question: new_round_params[:question]
-      )
-
-      if new_round.valid?
-        game.start_new_round(question: new_round.question,
-          guesser: current_player)
-        repo.save(game)
+      if new_round.errors.empty?
         Broadcast::RoundCreated.new(game:).call
-
         guessing_round_form = GuessingRoundForm.new(game:)
         render :polling_guesser,
           locals: { game:, current_player:, guessing_round_form: }
@@ -103,14 +103,18 @@ module LoadedQuestions
 
     # PATCH /loaded_questions/games/:id/completed_round
     def completed_round
-      game = repo.find(params[:id])
-      current_player = game.player_for!(current_user.id)
-      return head :forbidden unless current_player.guesser?
+      user_id = current_user.id
+      game, current_player, completed_round_form =
+        repo.update(params[:id], user_id:) do |game, current_player|
+          game.require_guesser(current_player)
+          completed_round_form = CompletedRoundForm.new(game:)
+          if completed_round_form.valid?
+            game.complete_round(player: current_player)
+          end
+          completed_round_form
+        end
 
-      completed_round_form = CompletedRoundForm.new(game:)
-      if completed_round_form.valid?
-        game.complete_round
-        repo.save(game)
+      if completed_round_form.errors.empty?
         Broadcast::RoundCompleted.new(game:).call
         render :completed, locals: { game:, current_player: }
       else
@@ -122,14 +126,18 @@ module LoadedQuestions
 
     # PATCH /loaded_questions/games/:id/guessing_round
     def guessing_round
-      game = repo.find(params[:id])
-      current_player = game.player_for!(current_user.id)
-      return head :forbidden unless current_player.guesser?
+      user_id = current_user.id
+      game, current_player, guessing_round_form =
+        repo.update(params[:id], user_id:) do |game, current_player|
+          game.require_guesser(current_player)
+          guessing_round_form = GuessingRoundForm.new(game:)
+          if guessing_round_form.valid?
+            game.begin_guessing(player: current_player)
+          end
+          guessing_round_form
+        end
 
-      guessing_round_form = GuessingRoundForm.new(game:)
-      if guessing_round_form.valid?
-        game.begin_guessing
-        repo.save(game)
+      if guessing_round_form.errors.empty?
         Broadcast::GuessingRoundStarted.new(game:).call
         completed_round_form = CompletedRoundForm.new(game:)
         render :guessing_guesser,
@@ -143,16 +151,14 @@ module LoadedQuestions
 
     # PATCH /loaded_questions/games/:id/assign_guess
     def assign_guess
-      game = repo.find(params[:id])
-      current_player = game.player_for!(current_user.id)
-      return head :forbidden unless current_player.guesser?
-      return head :forbidden unless game.status.guessing?
-
       player_id = assign_guess_params[:player_id]
       answer_id = assign_guess_params[:answer_id].presence
 
-      game.assign_guess(player_id:, answer_id:)
-      repo.save(game)
+      user_id = current_user.id
+      game, =
+        repo.update(params[:id], user_id:) do |game, current_player|
+          game.assign_guess(player: current_player, player_id:, answer_id:)
+        end
       Broadcast::GuessesUpdated.new(game:).call
 
       head :ok

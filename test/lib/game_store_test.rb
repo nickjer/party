@@ -65,7 +65,7 @@ class GameStoreTest < ActiveSupport::TestCase
     game = build_game(players: %w[Alice Bob])
     store.save(game)
 
-    game.begin_guessing
+    game.begin_guessing(player: game.guesser)
     store.save(game)
 
     assert_predicate store.find(game.id).status, :guessing?
@@ -76,11 +76,12 @@ class GameStoreTest < ActiveSupport::TestCase
     store.save(game)
     alice = game.players.find { |player| player.name.to_s == "Alice" }
 
-    loaded, player, value = store.update(game.id, user_id: alice.user_id) do |fresh, acting|
-      acting.score = 3
-      fresh.begin_guessing
-      :done
-    end
+    loaded, player, value =
+      store.update(game.id, user_id: alice.user_id) do |fresh, acting|
+        acting.score = 3
+        fresh.begin_guessing(player: acting)
+        :done
+      end
 
     assert_equal game.id, loaded.id
     assert_equal alice.id, player.id
@@ -106,7 +107,7 @@ class GameStoreTest < ActiveSupport::TestCase
     assert_raises(GameStore::Rejected) do
       store.update(game.id, user_id: alice.user_id) do |fresh, acting|
         acting.score = 3
-        fresh.begin_guessing
+        fresh.begin_guessing(player: acting)
         raise GameStore::Rejected, "nope"
       end
     end
@@ -134,10 +135,12 @@ class GameStoreTest < ActiveSupport::TestCase
 
   def store = GameStore.new(mapping: LoadedQuestions::GameMapping.new)
 
+  # The first player listed is the guesser.
   def build_game(players: [])
     game = build(:lq_game)
-    players.each do |name|
-      game.add_player(user_id: create(:user).id, name: PlayerName.parse(name))
+    players.each_with_index do |name, index|
+      game.add_player(user_id: create(:user).id, name: PlayerName.parse(name),
+        guesser: index.zero?)
     end
     game
   end

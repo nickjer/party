@@ -35,7 +35,7 @@ module Wavelength
       game = build(:wl_game)
       game.add_player(user_id: "u1", name: PlayerName.parse("Alice"))
 
-      error = assert_raises(RuntimeError) do
+      error = assert_raises(GameStore::Rejected) do
         game.add_player(user_id: "u1", name: PlayerName.parse("Bob"))
       end
 
@@ -45,7 +45,7 @@ module Wavelength
     test "#find_player raises when the id is unknown" do
       game = build(:wl_game)
 
-      assert_raises(RuntimeError) { game.find_player("nope") }
+      assert_raises(GameStore::Rejected) { game.find_player("nope") }
     end
 
     test "#player_for! raises when the user is unknown" do
@@ -86,20 +86,21 @@ module Wavelength
       game = build(:wl_guessing_game)
       psychic = game.psychic
 
-      assert_raises(RuntimeError) { game.start_game(psychic:) }
+      assert_raises(GameStore::Rejected) { game.start_game(psychic:) }
     end
 
     test "#start_game raises when the psychic is not on the starting team" do
       game = build(:wl_game, :with_teams) # red starts
       blue = game.players_on(Team.blue).first
 
-      assert_raises(RuntimeError) { game.start_game(psychic: blue) }
+      assert_raises(GameStore::Rejected) { game.start_game(psychic: blue) }
     end
 
     test "#submit_clue stores the clue and moves to guessing" do
       game = build(:wl_clue_game)
 
-      game.submit_clue(text: NormalizedString.new("Banana"))
+      game.submit_clue(player: game.psychic,
+        text: NormalizedString.new("Banana"))
 
       assert_predicate game.status, :guessing?
       assert_equal "Banana", game.clue.to_s
@@ -108,7 +109,8 @@ module Wavelength
     test "#submit_clue stores the normalized (squished) clue" do
       game = build(:wl_clue_game)
 
-      game.submit_clue(text: NormalizedString.new("  Banana   split  "))
+      game.submit_clue(player: game.psychic,
+        text: NormalizedString.new("  Banana   split  "))
 
       assert_equal "Banana split", game.clue.to_s
     end
@@ -116,8 +118,9 @@ module Wavelength
     test "#submit_clue raises unless in the clue phase" do
       game = build(:wl_guessing_game)
 
-      assert_raises(RuntimeError) do
-        game.submit_clue(text: NormalizedString.new("Banana"))
+      assert_raises(GameStore::Rejected) do
+        game.submit_clue(player: game.psychic,
+          text: NormalizedString.new("Banana"))
       end
     end
 
@@ -125,7 +128,8 @@ module Wavelength
       game = build(:wl_clue_game)
 
       assert_raises(ArgumentError) do
-        game.submit_clue(text: NormalizedString.new("   "))
+        game.submit_clue(player: game.psychic,
+          text: NormalizedString.new("   "))
       end
     end
 
@@ -133,7 +137,8 @@ module Wavelength
       game = build(:wl_clue_game)
 
       assert_raises(ArgumentError) do
-        game.submit_clue(text: NormalizedString.new("x" * 51))
+        game.submit_clue(player: game.psychic,
+          text: NormalizedString.new("x" * 51))
       end
     end
 
@@ -167,7 +172,7 @@ module Wavelength
     test "#move_dial slides the dial and stays in guessing" do
       game = build(:wl_guessing_game)
 
-      game.move_dial(position: 30)
+      game.move_dial(player: game.guessers.first, position: 30)
 
       assert_predicate game.status, :guessing?
       assert_equal 30, game.guess
@@ -176,13 +181,48 @@ module Wavelength
     test "#move_dial raises unless in guessing" do
       game = build(:wl_reveal_game)
 
-      assert_raises(RuntimeError) { game.move_dial(position: 30) }
+      assert_raises(GameStore::Rejected) { game.move_dial(player: game.guessers.first, position: 30) }
+    end
+
+    test "#move_dial rejects a player on the other team" do
+      game = build(:wl_guessing_game) # red active
+      blue = game.players_on(Team.blue).first
+
+      assert_raises(GameStore::Rejected) do
+        game.move_dial(player: blue, position: 30)
+      end
+    end
+
+    test "#move_dial rejects the psychic" do
+      game = build(:wl_guessing_game)
+
+      assert_raises(GameStore::Rejected) do
+        game.move_dial(player: game.psychic, position: 30)
+      end
+    end
+
+    test "#move_dial rejects an out-of-range position" do
+      game = build(:wl_guessing_game)
+
+      assert_raises(GameStore::Rejected) do
+        game.move_dial(player: game.guessers.first, position: 101)
+      end
+    end
+
+    test "#lock_guess rejects the psychic" do
+      game = build(:wl_guessing_game)
+
+      assert_raises(GameStore::Rejected) do
+        game.lock_guess(player: game.psychic, position: 50)
+      end
     end
 
     test "#lock_guess stores the guess and moves to left_right" do
       game = build(:wl_guessing_game, target_position: 50) # red active
 
-      game.lock_guess(position: 73) # 23 off the target -> no bullseye
+      game.lock_guess(player: game.guessers.first,
+
+        position: 73) # 23 off the target -> no bullseye
 
       assert_predicate game.status, :left_right?
       assert_equal 73, game.guess
@@ -191,7 +231,9 @@ module Wavelength
     test "#lock_guess on a bullseye scores the team and skips left/right" do
       game = build(:wl_guessing_game, target_position: 50) # red active
 
-      game.lock_guess(position: 50) # dead-center bullseye
+      game.lock_guess(player: game.guessers.first,
+
+        position: 50) # dead-center bullseye
 
       assert_equal 4, game.score_for(Team.red)
       assert_equal 1, game.score_for(Team.blue) # head start only; can't score
@@ -202,7 +244,9 @@ module Wavelength
     test "#lock_guess treats the whole 4-point wedge as a bullseye" do
       game = build(:wl_guessing_game, target_position: 50) # red active
 
-      game.lock_guess(position: 52) # off-center but inside the 4-point wedge
+      game.lock_guess(player: game.guessers.first,
+
+        position: 52) # off-center but inside the 4-point wedge
 
       assert_predicate game.status, :reveal? # still skips the opponent
       assert_equal 4, game.score_for(Team.red)
@@ -213,7 +257,9 @@ module Wavelength
       game = build(:wl_guessing_game, starting_team: Team.blue,
         target_position: 50)
 
-      game.lock_guess(position: 50) # bullseye
+      game.lock_guess(player: game.guessers.first,
+
+        position: 50) # bullseye
 
       assert_equal 4, game.score_for(Team.blue)
       assert_predicate game.status, :reveal?
@@ -235,14 +281,17 @@ module Wavelength
     test "#lock_guess raises unless in guessing" do
       game = build(:wl_game, :with_teams)
 
-      assert_raises(RuntimeError) { game.lock_guess(position: 50) }
+      assert_raises(GameStore::Rejected) { game.lock_guess(player: game.guessers.first, position: 50) }
     end
 
     test "#guess_side gives the opponent a point for a correct side" do
       game = build(:wl_guessing_game, target_position: 70) # red active
-      game.lock_guess(position: 50) # near-miss; target is RIGHT of 50
+      game.lock_guess(player: game.guessers.first,
+        position: 50) # near-miss; target is RIGHT of 50
 
-      game.guess_side(side: "right") # blue (opponent) correct
+      game.guess_side(player: opponent_of(game),
+
+        side: "right") # blue (opponent) correct
 
       assert_equal 2, game.score_for(Team.blue) # 1 head start + 1 steal
       assert_predicate game.status, :reveal?
@@ -251,9 +300,12 @@ module Wavelength
 
     test "#guess_side gives the opponent nothing for a wrong side" do
       game = build(:wl_guessing_game, target_position: 70) # red active
-      game.lock_guess(position: 50) # target is RIGHT of 50
+      game.lock_guess(player: game.guessers.first,
+        position: 50) # target is RIGHT of 50
 
-      game.guess_side(side: "left") # blue (opponent) wrong
+      game.guess_side(player: opponent_of(game),
+
+        side: "left") # blue (opponent) wrong
 
       assert_equal 1, game.score_for(Team.blue) # head start only, wrong side
     end
@@ -261,9 +313,12 @@ module Wavelength
     test "#guess_side gives the red opponent a point when blue is active" do
       game = build(:wl_guessing_game, starting_team: Team.blue,
         target_position: 70)
-      game.lock_guess(position: 50) # target is RIGHT of 50
+      game.lock_guess(player: game.guessers.first,
+        position: 50) # target is RIGHT of 50
 
-      game.guess_side(side: "right") # red (opponent) correct
+      game.guess_side(player: opponent_of(game),
+
+        side: "right") # red (opponent) correct
 
       assert_equal 2, game.score_for(Team.red) # 1 head start + 1 steal
     end
@@ -279,19 +334,47 @@ module Wavelength
         target: Game::Target.new(position: 55), guess: 50,
         opponent_guess: nil, red_score: 7, blue_score: 9, winner: nil
       )
-      game = Game.new(id: "g1", document:, players: [])
+      blue = Player.build(game_id: "g1", user_id: "u1",
+        name: PlayerName.parse("Blue"), team: Team.blue)
+      game = Game.new(id: "g1", document:, players: [blue])
 
-      game.guess_side(side: "right")
+      game.guess_side(player: blue, side: "right")
 
       assert_equal 10, game.score_for(Team.red)
       assert_equal 10, game.score_for(Team.blue)
       assert_equal Team.red, game.winner
     end
 
+    test "#guess_side rejects a player on the active team" do
+      game = build(:wl_left_right_game) # red active
+
+      assert_raises(GameStore::Rejected) do
+        game.guess_side(player: game.guessers.first, side: "left")
+      end
+    end
+
+    test "#guess_side rejects an unknown side" do
+      game = build(:wl_left_right_game)
+
+      assert_raises(GameStore::Rejected) do
+        game.guess_side(player: opponent_of(game),
+          side: "up")
+      end
+    end
+
+    test "#submit_clue rejects a non-psychic" do
+      game = build(:wl_clue_game)
+
+      assert_raises(GameStore::Rejected) do
+        game.submit_clue(player: game.guessers.first,
+          text: NormalizedString.new("Banana"))
+      end
+    end
+
     test "#guess_side raises unless in left_right" do
       game = build(:wl_guessing_game)
 
-      assert_raises(RuntimeError) { game.guess_side(side: "left") }
+      assert_raises(GameStore::Rejected) { game.guess_side(player: opponent_of(game), side: "left") }
     end
 
     test "#start_new_round flips the team and the claiming player is psychic" do
@@ -325,7 +408,7 @@ module Wavelength
       game = build(:wl_reveal_game) # red just played, blue is up
       red = game.players_on(Team.red).first
 
-      assert_raises(RuntimeError) do
+      assert_raises(GameStore::Rejected) do
         game.start_new_round(psychic: red, spectrum: Spectrums.instance.sample,
           target: Game::Target.new(position: 50))
       end
@@ -335,7 +418,7 @@ module Wavelength
       game = build(:wl_guessing_game)
       blue = game.players_on(Team.blue).first
 
-      assert_raises(RuntimeError) do
+      assert_raises(GameStore::Rejected) do
         game.start_new_round(psychic: blue, spectrum: Spectrums.instance.sample,
           target: Game::Target.new(position: 50))
       end
@@ -366,7 +449,7 @@ module Wavelength
     test "#start_new_game raises unless completed" do
       game = build(:wl_guessing_game)
 
-      assert_raises(RuntimeError) do
+      assert_raises(GameStore::Rejected) do
         game.start_new_game(spectrum: Spectrums.instance.sample,
           target: Game::Target.new(position: 50))
       end
@@ -390,5 +473,9 @@ module Wavelength
       assert_equal game.players.map(&:id).sort, reloaded.players.map(&:id).sort
       assert_equal game.psychic.id, reloaded.psychic.id
     end
+
+    private
+
+    def opponent_of(game) = game.players_on(game.current_team.opponent).first
   end
 end

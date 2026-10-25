@@ -44,14 +44,16 @@ module Wavelength
     end
 
     def start
-      game = repo.find(params[:id])
-      current_player = game.player_for!(current_user.id)
-      return head :forbidden if current_player.team != game.starting_team
+      user_id = current_user.id
+      game, current_player, start_game =
+        repo.update(params[:id], user_id:) do |game, current_player|
+          game.require_starting_team(current_player)
+          start_game = StartGameForm.new(game:)
+          game.start_game(psychic: current_player) if start_game.valid?
+          start_game
+        end
 
-      start_game = StartGameForm.new(game:)
-      if start_game.valid?
-        game.start_game(psychic: current_player)
-        repo.save(game)
+      if start_game.errors.empty?
         Broadcast::GameStarted.new(game:, player: current_player).call
         render :play, locals: { game:, current_player: }
       else
@@ -61,15 +63,18 @@ module Wavelength
     end
 
     def submit_clue
-      game = repo.find(params[:id])
-      current_player = game.player_for!(current_user.id)
-      return head :forbidden unless game.status.clue?
-      return head :forbidden unless game.psychic?(current_player)
+      user_id = current_user.id
+      game, current_player, clue =
+        repo.update(params[:id], user_id:) do |game, current_player|
+          clue = ClueForm.new(text: submit_clue_params[:text])
+          if clue.valid?
+            game.submit_clue(player: current_player,
+              text: clue.text)
+          end
+          clue
+        end
 
-      clue = ClueForm.new(text: submit_clue_params[:text])
-      if clue.valid?
-        game.submit_clue(text: clue.text)
-        repo.save(game)
+      if clue.errors.empty?
         Broadcast::RoundUpdated.new(game:, player: current_player).call
         render :play, locals: { game:, current_player: }
       else
@@ -79,77 +84,60 @@ module Wavelength
     end
 
     def move_dial
-      game = repo.find(params[:id])
-      current_player = game.player_for!(current_user.id)
-      return head :forbidden unless game.status.guessing?
-      return head :forbidden if current_player.team != game.current_team
-      return head :forbidden if game.psychic?(current_player)
-
       position = Integer(move_dial_params[:position], exception: false)
-      return head :forbidden if position.nil? || !position.between?(0, 100)
+      return head :forbidden if position.nil?
 
-      game.move_dial(position:)
-      repo.save(game)
+      user_id = current_user.id
+      game, current_player =
+        repo.update(params[:id], user_id:) do |game, current_player|
+          game.move_dial(player: current_player, position:)
+        end
       Broadcast::DialMoved.new(game:, player: current_player).call
       head :no_content
     end
 
     def lock_guess
-      game = repo.find(params[:id])
-      current_player = game.player_for!(current_user.id)
-      return head :forbidden unless game.status.guessing?
-      return head :forbidden if current_player.team != game.current_team
-      return head :forbidden if game.psychic?(current_player)
-
       position = Integer(lock_guess_params[:position], exception: false)
-      return head :forbidden if position.nil? || !position.between?(0, 100)
+      return head :forbidden if position.nil?
 
-      game.lock_guess(position:)
-      repo.save(game)
+      user_id = current_user.id
+      game, current_player =
+        repo.update(params[:id], user_id:) do |game, current_player|
+          game.lock_guess(player: current_player, position:)
+        end
       Broadcast::RoundUpdated.new(game:, player: current_player).call
       render :play, locals: { game:, current_player: }
     end
 
     def guess_side
-      game = repo.find(params[:id])
-      current_player = game.player_for!(current_user.id)
-      return head :forbidden unless game.status.left_right?
-      if current_player.team != game.current_team.opponent
-        return head :forbidden
-      end
-
       side = guess_side_params[:side]
-      return head :forbidden unless %w[left right].include?(side)
-
-      game.guess_side(side:)
-      repo.save(game)
+      user_id = current_user.id
+      game, current_player =
+        repo.update(params[:id], user_id:) do |game, current_player|
+          game.guess_side(player: current_player, side:)
+        end
       Broadcast::RoundUpdated.new(game:, player: current_player).call
       render :play, locals: { game:, current_player: }
     end
 
     def next_round
-      game = repo.find(params[:id])
-      current_player = game.player_for!(current_user.id)
-      return head :forbidden unless game.status.reveal?
-      if current_player.team != game.current_team.opponent
-        return head :forbidden
-      end
-
-      game.start_new_round(psychic: current_player,
-        spectrum: Spectrums.instance.sample, target: Game::Target.generate)
-      repo.save(game)
+      user_id = current_user.id
+      game, current_player =
+        repo.update(params[:id], user_id:) do |game, current_player|
+          game.start_new_round(psychic: current_player,
+            spectrum: Spectrums.instance.sample, target: Game::Target.generate)
+        end
       Broadcast::RoundUpdated.new(game:, player: current_player).call
       render :play, locals: { game:, current_player: }
     end
 
     def new_game
-      game = repo.find(params[:id])
-      current_player = game.player_for!(current_user.id)
-      return head :forbidden unless game.status.completed?
-
-      game.start_new_game(spectrum: Spectrums.instance.sample,
-        target: Game::Target.generate)
-      repo.save(game)
+      user_id = current_user.id
+      game, current_player =
+        repo.update(params[:id], user_id:) do |game, _current_player|
+          game.start_new_game(spectrum: Spectrums.instance.sample,
+            target: Game::Target.generate)
+        end
       Broadcast::NewGameStarted.new(game:, player: current_player).call
       start_game = StartGameForm.new(game:)
       render :lobby, locals: { game:, current_player:, start_game: }

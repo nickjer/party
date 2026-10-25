@@ -91,7 +91,7 @@ module BurnUnit
       existing_player = game.players.first
       user_id = existing_player.user_id
 
-      error = assert_raises(RuntimeError) do
+      error = assert_raises(GameStore::Rejected) do
         game.add_player(user_id:, name: PlayerName.parse("Bob"))
       end
 
@@ -207,7 +207,7 @@ module BurnUnit
 
       assert_predicate game.status, :polling?
 
-      game.complete_round
+      game.complete_round(player: game.judge)
 
       assert_predicate game.status, :completed?
     end
@@ -227,7 +227,7 @@ module BurnUnit
 
       assert_equal 0, bob.score
 
-      game.complete_round
+      game.complete_round(player: game.judge)
 
       # Bob has 2 votes (from Alice and Charlie), everyone else has fewer
       assert_equal 1, bob.score
@@ -249,7 +249,7 @@ module BurnUnit
       charlie = game.players.find { |p| p.name.to_s == "Charlie" }
       judge = game.judge
 
-      game.complete_round
+      game.complete_round(player: game.judge)
 
       # Alice, Bob, and Judge all have 1 vote - all tied for winner
       assert_equal 1, alice.score
@@ -262,7 +262,7 @@ module BurnUnit
       game = build(:bu_polling_game, judge_name: "Judge",
         player_names: %w[Alice Bob Charlie])
 
-      game.complete_round
+      game.complete_round(player: game.judge)
 
       game.players.each do |player|
         assert_equal 0, player.score
@@ -285,7 +285,7 @@ module BurnUnit
       bob.score = 3
       judge.score = 2
 
-      game.complete_round
+      game.complete_round(player: game.judge)
 
       # Alice and Bob tied with 1 vote each, so both get +1
       assert_equal 6, alice.score
@@ -297,7 +297,7 @@ module BurnUnit
       game = build(:bu_polling_game, judge_name: "Alice",
         player_names: %w[Bob])
 
-      assert_equal game, game.complete_round
+      assert_equal game, game.complete_round(player: game.judge)
     end
 
     test "#complete_round persists changes after save" do
@@ -310,7 +310,7 @@ module BurnUnit
       bob_id = game.players.find { |p| p.name.to_s == "Bob" }.id
       alice_id = game.players.find { |p| p.name.to_s == "Alice" }.id
 
-      game.complete_round
+      game.complete_round(player: game.judge)
       GameRepo.save(game)
 
       reloaded_game = GameRepo.find(game.id)
@@ -328,7 +328,9 @@ module BurnUnit
 
       assert_predicate game.status, :completed?
 
-      error = assert_raises(RuntimeError) { game.complete_round }
+      error = assert_raises(GameStore::Rejected) do
+        game.complete_round(player: game.judge)
+      end
 
       assert_equal "Game must be in polling status", error.message
     end
@@ -349,7 +351,7 @@ module BurnUnit
       assert_not_predicate alice, :playing?
       assert_predicate judge, :playing?
 
-      game.complete_round
+      game.complete_round(player: game.judge)
 
       # Judge has 2 votes and is the only winner
       # Alice is not playing so doesn't count as a candidate
@@ -393,7 +395,7 @@ module BurnUnit
           { name: "Alice", vote_for: "Bob" },
           { name: "Bob", vote_for: "Alice" }
         ])
-      judge = game.judge
+      judge = game.players.find { |p| p.name.to_s == "Alice" }
       question = NormalizedString.new("New question?")
 
       game.start_new_round(question:, judge:)
@@ -482,8 +484,9 @@ module BurnUnit
     end
 
     test "#start_new_round accepts minimum valid question length" do
-      game = build(:bu_completed_game, judge_name: "Alice")
-      judge = game.judge
+      game = build(:bu_completed_game, judge_name: "Alice",
+        player_names: %w[Bob])
+      judge = game.players.find { |p| p.name.to_s == "Bob" }
       question = NormalizedString.new("Why")
 
       game.start_new_round(question:, judge:)
@@ -492,8 +495,9 @@ module BurnUnit
     end
 
     test "#start_new_round accepts maximum valid question length" do
-      game = build(:bu_completed_game, judge_name: "Alice")
-      judge = game.judge
+      game = build(:bu_completed_game, judge_name: "Alice",
+        player_names: %w[Bob])
+      judge = game.players.find { |p| p.name.to_s == "Bob" }
       question = NormalizedString.new("a" * 160)
 
       game.start_new_round(question:, judge:)
@@ -502,8 +506,9 @@ module BurnUnit
     end
 
     test "#start_new_round raises error with question too short" do
-      game = build(:bu_completed_game, judge_name: "Alice")
-      judge = game.judge
+      game = build(:bu_completed_game, judge_name: "Alice",
+        player_names: %w[Bob])
+      judge = game.players.find { |p| p.name.to_s == "Bob" }
       short_question = NormalizedString.new("AB")
 
       error = assert_raises(ArgumentError) do
@@ -515,8 +520,9 @@ module BurnUnit
     end
 
     test "#start_new_round raises error with question too long" do
-      game = build(:bu_completed_game, judge_name: "Alice")
-      judge = game.judge
+      game = build(:bu_completed_game, judge_name: "Alice",
+        player_names: %w[Bob])
+      judge = game.players.find { |p| p.name.to_s == "Bob" }
       long_question = NormalizedString.new("a" * 161)
 
       error = assert_raises(ArgumentError) do
@@ -535,11 +541,36 @@ module BurnUnit
 
       assert_predicate game.status, :polling?
 
-      error = assert_raises(RuntimeError) do
+      error = assert_raises(GameStore::Rejected) do
         game.start_new_round(question:, judge:)
       end
 
       assert_equal "Game must be in completed status", error.message
+    end
+
+    test "#start_new_round rejects the current judge opening the next round" do
+      game = build(:bu_completed_game, judge_name: "Alice",
+        player_names: %w[Bob])
+      question = NormalizedString.new("What is your favorite animal?")
+
+      error = assert_raises(GameStore::Rejected) do
+        game.start_new_round(question:, judge: game.judge)
+      end
+
+      assert_equal "The judge cannot open the next round", error.message
+    end
+
+    test "#complete_round rejects a player who is not the judge" do
+      game = build(:bu_polling_game, judge_name: "Alice",
+        player_names: %w[Bob])
+      bob = game.players.find { |p| p.name.to_s == "Bob" }
+
+      error = assert_raises(GameStore::Rejected) do
+        game.complete_round(player: bob)
+      end
+
+      assert_equal "Only the judge can do that", error.message
+      assert_predicate game.status, :polling?
     end
 
     test "#to_global_id builds a GlobalID for the game" do

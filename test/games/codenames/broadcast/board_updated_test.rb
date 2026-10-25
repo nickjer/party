@@ -55,8 +55,10 @@ module Codenames
         )
         PlayerConnections.instance.increment(latecomer.id)
         assassin = game.board.cards.index { |card| card.identity.assassin? }
-        game.submit_clue(word: NormalizedString.new("Hint"), number: nil)
-        game.reveal(index: assassin)
+        game.submit_clue(player: game.spymaster_for(Team.red),
+          word: NormalizedString.new("Hint"), number: nil)
+        game.reveal(player: game.players.find { |p| p.name.to_s == "RedOp" },
+          index: assassin)
         assert_predicate game.status, :completed?
 
         actor = game.players.find { |player| player.name.to_s == "RedOp" }

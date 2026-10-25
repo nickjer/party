@@ -30,9 +30,9 @@ Document-oriented design: **Games** have `kind` enum and `document` json for all
 Games live under `/app/games/{game_name}/`:
 
 **Aggregate Wrappers** (`game.rb`, `player.rb`): AR-ignorant domain objects. Hold an immutable `Document` value object plus identity (`id`); mutations call `document.with(...)`. Implement `.build` for construction; identity methods (`to_param`, `to_global_id`, `model_name`) delegate to a shared `GlobalIdentity` (built in the constructor with `model: ::Game`/`::Player`) for Rails interop.
-**Persistence** (`game_repo.rb`, `game_mapping.rb`): The shared `GameStore` (`app/lib/`) owns the AR mechanics (query, transaction, player diffing) and is the only thing that touches `::Game`/`::Player`. Each game's `game_repo.rb` is a one-line constant — `GameRepo = GameStore.new(mapping: GameMapping.new)` — and `game_mapping.rb` supplies the per-game `kind` plus `load_game`/`load_player` construction. `GameStore.generate_game_id`/`generate_player_id` mint ids.
-**Controllers**: Namespaced, reference the `GameRepo` constant, handle Turbo Frame responses, use form objects, trigger broadcasts.
-**Form Objects**: Validation with `Errors` collection, return `#valid?`. `NewPlayerForm`/`EditPlayerForm` are game-agnostic and shared in `app/forms/`; game-specific forms live in the namespace.
+**Persistence** (`game_repo.rb`, `game_mapping.rb`): The shared `GameStore` (`app/lib/`) owns the AR mechanics (query, transaction, player diffing) and is the only thing that touches `::Game`/`::Player`. Each game's `game_repo.rb` is a one-line constant — `GameRepo = GameStore.new(mapping: GameMapping.new)` — and `game_mapping.rb` supplies the per-game `kind` plus `load_game`/`load_player` construction. `GameStore.generate_game_id`/`generate_player_id` mint ids. **Every request that changes an existing game goes through `repo.update(id, user_id:)` (or `repo.join(id)` when the user is not a player yet)**: the store loads the game inside an immediate SQLite transaction, yields it with the acting player, and saves, so nothing can move between the read and the write. `repo.find` is for reads; `repo.save` is for aggregates built in memory (new games, test setup) and must not follow a `find` in the same request.
+**Controllers**: Namespaced, reference the `GameRepo` constant, handle Turbo Frame responses, use form objects, trigger broadcasts. A mutating action parses params, runs the game logic inside `repo.update`, then broadcasts and renders from what it returned. Game rules are not checked in controllers: aggregates raise `GameStore::Rejected`, which `ApplicationController` renders as 403.
+**Form Objects**: Validation with `Errors` collection, return `#valid?`. `NewPlayerForm`/`EditPlayerForm` are game-agnostic and shared in `app/forms/`; game-specific forms live in the namespace. A form that validates against game state is built inside the `repo.update` block and returned as the block's value so the invalid branch can re-render with it.
 **Broadcasts** (`broadcast/*.rb`): Per-event service objects that fan out Turbo Streams to online players.
 **Adapter** (`adapter.rb`): A one-line wiring constant — `Adapter = PresenceAdapter.new(repo:, template:)`; `PlayerChannel` dispatches connection events through it.
 **Domain Models** (`game/`, `player/`): Value objects for `Document`, `Status`, and game-specific collections.
@@ -141,12 +141,19 @@ A digital companion for the telepathy party game. Each round a **psychic** sees 
 repo = LoadedQuestions::GameRepo
 game = LoadedQuestions::Game.build(question:)        # Construct with .build
 game.add_player(user_id:, name:, guesser: true)     # Mutations live on the aggregate
-game.begin_guessing                                  # Phase transitions are aggregate methods
-repo.save(game)                                      # Repo persists game + all players in a transaction
-game = repo.find(id)                                 # Reload via repo (uses .strict_loading)
+repo.save(game)                                      # Persist a game built in memory
+game = repo.find(id)                                 # Read via repo (uses .strict_loading)
+
+# Change an existing game: load, mutate, and save under one transaction.
+# Returns the game, the acting player, and the block's value.
+game, current_player, form = repo.update(id, user_id:) do |game, current_player|
+  form = GuessingRoundForm.new(game:)
+  game.begin_guessing(player: current_player) if form.valid?
+  form
+end
 ```
 
-Aggregates do **not** expose plain attribute setters for document fields — state changes flow through named operations (`start_new_round`, `assign_guess`, `complete_round`) that swap in a new `Document` via `document.with(...)`. Aggregates never touch ActiveRecord; only `GameStore` does (via the per-game mapping).
+Aggregates do **not** expose plain attribute setters for document fields — state changes flow through named operations (`start_new_round`, `assign_guess`, `complete_round`) that swap in a new `Document` via `document.with(...)`. Operations a player performs take the acting player (`player:`, or `guesser:`/`judge:`/`psychic:` where the role is the point) and raise `GameStore::Rejected` when the phase, role, team, or input breaks a rule of the game. Aggregates never touch ActiveRecord; only `GameStore` does (via the per-game mapping).
 
 ### Form Objects
 
@@ -154,7 +161,7 @@ Use `Errors.new` (not `{}` or `[]`), call `errors.add(attribute, message:)` wher
 
 ### Phase Transitions
 
-Single-method service objects have been collapsed into aggregate methods. To transition phases, call the method on the `Game` aggregate (`begin_guessing`, `complete_round`, `start_new_round`, `assign_guess`) and then `repo.save(game)`. Controllers handle that orchestration; broadcasts fire after the save.
+Single-method service objects have been collapsed into aggregate methods. To transition phases, call the method on the `Game` aggregate (`begin_guessing`, `complete_round`, `start_new_round`, `assign_guess`) inside a `repo.update` block. Controllers handle that orchestration; broadcasts fire after `update` returns, never inside the block.
 
 ### Creating Broadcast Service Objects
 
@@ -179,7 +186,7 @@ end
 3. Implement core classes:
    - Aggregate wrappers (`game.rb`, `player.rb`) with `.build` and document-mutation methods
    - Value objects in `game/` and `player/` (Document, Status, etc.)
-   - `game_mapping.rb` (`kind`, `load_game`, `load_player`) + `game_repo.rb` (`GameRepo = GameStore.new(mapping: GameMapping.new)`) — construction is per-game; the shared `GameStore` does the AR work
+   - `game_mapping.rb` (`kind`, `load_game`, `load_player`) + `game_repo.rb` (`GameRepo = GameStore.new(mapping: GameMapping.new)`) — construction is per-game; the shared `GameStore` does the AR work. The `Game` aggregate must implement `player_for!(user_id)` (the `_StoredGame` interface) so `repo.update` can resolve the acting player
    - Form objects for game-specific validation (`*_form.rb`); reuse shared `NewPlayerForm`/`EditPlayerForm`
    - Controllers (`games_controller.rb`, `players_controller.rb`)
 4. Add namespaced routes in `config/routes.rb`

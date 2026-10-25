@@ -111,9 +111,12 @@ module LoadedQuestions
 
         # 3-cycle: Bob's "Cats" → Alice's slot, Charlie's "Dogs" → Bob's slot,
         #          Alice's "Pizza" → Charlie's slot
-        game.assign_guess(player_id: alice.id, answer_id: bob.answer.id)
-        game.assign_guess(player_id: bob.id, answer_id: charlie.answer.id)
-        game.assign_guess(player_id: charlie.id, answer_id: alice.answer.id)
+        game.assign_guess(player: game.guesser, player_id: alice.id,
+          answer_id: bob.answer.id)
+        game.assign_guess(player: game.guesser, player_id: bob.id,
+          answer_id: charlie.answer.id)
+        game.assign_guess(player: game.guesser, player_id: charlie.id,
+          answer_id: alice.answer.id)
 
         results =
           game.guesses.for_completed_view.index_by { |result| result.player.id }

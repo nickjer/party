@@ -25,7 +25,7 @@ module BurnUnit
     end
 
     def add_player(user_id:, name:, judge: false, playing: false)
-      raise "Player already exists for user" if player_for(user_id)
+      reject "Player already exists for user" if player_for(user_id)
 
       player = Player.build(game_id: id, user_id:, name:, judge:, playing:)
       @players << player
@@ -35,7 +35,8 @@ module BurnUnit
     def candidates = Candidate.from(players.select(&:playing?))
 
     def find_player(id)
-      players.find { |player| player.id == id } || raise("Player not found")
+      players.find { |player| player.id == id } ||
+        reject("Player not found")
     end
 
     def judge = players.find(&:judge?) || raise("Couldn't find judge")
@@ -55,8 +56,22 @@ module BurnUnit
 
     def status = document.status
 
-    def complete_round
-      raise "Game must be in polling status" unless status.polling?
+    # Raises unless the player is the judge. Judge-only operations call this
+    # themselves; controllers call it before validating a form so a non-judge
+    # is rejected instead of shown the form's errors.
+    def require_judge(player)
+      reject "Only the judge can do that" unless player.judge?
+    end
+
+    # The judge hands the next round to someone else.
+    def require_non_judge(player)
+      reject "The judge cannot open the next round" if player.judge?
+    end
+
+    # Only the judge may close the round and award the winner.
+    def complete_round(player:)
+      reject "Game must be in polling status" unless status.polling?
+      require_judge(player)
 
       candidates.each do |candidate|
         candidate.player.score += 1 if candidate.winner?
@@ -65,8 +80,10 @@ module BurnUnit
       self
     end
 
+    # The next round is opened by its judge, who may not be the current one.
     def start_new_round(question:, judge:)
-      raise "Game must be in completed status" unless status.completed?
+      reject "Game must be in completed status" unless status.completed?
+      require_non_judge(judge)
 
       @document = document.with(question:, status: Status.polling)
       players.each do |player|
@@ -89,5 +106,7 @@ module BurnUnit
 
     # @dynamic document, identity
     attr_reader :document, :identity
+
+    def reject(message) = raise(GameStore::Rejected, message)
   end
 end

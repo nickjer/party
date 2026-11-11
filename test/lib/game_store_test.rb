@@ -76,16 +76,16 @@ class GameStoreTest < ActiveSupport::TestCase
     store.save(game)
     alice = game.players.find { |player| player.name.to_s == "Alice" }
 
-    loaded, player, value =
-      store.update(game.id, user_id: alice.user_id) do |fresh, acting|
-        acting.score = 3
-        fresh.begin_guessing(player: acting)
+    saved_game, current_player, block_value =
+      store.update(game.id, user_id: alice.user_id) do |game, acting_player|
+        acting_player.score = 3
+        game.begin_guessing(player: acting_player)
         :done
       end
 
-    assert_equal game.id, loaded.id
-    assert_equal alice.id, player.id
-    assert_equal :done, value
+    assert_equal game.id, saved_game.id
+    assert_equal alice.id, current_player.id
+    assert_equal :done, block_value
     assert_predicate store.find(game.id).status, :guessing?
     assert_equal 3, store.find(game.id).find_player(alice.id).score
   end
@@ -95,7 +95,7 @@ class GameStoreTest < ActiveSupport::TestCase
     store.save(game)
 
     assert_raises(ActiveRecord::RecordNotFound) do
-      store.update(game.id, user_id: "nobody") { |_fresh, _acting| nil }
+      store.update(game.id, user_id: "nobody") { |_game, _acting_player| nil }
     end
   end
 
@@ -105,9 +105,9 @@ class GameStoreTest < ActiveSupport::TestCase
     alice = game.players.find { |player| player.name.to_s == "Alice" }
 
     assert_raises(GameStore::Rejected) do
-      store.update(game.id, user_id: alice.user_id) do |fresh, acting|
-        acting.score = 3
-        fresh.begin_guessing(player: acting)
+      store.update(game.id, user_id: alice.user_id) do |game, acting_player|
+        acting_player.score = 3
+        game.begin_guessing(player: acting_player)
         raise GameStore::Rejected, "nope"
       end
     end
@@ -117,18 +117,45 @@ class GameStoreTest < ActiveSupport::TestCase
     assert_equal 0, reloaded.find_player(alice.id).score
   end
 
+  test "#update loads fresh rows when the request already cached them" do
+    game = build_game(players: %w[Alice Bob])
+    store.save(game)
+    alice = game.players.find { |player| player.name.to_s == "Alice" }
+
+    seen = nil #: Integer?
+    ActiveRecord::Base.cache do
+      store.find(game.id) # primes the per-request query cache
+
+      # Another request's commit: a raw statement, so this connection's
+      # cache does not notice it.
+      fresh = JSON.parse(alice.document_json).merge("score" => 42).to_json
+      ActiveRecord::Base.connection.raw_connection
+        .execute("UPDATE players SET document = ? WHERE id = ?",
+          [fresh, alice.id])
+
+      store.update(game.id, user_id: alice.user_id) do |_game, acting_player|
+        seen = acting_player.score
+      end
+    end
+
+    assert_equal 42, seen
+    # The primed rows are still cached; read past them to see what was saved.
+    stored = ActiveRecord::Base.uncached { store.find(game.id) }
+    assert_equal 42, stored.find_player(alice.id).score
+  end
+
   test "#join loads the game, yields it, and saves the new player" do
     game = build_game(players: %w[Alice])
     store.save(game)
     user = create(:user)
 
-    loaded, added = store.join(game.id) do |fresh|
-      fresh.add_player(user_id: user.id, name: PlayerName.parse("Bob"))
+    saved_game, added_player = store.join(game.id) do |game|
+      game.add_player(user_id: user.id, name: PlayerName.parse("Bob"))
     end
 
-    assert_equal game.id, loaded.id
-    assert_equal "Bob", added.name.to_s
-    assert_equal added.id, store.find(game.id).player_for!(user.id).id
+    assert_equal game.id, saved_game.id
+    assert_equal "Bob", added_player.name.to_s
+    assert_equal added_player.id, store.find(game.id).player_for!(user.id).id
   end
 
   private

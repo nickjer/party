@@ -33,31 +33,38 @@ class GameStore
   # block's value (useful for a form validated against the fresh game).
   #
   # SQLite transactions are immediate under Rails, so the write lock is held
-  # from the load onward and the diff in #save_players is exact.
+  # from the load onward and the diff in #save_players is exact. The whole
+  # body runs uncached: Rails' per-request query cache survives BEGIN, so a
+  # request that read this game earlier would otherwise get those rows back
+  # and write them over another request's commit.
   def update(id, user_id:)
     # Captured outside the block: Steep cannot type a tuple built inside it.
-    player = nil #: untyped
-    value = nil #: untyped
-    game = ::Game.transaction do
-      loaded = find(id)
-      player = loaded.player_for!(user_id)
-      value = yield(loaded, player)
-      save(loaded)
-      loaded
+    current_player = nil #: untyped
+    block_value = nil #: untyped
+    saved_game = ::Game.uncached do
+      ::Game.transaction do
+        game = find(id)
+        current_player = game.player_for!(user_id)
+        block_value = yield(game, current_player)
+        save(game)
+        game
+      end
     end
-    [game, player, value]
+    [saved_game, current_player, block_value]
   end
 
   # Like #update, for a request whose user is not a player yet (joining).
   def join(id)
-    value = nil #: untyped
-    game = ::Game.transaction do
-      loaded = find(id)
-      value = yield(loaded)
-      save(loaded)
-      loaded
+    block_value = nil #: untyped
+    saved_game = ::Game.uncached do
+      ::Game.transaction do
+        game = find(id)
+        block_value = yield(game)
+        save(game)
+        game
+      end
     end
-    [game, value]
+    [saved_game, block_value]
   end
 
   # Persists an aggregate built in memory. Not for a game loaded by #find in

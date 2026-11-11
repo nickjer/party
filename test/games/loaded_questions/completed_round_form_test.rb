@@ -11,26 +11,6 @@ module LoadedQuestions
       assert_instance_of Errors, form.errors
     end
 
-    test "#valid? returns false when game is in completed phase" do
-      game = build(:lq_completed_game)
-
-      form = CompletedRoundForm.new(game:)
-
-      assert_predicate game.status, :completed?
-      assert_not_predicate form, :valid?
-      assert form.errors.added?(:base, message: "Game is not in guessing phase")
-    end
-
-    test "#valid? returns false when game is in polling phase" do
-      game = build(:lq_game)
-
-      form = CompletedRoundForm.new(game:)
-
-      assert_predicate game.status, :polling?
-      assert_not_predicate form, :valid?
-      assert form.errors.added?(:base, message: "Game is not in guessing phase")
-    end
-
     test "#valid? returns false when guesses are not all assigned" do
       game = build(:lq_matching_game)
 
@@ -46,7 +26,7 @@ module LoadedQuestions
       game = build(:lq_matching_game)
       # Assign all guesses
       game.guesses.each do |guess|
-        game.assign_guess(player_id: guess.player.id,
+        game.assign_guess(player: game.guesser, player_id: guess.player.id,
           answer_id: guess.player.answer.id)
       end
 

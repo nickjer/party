@@ -30,7 +30,8 @@ module LoadedQuestions
     end
 
     def find_player(id)
-      players.find { |player| player.id == id } || raise("Player not found")
+      players.find { |player| player.id == id } ||
+        reject("Player not found")
     end
 
     def guesser
@@ -56,20 +57,43 @@ module LoadedQuestions
     def status = document.status
 
     def add_player(user_id:, name:, guesser: false)
-      raise "Player already exists for user" if player_for(user_id)
+      reject "Player already exists for user" if player_for(user_id)
 
       player = Player.build(game_id: id, user_id:, name:, guesser:)
       @players << player
       player
     end
 
-    def assign_guess(player_id:, answer_id:)
+    # Guards: raise Rejected unless the player may do that right now (status
+    # and role). The operation calls its guard itself; controllers call it
+    # before building a form so a stale request is refused, not shown errors.
+
+    def check_begin_guessing(player)
+      reject "Game must be in polling status" unless status.polling?
+      reject "Only the guesser can begin guessing" unless player.guesser?
+    end
+
+    def check_complete_round(player)
+      reject "Game must be in guessing status" unless status.guessing?
+      reject "Only the guesser can complete the round" unless player.guesser?
+    end
+
+    # The next round's guesser is whoever opens it; the current guesser may not.
+    def check_start_new_round(player)
+      reject "Game must be in completed status" unless status.completed?
+      reject "The guesser cannot open the next round" if player.guesser?
+    end
+
+    def assign_guess(player:, player_id:, answer_id:)
+      reject "Game must be in guessing status" unless status.guessing?
+      reject "Only the guesser can assign guesses" unless player.guesser?
+
       @guesses = guesses.assign(player_id:, answer_id:)
       @document = document.with(guesses_data: @guesses.map(&:to_h))
     end
 
-    def begin_guessing
-      raise "Game must be in polling status" unless status.polling?
+    def begin_guessing(player:)
+      check_begin_guessing(player)
 
       answered = players.select(&:answered?)
       new_guesses = answered.map do |player|
@@ -83,8 +107,8 @@ module LoadedQuestions
       self
     end
 
-    def complete_round
-      raise "Game must be in guessing status" unless status.guessing?
+    def complete_round(player:)
+      check_complete_round(player)
 
       guesser.score += guesses.score
       @document = document.with(status: Status.completed)
@@ -92,7 +116,7 @@ module LoadedQuestions
     end
 
     def start_new_round(question:, guesser:)
-      raise "Game must be in completed status" unless status.completed?
+      check_start_new_round(guesser)
 
       @guesses = Guesses.empty
       @document = document.with(
@@ -119,5 +143,7 @@ module LoadedQuestions
 
     # @dynamic document, identity
     attr_reader :document, :identity
+
+    def reject(message) = raise(GameStore::Rejected, message)
   end
 end

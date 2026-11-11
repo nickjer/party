@@ -64,14 +64,14 @@ module Codenames
       assert_dom "input[name='player[name]']"
     end
 
-    test "#update redirects to the join form when not in the game" do
+    test "#update is not found when not in the game" do
       game = create(:cn_game)
       sign_in(create(:user).id)
 
       patch codenames_game_player_path(game.id),
         params: { player: { name: "Renamed" } }
 
-      assert_redirected_to new_codenames_game_player_path(game.id)
+      assert_response :not_found
     end
 
     test "#update renames an existing player" do
@@ -98,14 +98,14 @@ module Codenames
       assert_match(/too short/, response.body)
     end
 
-    test "#join_team redirects to the join form when not in the game" do
+    test "#join_team is not found when not in the game" do
       game = create(:cn_game)
       sign_in(create(:user).id)
 
       patch join_team_codenames_game_player_path(game.id),
         params: { player: { team: "red", spymaster: "false" } }
 
-      assert_redirected_to new_codenames_game_player_path(game.id)
+      assert_response :not_found
     end
 
     test "#join_team assigns a team and role during setup" do

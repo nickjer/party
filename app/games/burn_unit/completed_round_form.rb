@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
 module BurnUnit
-  # Form object for validating transition from polling to completed phase.
+  # Readiness check for tallying the round: enough votes must be in. Status
+  # and role are the aggregate's concern.
   class CompletedRoundForm
     # @dynamic errors
     attr_reader :errors
@@ -12,10 +13,6 @@ module BurnUnit
     end
 
     def valid?
-      unless game.status.polling?
-        errors.add(:base, message: "Game is not in polling phase")
-      end
-
       vote_count = game.players.count(&:voted?)
       if vote_count < 2
         errors.add(:base,

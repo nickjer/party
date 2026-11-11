@@ -10,15 +10,6 @@ module Wavelength
       assert_predicate StartGameForm.new(game:), :valid?
     end
 
-    test "#valid? returns false once the game has started" do
-      game = build(:wl_guessing_game)
-
-      form = StartGameForm.new(game:)
-
-      assert_not_predicate form, :valid?
-      assert form.errors.added?(:base, message: "Game has already started")
-    end
-
     test "#valid? requires at least two players on each team" do
       game = build(:wl_game)
       game.add_player(user_id: "u1", name: PlayerName.parse("RedOne"),

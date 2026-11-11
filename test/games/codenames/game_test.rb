@@ -157,6 +157,50 @@ module Codenames
       end
     end
 
+    test "#check_start_game passes the starting spymaster during setup" do
+      game = build(:cn_game, :with_teams)
+
+      assert_nil game.check_start_game(game.spymaster_for(game.starting_team))
+    end
+
+    test "#check_start_game rejects an operative" do
+      game = build(:cn_game, :with_teams)
+
+      assert_raises(GameStore::Rejected) do
+        game.check_start_game(operative(game))
+      end
+    end
+
+    test "#check_start_game rejects the starting spymaster once playing" do
+      game = build(:cn_playing_game)
+
+      assert_raises(GameStore::Rejected) do
+        game.check_start_game(game.spymaster_for(game.starting_team))
+      end
+    end
+
+    test "#check_submit_clue passes the current spymaster before a clue" do
+      game = build(:cn_playing_game)
+
+      assert_nil game.check_submit_clue(spymaster(game))
+    end
+
+    test "#check_submit_clue rejects an operative" do
+      game = build(:cn_playing_game)
+
+      assert_raises(GameStore::Rejected) do
+        game.check_submit_clue(operative(game))
+      end
+    end
+
+    test "#check_submit_clue rejects the spymaster once a clue is in" do
+      game = build(:cn_guessing_game)
+
+      assert_raises(GameStore::Rejected) do
+        game.check_submit_clue(spymaster(game))
+      end
+    end
+
     test "#guesses_remaining is nil before a clue is submitted" do
       game = build(:cn_playing_game)
 

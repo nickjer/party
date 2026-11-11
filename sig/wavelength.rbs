@@ -160,7 +160,8 @@ module Wavelength
     def suggested_psychic: () -> Player?
     def score_for: (Team team) -> Integer
     def join_team: (player: Player, team: Team) -> self
-    def require_starting_team: (Player player) -> void
+    def check_start_game: (Player player) -> void
+    def check_submit_clue: (Player player) -> void
     def start_game: (psychic: Player) -> self
     def submit_clue: (player: Player, text: ::NormalizedString) -> self
     def move_dial: (player: Player, position: Integer) -> self

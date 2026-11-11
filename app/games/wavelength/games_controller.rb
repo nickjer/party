@@ -47,7 +47,7 @@ module Wavelength
       user_id = current_user.id
       game, current_player, start_game =
         repo.update(params[:id], user_id:) do |game, current_player|
-          game.require_starting_team(current_player)
+          game.check_start_game(current_player)
           start_game = StartGameForm.new(game:)
           game.start_game(psychic: current_player) if start_game.valid?
           start_game
@@ -66,6 +66,7 @@ module Wavelength
       user_id = current_user.id
       game, current_player, clue =
         repo.update(params[:id], user_id:) do |game, current_player|
+          game.check_submit_clue(current_player)
           clue = ClueForm.new(text: submit_clue_params[:text])
           if clue.valid?
             game.submit_clue(player: current_player,

@@ -149,6 +149,24 @@ module LoadedQuestions
         assert_not_predicate alice_guess, :assigned?
         assert_equal bob.answer, bob_guess.guessed_answer
       end
+
+      test "#assign rejects an unknown player id" do
+        game = build(:lq_matching_game, player_names: %w[Alice Bob])
+        alice = game.guesses.map(&:player).first
+
+        assert_raises(GameStore::Rejected) do
+          game.guesses.assign(player_id: "nobody", answer_id: alice.answer.id)
+        end
+      end
+
+      test "#assign rejects an unknown answer id" do
+        game = build(:lq_matching_game, player_names: %w[Alice Bob])
+        alice = game.guesses.map(&:player).first
+
+        assert_raises(GameStore::Rejected) do
+          game.guesses.assign(player_id: alice.id, answer_id: "bogus")
+        end
+      end
     end
   end
 end

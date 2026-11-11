@@ -96,8 +96,15 @@ module LoadedQuestions
         end
       end
 
+      # Places the answer in the player's slot (nil clears it), unseating it
+      # from any other slot. Ids come from the client, so unknown ones are
+      # rejected rather than trusted.
       def assign(player_id:, answer_id:)
-        guessed_player = answer_id ? answer_to_player_map.fetch(answer_id) : nil
+        unless guesses.any? { |guess| guess.player.id == player_id }
+          raise GameStore::Rejected, "Unknown player"
+        end
+
+        guessed_player = answer_id ? guessed_player_for(answer_id) : nil
 
         new_guesses = guesses.map do |guess|
           if guess.player.id == player_id
@@ -118,6 +125,11 @@ module LoadedQuestions
 
       # @dynamic guesses
       attr_reader :guesses
+
+      def guessed_player_for(answer_id)
+        answer_to_player_map[answer_id] ||
+          raise(GameStore::Rejected, "Unknown answer")
+      end
 
       def answer_to_player_map
         @answer_to_player_map ||=

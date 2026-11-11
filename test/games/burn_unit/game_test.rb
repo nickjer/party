@@ -569,8 +569,74 @@ module BurnUnit
         game.complete_round(player: bob)
       end
 
-      assert_equal "Only the judge can do that", error.message
+      assert_equal "Only the judge can complete the round", error.message
       assert_predicate game.status, :polling?
+    end
+
+    test "#check_complete_round passes the judge while polling" do
+      game = build(:bu_polling_game, judge_name: "Alice", player_names: %w[Bob])
+
+      assert_nil game.check_complete_round(game.judge)
+    end
+
+    test "#check_complete_round rejects a non-judge" do
+      game = build(:bu_polling_game, judge_name: "Alice", player_names: %w[Bob])
+      bob = player_named(game:, name: "Bob")
+
+      assert_raises(GameStore::Rejected) { game.check_complete_round(bob) }
+    end
+
+    test "#check_complete_round rejects the judge once completed" do
+      game = build(:bu_completed_game, judge_name: "Alice",
+        player_names: %w[Bob])
+
+      assert_raises(GameStore::Rejected) do
+        game.check_complete_round(game.judge)
+      end
+    end
+
+    test "#check_start_new_round passes a non-judge once completed" do
+      game = build(:bu_completed_game, judge_name: "Alice",
+        player_names: %w[Bob])
+      bob = player_named(game:, name: "Bob")
+
+      assert_nil game.check_start_new_round(bob)
+    end
+
+    test "#check_start_new_round rejects the current judge" do
+      game = build(:bu_completed_game, judge_name: "Alice",
+        player_names: %w[Bob])
+
+      assert_raises(GameStore::Rejected) do
+        game.check_start_new_round(game.judge)
+      end
+    end
+
+    test "#check_start_new_round rejects a non-judge while polling" do
+      game = build(:bu_polling_game, judge_name: "Alice", player_names: %w[Bob])
+      bob = player_named(game:, name: "Bob")
+
+      assert_raises(GameStore::Rejected) { game.check_start_new_round(bob) }
+    end
+
+    test "#enter_poll marks a viewer as playing once while polling" do
+      game = build(:bu_polling_game, judge_name: "Alice", player_names: %w[Bob])
+      bob = player_named(game:, name: "Bob")
+      bob.playing = false
+
+      assert_equal bob, game.enter_poll(bob)
+      assert_predicate bob, :playing?
+      assert_nil game.enter_poll(bob)
+    end
+
+    test "#enter_poll does nothing once the round is completed" do
+      game = build(:bu_completed_game, judge_name: "Alice",
+        player_names: %w[Bob])
+      bob = player_named(game:, name: "Bob")
+      bob.playing = false
+
+      assert_nil game.enter_poll(bob)
+      assert_not_predicate bob, :playing?
     end
 
     test "#to_global_id builds a GlobalID for the game" do

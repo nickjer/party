@@ -42,9 +42,7 @@ module Wavelength
     end
 
     def add_player(user_id:, name:, team: nil)
-      if player_for(user_id)
-        raise GameStore::Rejected, "Player already exists for user"
-      end
+      reject "Player already exists for user" if player_for(user_id)
 
       player = Player.build(game_id: id, user_id:, name:, team:)
       @players << player
@@ -65,7 +63,7 @@ module Wavelength
 
     def find_player(id)
       players.find { |player| player.id == id } ||
-        raise(GameStore::Rejected, "Player not found")
+        reject("Player not found")
     end
 
     def player_for(user_id)
@@ -101,18 +99,25 @@ module Wavelength
       self
     end
 
-    # Raises unless the player is on the starting team. Controllers call it
-    # before validating the lobby so the other team is rejected instead of
-    # shown the form's errors.
-    def require_starting_team(player)
+    # Guards: raise Rejected unless the player may do that right now (status
+    # and role). The operation calls its guard itself; controllers call it
+    # before building a form so a stale request is refused, not shown errors.
+
+    # Anyone on the starting team may start; they become the first psychic.
+    def check_start_game(player)
+      reject "Game must be in setup status" unless status.setup?
       return if player.team == starting_team
 
       reject "Only the #{starting_team} team can start"
     end
 
+    def check_submit_clue(player)
+      reject "Game must be in clue status" unless status.clue?
+      reject "Only the psychic can give a clue" unless psychic?(player)
+    end
+
     def start_game(psychic:)
-      reject "Game must be in setup status" unless status.setup?
-      require_starting_team(psychic)
+      check_start_game(psychic)
 
       become_psychic(psychic, on: starting_team)
       @document = document.with(status: Status.clue, psychic_id: psychic.id)
@@ -120,8 +125,7 @@ module Wavelength
     end
 
     def submit_clue(player:, text:)
-      reject "Game must be in clue status" unless status.clue?
-      reject "Only the psychic can give a clue" unless psychic?(player)
+      check_submit_clue(player)
 
       CLUE_LENGTH.validate!(text)
       @document = document.with(clue: text, status: Status.guessing)

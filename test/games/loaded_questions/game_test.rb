@@ -206,12 +206,74 @@ module LoadedQuestions
       assert_predicate game.status, :completed?
     end
 
-    test "#require_guesser rejects a non-guesser and passes the guesser" do
+    test "#check_begin_guessing passes the guesser while polling" do
+      game = build(:lq_polling_game, player_names: %w[Alice Bob])
+
+      assert_nil game.check_begin_guessing(game.guesser)
+    end
+
+    test "#check_begin_guessing rejects a non-guesser" do
       game = build(:lq_polling_game, player_names: %w[Alice Bob])
       non_guesser = game.players.reject(&:guesser?).first
 
-      assert_raises(GameStore::Rejected) { game.require_guesser(non_guesser) }
-      assert_nil game.require_guesser(game.guesser)
+      assert_raises(GameStore::Rejected) do
+        game.check_begin_guessing(non_guesser)
+      end
+    end
+
+    test "#check_begin_guessing rejects the guesser once guessing" do
+      game = build(:lq_matching_game, player_names: %w[Alice Bob])
+
+      assert_raises(GameStore::Rejected) do
+        game.check_begin_guessing(game.guesser)
+      end
+    end
+
+    test "#check_complete_round passes the guesser while guessing" do
+      game = build(:lq_matching_game, player_names: %w[Alice Bob])
+
+      assert_nil game.check_complete_round(game.guesser)
+    end
+
+    test "#check_complete_round rejects a non-guesser" do
+      game = build(:lq_matching_game, player_names: %w[Alice Bob])
+      non_guesser = game.players.reject(&:guesser?).first
+
+      assert_raises(GameStore::Rejected) do
+        game.check_complete_round(non_guesser)
+      end
+    end
+
+    test "#check_complete_round rejects the guesser while polling" do
+      game = build(:lq_polling_game, player_names: %w[Alice Bob])
+
+      assert_raises(GameStore::Rejected) do
+        game.check_complete_round(game.guesser)
+      end
+    end
+
+    test "#check_start_new_round passes a non-guesser once completed" do
+      game = build(:lq_completed_game, player_names: %w[Alice Bob])
+      non_guesser = game.players.reject(&:guesser?).first
+
+      assert_nil game.check_start_new_round(non_guesser)
+    end
+
+    test "#check_start_new_round rejects the current guesser" do
+      game = build(:lq_completed_game, player_names: %w[Alice Bob])
+
+      assert_raises(GameStore::Rejected) do
+        game.check_start_new_round(game.guesser)
+      end
+    end
+
+    test "#check_start_new_round rejects a non-guesser while guessing" do
+      game = build(:lq_matching_game, player_names: %w[Alice Bob])
+      non_guesser = game.players.reject(&:guesser?).first
+
+      assert_raises(GameStore::Rejected) do
+        game.check_start_new_round(non_guesser)
+      end
     end
 
     test "#begin_guessing raises error when game is not in polling status" do

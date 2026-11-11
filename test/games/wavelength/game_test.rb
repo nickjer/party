@@ -371,6 +371,49 @@ module Wavelength
       end
     end
 
+    test "#check_start_game passes the starting team during setup" do
+      game = build(:wl_game, :with_teams)
+      starter = game.players_on(game.starting_team).first
+
+      assert_nil game.check_start_game(starter)
+    end
+
+    test "#check_start_game rejects the other team" do
+      game = build(:wl_game, :with_teams)
+      other = game.players_on(game.starting_team.opponent).first
+
+      assert_raises(GameStore::Rejected) { game.check_start_game(other) }
+    end
+
+    test "#check_start_game rejects the starting team once started" do
+      game = build(:wl_clue_game)
+      starter = game.players_on(game.starting_team).first
+
+      assert_raises(GameStore::Rejected) { game.check_start_game(starter) }
+    end
+
+    test "#check_submit_clue passes the psychic while waiting for a clue" do
+      game = build(:wl_clue_game)
+
+      assert_nil game.check_submit_clue(game.psychic)
+    end
+
+    test "#check_submit_clue rejects a guesser" do
+      game = build(:wl_clue_game)
+
+      assert_raises(GameStore::Rejected) do
+        game.check_submit_clue(game.guessers.first)
+      end
+    end
+
+    test "#check_submit_clue rejects the psychic once the clue is in" do
+      game = build(:wl_guessing_game)
+
+      assert_raises(GameStore::Rejected) do
+        game.check_submit_clue(game.psychic)
+      end
+    end
+
     test "#guess_side raises unless in left_right" do
       game = build(:wl_guessing_game)
 

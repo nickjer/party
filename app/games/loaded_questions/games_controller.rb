@@ -69,7 +69,7 @@ module LoadedQuestions
     def new_round
       game = repo.find(params[:id])
       current_player = game.player_for!(current_user.id)
-      return head :forbidden if current_player.guesser?
+      game.check_start_new_round(current_player)
 
       new_round = NewRoundForm.new(game:)
       render :new_round, locals: { game:, current_player:, new_round: }
@@ -80,7 +80,7 @@ module LoadedQuestions
       user_id = current_user.id
       game, current_player, new_round =
         repo.update(params[:id], user_id:) do |game, current_player|
-          game.require_non_guesser(current_player)
+          game.check_start_new_round(current_player)
           new_round = NewRoundForm.new(game:,
             question: new_round_params[:question])
           if new_round.valid?
@@ -106,7 +106,7 @@ module LoadedQuestions
       user_id = current_user.id
       game, current_player, completed_round_form =
         repo.update(params[:id], user_id:) do |game, current_player|
-          game.require_guesser(current_player)
+          game.check_complete_round(current_player)
           completed_round_form = CompletedRoundForm.new(game:)
           if completed_round_form.valid?
             game.complete_round(player: current_player)
@@ -129,7 +129,7 @@ module LoadedQuestions
       user_id = current_user.id
       game, current_player, guessing_round_form =
         repo.update(params[:id], user_id:) do |game, current_player|
-          game.require_guesser(current_player)
+          game.check_begin_guessing(current_player)
           guessing_round_form = GuessingRoundForm.new(game:)
           if guessing_round_form.valid?
             game.begin_guessing(player: current_player)

@@ -109,8 +109,9 @@ module BurnUnit
     def player_for!: (String user_id) -> Player
     def question: () -> NormalizedString
     def status: () -> Status
-    def require_judge: (Player player) -> void
-    def require_non_judge: (Player player) -> void
+    def check_complete_round: (Player player) -> void
+    def check_start_new_round: (Player player) -> void
+    def enter_poll: (Player player) -> Player?
     def complete_round: (player: Player) -> self
     def start_new_round: (question: NormalizedString, judge: Player) -> self
     def document_json: () -> String

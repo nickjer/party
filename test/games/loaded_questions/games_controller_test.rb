@@ -145,22 +145,15 @@ module LoadedQuestions
       assert_predicate game.status, :completed?
     end
 
-    test "#completed_round returns error when not in guessing phase" do
-      # Create game with guesser and players in polling phase
+    test "#completed_round returns forbidden when still polling" do
       game = create(:lq_polling_game, player_names: %w[Bob Charlie])
-
-      # Verify game is in polling status
       assert_predicate game.status, :polling?
-
-      # Sign in as guesser
       guesser = game.players.find(&:guesser?)
       sign_in(guesser.user_id)
 
-      # Try to complete round while still in polling phase
       patch completed_round_loaded_questions_game_path(game.id)
 
-      # Verify unprocessable_content response
-      assert_response :unprocessable_content
+      assert_response :forbidden
 
       # Reload and verify game status has not changed
       game = reload(game:)

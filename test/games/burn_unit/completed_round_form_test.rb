@@ -34,16 +34,6 @@ module BurnUnit
       assert_predicate form.errors, :empty?
     end
 
-    test "#valid? returns false when game is not in polling phase" do
-      game = build(:bu_completed_game, judge_name: "Judge",
-        player_names: %w[Alice Bob])
-      form = CompletedRoundForm.new(game:)
-
-      assert_predicate game.status, :completed?
-      assert_not_predicate form, :valid?
-      assert form.errors.added?(:base, message: "Game is not in polling phase")
-    end
-
     test "#valid? returns false with 0 votes" do
       game = build(:bu_polling_game, judge_name: "Judge",
         player_names: %w[Alice Bob])
@@ -70,18 +60,6 @@ module BurnUnit
       assert_not_predicate form, :valid?
       assert form.errors.added?(:base, message:
         "Need at least 2 votes to tally (currently 1)")
-    end
-
-    test "#valid? returns false when game is completed and has insufficient " \
-      "votes" do
-      game = build(:bu_completed_game, judge_name: "Judge",
-        player_names: %w[Alice Bob])
-      form = CompletedRoundForm.new(game:)
-
-      assert_not_predicate form, :valid?
-      # Should have both errors
-      assert form.errors.added?(:base, message: "Game is not in polling phase")
-      # NOTE: Even though game is completed, it still checks vote count
     end
 
     test "#errors returns Errors instance" do

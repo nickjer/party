@@ -53,7 +53,7 @@ module Codenames
       user_id = current_user.id
       game, current_player, start_game =
         repo.update(params[:id], user_id:) do |game, current_player|
-          game.require_starting_spymaster(current_player)
+          game.check_start_game(current_player)
           start_game = StartGameForm.new(game:)
           game.start_game(player: current_player) if start_game.valid?
           start_game
@@ -73,6 +73,7 @@ module Codenames
       clue_params = submit_clue_params
       game, current_player, clue_form =
         repo.update(params[:id], user_id:) do |game, current_player|
+          game.check_submit_clue(current_player)
           clue_form = ClueForm.new(word: clue_params[:word],
             number: clue_params[:number])
           if clue_form.valid?

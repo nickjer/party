@@ -34,9 +34,7 @@ module Codenames
     end
 
     def add_player(user_id:, name:, team: nil, spymaster: false)
-      if player_for(user_id)
-        raise GameStore::Rejected, "Player already exists for user"
-      end
+      reject "Player already exists for user" if player_for(user_id)
 
       player = Player.build(game_id: id, user_id:, name:, team:, spymaster:)
       @players << player
@@ -53,7 +51,7 @@ module Codenames
 
     def find_player(id)
       players.find { |player| player.id == id } ||
-        raise(GameStore::Rejected, "Player not found")
+        reject("Player not found")
     end
 
     def guesses_made = document.guesses_made
@@ -96,30 +94,35 @@ module Codenames
       self
     end
 
+    # Guards: raise Rejected unless the player may do that right now (status
+    # and role). The operation calls its guard itself; controllers call it
+    # before building a form so a stale request is refused, not shown errors.
+
     # Only the starting team's spymaster can start the game.
-    # Raises unless the player is the starting team's spymaster. Controllers
-    # call it before validating the lobby so anyone else is rejected instead
-    # of shown the form's errors.
-    def require_starting_spymaster(player)
+    def check_start_game(player)
+      reject "Game must be in setup status" unless status.setup?
       return if player == spymaster_for(starting_team)
 
       reject "Only the starting team's spymaster can start"
     end
 
+    def check_submit_clue(player)
+      reject "Game must be in playing status" unless status.playing?
+      unless spymaster_up?(player)
+        reject "Only the current spymaster can give a clue"
+      end
+      reject "Clue already submitted" unless clue.nil?
+    end
+
     def start_game(player:)
-      reject "Game must be in setup status" unless status.setup?
-      require_starting_spymaster(player)
+      check_start_game(player)
 
       @document = document.with(status: Status.playing)
       self
     end
 
     def submit_clue(player:, word:, number:)
-      reject "Game must be in playing status" unless status.playing?
-      unless spymaster_up?(player)
-        reject "Only the current spymaster can give a clue"
-      end
-      reject "Clue already submitted" unless clue.nil?
+      check_submit_clue(player)
 
       CLUE_LENGTH.validate!(word)
       @document = document.with(clue: Clue.new(word:, number:),

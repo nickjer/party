@@ -28,15 +28,6 @@ module BurnUnit
       assert_predicate form.errors, :empty?
     end
 
-    test "#valid? returns false when game is not completed" do
-      game = build(:bu_polling_game, judge_name: "Alice")
-      form = NewRoundForm.new(game:, question: "What is your favorite color?")
-
-      assert_predicate game.status, :polling?
-      assert_not_predicate form, :valid?
-      assert form.errors.added?(:base, message: "Game is not completed")
-    end
-
     test "#valid? returns false with question too short" do
       game = build(:bu_completed_game, judge_name: "Alice")
       form = NewRoundForm.new(game:, question: "ab")
@@ -71,16 +62,6 @@ module BurnUnit
       assert_not_predicate form, :valid?
       assert form.errors.added?(:question, message:
         "is too long (maximum is 160 characters)")
-    end
-
-    test "#valid? returns false with both game status and question invalid" do
-      game = build(:bu_polling_game, judge_name: "Alice")
-      form = NewRoundForm.new(game:, question: "ab")
-
-      assert_not_predicate form, :valid?
-      assert form.errors.added?(:base, message: "Game is not completed")
-      assert form.errors.added?(:question, message:
-        "is too short (minimum is 3 characters)")
     end
 
     test "#valid? normalizes question with NormalizedString" do

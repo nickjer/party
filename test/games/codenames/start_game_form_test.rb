@@ -10,15 +10,6 @@ module Codenames
       assert_predicate StartGameForm.new(game:), :valid?
     end
 
-    test "#valid? returns false once the game has started" do
-      game = build(:cn_playing_game)
-
-      form = StartGameForm.new(game:)
-
-      assert_not_predicate form, :valid?
-      assert form.errors.added?(:base, message: "Game has already started")
-    end
-
     test "#valid? requires a spymaster on each team" do
       game = build(:cn_game)
       game.add_player(user_id: "u1", name: PlayerName.parse("RedOp"),

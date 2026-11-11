@@ -129,7 +129,8 @@ module Codenames
     def status: () -> Status
     def winner: () -> Team?
     def join_team: (player: Player, team: Team, spymaster: bool) -> self
-    def require_starting_spymaster: (Player player) -> void
+    def check_start_game: (Player player) -> void
+    def check_submit_clue: (Player player) -> void
     def start_game: (player: Player) -> self
     def submit_clue: (player: Player, word: ::NormalizedString, number: Integer?) -> self
     def reveal: (player: Player, index: Integer) -> self

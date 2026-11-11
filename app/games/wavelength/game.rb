@@ -42,7 +42,7 @@ module Wavelength
     end
 
     def add_player(user_id:, name:, team: nil)
-      raise "Player already exists for user" if player_for(user_id)
+      reject "Player already exists for user" if player_for(user_id)
 
       player = Player.build(game_id: id, user_id:, name:, team:)
       @players << player
@@ -62,7 +62,8 @@ module Wavelength
     def winner = document.winner
 
     def find_player(id)
-      players.find { |player| player.id == id } || raise("Player not found")
+      players.find { |player| player.id == id } ||
+        reject("Player not found")
     end
 
     def player_for(user_id)
@@ -98,31 +99,48 @@ module Wavelength
       self
     end
 
+    # Guards: raise Rejected unless the player may do that right now (status
+    # and role). The operation calls its guard itself; controllers call it
+    # before building a form so a stale request is refused, not shown errors.
+
+    # Anyone on the starting team may start; they become the first psychic.
+    def check_start_game(player)
+      reject "Game must be in setup status" unless status.setup?
+      return if player.team == starting_team
+
+      reject "Only the #{starting_team} team can start"
+    end
+
+    def check_submit_clue(player)
+      reject "Game must be in clue status" unless status.clue?
+      reject "Only the psychic can give a clue" unless psychic?(player)
+    end
+
     def start_game(psychic:)
-      raise "Game must be in setup status" unless status.setup?
+      check_start_game(psychic)
 
       become_psychic(psychic, on: starting_team)
       @document = document.with(status: Status.clue, psychic_id: psychic.id)
       self
     end
 
-    def submit_clue(text:)
-      raise "Game must be in clue status" unless status.clue?
+    def submit_clue(player:, text:)
+      check_submit_clue(player)
 
       CLUE_LENGTH.validate!(text)
       @document = document.with(clue: text, status: Status.guessing)
       self
     end
 
-    def move_dial(position:)
-      raise "Game must be in guessing status" unless status.guessing?
+    def move_dial(player:, position:)
+      check_dial(player:, position:)
 
       @document = document.with(guess: position)
       self
     end
 
-    def lock_guess(position:)
-      raise "Game must be in guessing status" unless status.guessing?
+    def lock_guess(player:, position:)
+      check_dial(player:, position:)
 
       @document = document.with(guess: position)
       # A bullseye ends the round outright: a perfect lock leaves the opponent
@@ -135,15 +153,19 @@ module Wavelength
       self
     end
 
-    def guess_side(side:)
-      raise "Game must be in left_right status" unless status.left_right?
+    def guess_side(player:, side:)
+      reject "Game must be in left_right status" unless status.left_right?
+      if player.team != current_team.opponent
+        reject "Only the other team can guess left or right"
+      end
+      reject "Side must be left or right" unless %w[left right].include?(side)
 
       settle_round(opponent_guess: side)
       self
     end
 
     def start_new_round(psychic:, spectrum:, target:)
-      raise "Game must be in reveal status" unless status.reveal?
+      reject "Game must be in reveal status" unless status.reveal?
 
       next_team = current_team.opponent
       become_psychic(psychic, on: next_team)
@@ -156,7 +178,7 @@ module Wavelength
     end
 
     def start_new_game(spectrum:, target:, starting_team: nil)
-      raise "Game must be in completed status" unless status.completed?
+      reject "Game must be in completed status" unless status.completed?
 
       team = starting_team || document.starting_team.opponent
       @document = self.class.fresh_document(spectrum:, target:,
@@ -177,11 +199,24 @@ module Wavelength
     # @dynamic document, identity
     attr_reader :document, :identity
 
+    def reject(message) = raise(GameStore::Rejected, message)
+
     # Marks the claiming player as the psychic; they must be on the up team.
     def become_psychic(player, on:)
-      raise "Psychic must be on the #{on} team" if player.team != on
+      reject "Psychic must be on the #{on} team" if player.team != on
 
       player.increment_psychic_count
+    end
+
+    # Guessing-phase rules shared by moving and locking the dial.
+    def check_dial(player:, position:)
+      reject "Game must be in guessing status" unless status.guessing?
+      if player.team != current_team
+        reject "Only the active team can move the dial"
+      end
+      reject "The psychic cannot move the dial" if psychic?(player)
+      reject "Position must be between 0 and 100" unless position.between?(0,
+        100)
     end
 
     def award(active_points, opponent_correct)

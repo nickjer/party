@@ -111,9 +111,12 @@ module LoadedQuestions
 
         # 3-cycle: Bob's "Cats" → Alice's slot, Charlie's "Dogs" → Bob's slot,
         #          Alice's "Pizza" → Charlie's slot
-        game.assign_guess(player_id: alice.id, answer_id: bob.answer.id)
-        game.assign_guess(player_id: bob.id, answer_id: charlie.answer.id)
-        game.assign_guess(player_id: charlie.id, answer_id: alice.answer.id)
+        game.assign_guess(player: game.guesser, player_id: alice.id,
+          answer_id: bob.answer.id)
+        game.assign_guess(player: game.guesser, player_id: bob.id,
+          answer_id: charlie.answer.id)
+        game.assign_guess(player: game.guesser, player_id: charlie.id,
+          answer_id: alice.answer.id)
 
         results =
           game.guesses.for_completed_view.index_by { |result| result.player.id }
@@ -145,6 +148,24 @@ module LoadedQuestions
 
         assert_not_predicate alice_guess, :assigned?
         assert_equal bob.answer, bob_guess.guessed_answer
+      end
+
+      test "#assign rejects an unknown player id" do
+        game = build(:lq_matching_game, player_names: %w[Alice Bob])
+        alice = game.guesses.map(&:player).first
+
+        assert_raises(GameStore::Rejected) do
+          game.guesses.assign(player_id: "nobody", answer_id: alice.answer.id)
+        end
+      end
+
+      test "#assign rejects an unknown answer id" do
+        game = build(:lq_matching_game, player_names: %w[Alice Bob])
+        alice = game.guesses.map(&:player).first
+
+        assert_raises(GameStore::Rejected) do
+          game.guesses.assign(player_id: alice.id, answer_id: "bogus")
+        end
       end
     end
   end

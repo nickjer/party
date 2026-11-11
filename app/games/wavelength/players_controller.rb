@@ -16,14 +16,18 @@ module Wavelength
     end
 
     def create
-      game = repo.find(params[:game_id])
-      new_player = NewPlayerForm.new(game:, user_id: current_user.id,
-        name: new_player_params[:name])
+      game, new_player = repo.join(params[:game_id]) do |game|
+        new_player = NewPlayerForm.new(game:, user_id: current_user.id,
+          name: new_player_params[:name])
+        if new_player.valid?
+          name = new_player.player_name #: ::PlayerName
+          game.add_player(user_id: current_user.id, name:)
+        end
+        new_player
+      end
 
-      if new_player.valid?
-        name = new_player.player_name #: ::PlayerName
-        player = game.add_player(user_id: current_user.id, name:)
-        repo.save(game)
+      if new_player.errors.empty?
+        player = game.player_for!(current_user.id)
         Broadcast::PlayerCreated.new(game:, player:).call
         redirect_to_game(game)
       else
@@ -41,16 +45,19 @@ module Wavelength
     end
 
     def update
-      game = repo.find(params[:game_id])
-      current_player = game.player_for(current_user.id)
-      return redirect_to_new_player(game) if current_player.nil?
+      user_id = current_user.id
+      game, current_player, edit_player =
+        repo.update(params[:game_id], user_id:) do |game, current_player|
+          edit_player = EditPlayerForm.new(game:, current_player:,
+            name: update_player_params[:name])
+          if edit_player.valid?
+            new_name = edit_player.player_name #: ::PlayerName
+            current_player.name = new_name
+          end
+          edit_player
+        end
 
-      edit_player = EditPlayerForm.new(game:, current_player:,
-        name: update_player_params[:name])
-      if edit_player.valid?
-        new_name = edit_player.player_name #: ::PlayerName
-        current_player.name = new_name
-        repo.save(game)
+      if edit_player.errors.empty?
         Broadcast::PlayerNameUpdated.new(game:, player: current_player).call
         redirect_to_game(game)
       else
@@ -60,16 +67,19 @@ module Wavelength
     end
 
     def join_team
-      game = repo.find(params[:game_id])
-      current_player = game.player_for(current_user.id)
-      return redirect_to_new_player(game) if current_player.nil?
+      user_id = current_user.id
+      game, current_player, join_team =
+        repo.update(params[:game_id], user_id:) do |game, current_player|
+          join_team = JoinTeamForm.new(game:, current_player:,
+            team: join_team_params[:team])
+          if join_team.valid?
+            team = join_team.team #: Team
+            game.join_team(player: current_player, team:)
+          end
+          join_team
+        end
 
-      join_team = JoinTeamForm.new(game:, current_player:,
-        team: join_team_params[:team])
-      if join_team.valid?
-        team = join_team.team #: Team
-        game.join_team(player: current_player, team:)
-        repo.save(game)
+      if join_team.errors.empty?
         Broadcast::TeamUpdated.new(game:, player: current_player).call
         redirect_to_game(game)
       elsif game.status.setup?

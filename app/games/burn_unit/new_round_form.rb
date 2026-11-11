@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
 module BurnUnit
-  # Form object for validating new round creation after a round is completed.
+  # Input check for opening the next round: the question's length. Status and
+  # role are the aggregate's concern.
   class NewRoundForm
     # @dynamic question, errors
     attr_reader :question, :errors
@@ -14,10 +15,6 @@ module BurnUnit
     end
 
     def valid?
-      unless game.status.completed?
-        errors.add(:base, message: "Game is not completed")
-      end
-
       if (error = Game::QUESTION_LENGTH.error_for(question))
         errors.add(:question, message: error)
       end

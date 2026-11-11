@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
 module LoadedQuestions
-  # Form object for validating transition from polling to guessing phase.
+  # Readiness check for opening the guessing phase: enough players must have
+  # answered. Status and role are the aggregate's concern.
   class GuessingRoundForm
     MIN_ANSWERED = 2
 
@@ -14,10 +15,6 @@ module LoadedQuestions
     end
 
     def valid?
-      unless game.status.polling?
-        errors.add(:base, message: "Game is not polling")
-      end
-
       if game.players.count(&:answered?) < MIN_ANSWERED
         message =
           "Not enough players have answered (need at least #{MIN_ANSWERED})"

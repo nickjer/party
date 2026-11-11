@@ -37,7 +37,9 @@ FactoryBot.define do
     end
 
     factory :cn_playing_game, traits: %i[with_teams] do
-      after(:build, &:start_game)
+      after(:build) do |game|
+        game.start_game(player: game.spymaster_for(game.starting_team))
+      end
 
       factory :cn_guessing_game do
         transient do
@@ -45,8 +47,8 @@ FactoryBot.define do
         end
 
         after(:build) do |game, context|
-          game.submit_clue(word: NormalizedString.new("Hint"),
-            number: context.clue_number)
+          game.submit_clue(player: game.spymaster_for(game.current_team),
+            word: NormalizedString.new("Hint"), number: context.clue_number)
         end
       end
     end
@@ -57,7 +59,8 @@ FactoryBot.define do
           next if card.identity.team != game.starting_team
           next if game.status.completed?
 
-          game.reveal(index:)
+          operative = game.players_on(game.current_team).find(&:operative?)
+          game.reveal(player: operative, index:)
         end
       end
     end

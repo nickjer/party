@@ -1,8 +1,9 @@
 # frozen_string_literal: true
 
 module Wavelength
-  # Validates setup -> guessing: each team needs at least two players
-  # (a psychic plus at least one guesser).
+  # Readiness check for starting: each team needs at least two players (a
+  # psychic plus at least one guesser). Status and role are the aggregate's
+  # concern.
   class StartGameForm
     # @dynamic errors
     attr_reader :errors
@@ -13,10 +14,6 @@ module Wavelength
     end
 
     def valid?
-      unless game.status.setup?
-        errors.add(:base, message: "Game has already started")
-      end
-
       [Team.red, Team.blue].each { |team| validate_team(team) }
       errors.empty?
     end

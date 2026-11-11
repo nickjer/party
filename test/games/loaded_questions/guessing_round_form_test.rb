@@ -11,16 +11,6 @@ module LoadedQuestions
       assert_instance_of Errors, form.errors
     end
 
-    test "#valid? returns false when game is not polling" do
-      game = build(:lq_matching_game)
-
-      form = GuessingRoundForm.new(game:)
-
-      assert_predicate game.status, :guessing?
-      assert_not_predicate form, :valid?
-      assert form.errors.added?(:base, message: "Game is not polling")
-    end
-
     test "#valid? returns false when no players answered" do
       game = build(:lq_polling_game, player_names: %w[Bob Charlie])
 

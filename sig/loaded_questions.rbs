@@ -52,9 +52,12 @@ module LoadedQuestions
     def question: () -> NormalizedString
     def status: () -> Status
     def add_player: (user_id: String, name: ::PlayerName, ?guesser: bool) -> Player
-    def assign_guess: (player_id: String, answer_id: String?) -> void
-    def begin_guessing: () -> self
-    def complete_round: () -> self
+    def check_begin_guessing: (Player player) -> void
+    def check_complete_round: (Player player) -> void
+    def check_start_new_round: (Player player) -> void
+    def assign_guess: (player: Player, player_id: String, answer_id: String?) -> void
+    def begin_guessing: (player: Player) -> self
+    def complete_round: (player: Player) -> self
     def start_new_round: (question: NormalizedString, guesser: Player) -> self
     def document_json: () -> String
 
@@ -64,6 +67,7 @@ module LoadedQuestions
 
     attr_reader document: Document
     attr_reader identity: GlobalIdentity
+    def reject: (String message) -> bot
 
     class Document
       type json = {
@@ -131,6 +135,7 @@ module LoadedQuestions
       attr_reader guesses: Array[GuessedAnswer]
       attr_reader answer_to_player_map: Hash[String, Player]
 
+      def guessed_player_for: (String answer_id) -> Player
       def validate_unique_players!: () -> void
       def validate_unique_guessed_players!: () -> void
     end

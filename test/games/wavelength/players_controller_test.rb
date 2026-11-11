@@ -64,14 +64,14 @@ module Wavelength
       assert_dom "input[name='player[name]']"
     end
 
-    test "#update redirects to the join form when not in the game" do
+    test "#update is not found when not in the game" do
       game = create(:wl_game)
       sign_in(create(:user).id)
 
       patch wavelength_game_player_path(game.id),
         params: { player: { name: "Renamed" } }
 
-      assert_redirected_to new_wavelength_game_player_path(game.id)
+      assert_response :not_found
     end
 
     test "#update renames an existing player" do
@@ -98,14 +98,14 @@ module Wavelength
       assert_match(/too short/, response.body)
     end
 
-    test "#join_team redirects to the join form when not in the game" do
+    test "#join_team is not found when not in the game" do
       game = create(:wl_game)
       sign_in(create(:user).id)
 
       patch join_team_wavelength_game_player_path(game.id),
         params: { player: { team: "red" } }
 
-      assert_redirected_to new_wavelength_game_player_path(game.id)
+      assert_response :not_found
     end
 
     test "#join_team assigns a team during setup" do

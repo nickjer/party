@@ -35,10 +35,22 @@ module BurnUnit
         return
       end
 
+      # Viewing the poll enters you as a candidate. That is a write, so it
+      # goes through the transaction, and the aggregate decides against the
+      # fresh game rather than the snapshot read above.
+      if game.status.polling? && !current_player.playing?
+        user_id = current_user.id
+        game, current_player, entered =
+          repo.update(params[:id], user_id:) do |game, current_player|
+            game.enter_poll(current_player)
+          end
+        if entered
+          Broadcast::CandidateAdded.new(game:, player: current_player).call
+        end
+      end
+
       case game.status
       when Game::Status.polling
-        set_candidate(game:, player: current_player)
-
         vote_form = VoteForm.new(game:, current_player:,
           candidate_id: current_player.vote)
         if current_player.judge?
@@ -60,26 +72,27 @@ module BurnUnit
     def new_round
       game = repo.find(params[:id])
       current_player = game.player_for!(current_user.id)
-      return head :forbidden if current_player.judge?
+      game.check_start_new_round(current_player)
 
       new_round = NewRoundForm.new(game:)
       render :new_round, locals: { game:, current_player:, new_round: }
     end
 
     def create_round
-      game = repo.find(params[:id])
-      current_player = game.player_for!(current_user.id)
-      return head :forbidden if current_player.judge?
+      user_id = current_user.id
+      game, current_player, new_round =
+        repo.update(params[:id], user_id:) do |game, current_player|
+          game.check_start_new_round(current_player)
+          new_round = NewRoundForm.new(game:,
+            question: new_round_params[:question])
+          if new_round.valid?
+            game.start_new_round(question: new_round.question,
+              judge: current_player)
+          end
+          new_round
+        end
 
-      new_round = NewRoundForm.new(
-        game:,
-        question: new_round_params[:question]
-      )
-
-      if new_round.valid?
-        game.start_new_round(question: new_round.question,
-          judge: current_player)
-        repo.save(game)
+      if new_round.errors.empty?
         Broadcast::RoundCreated.new(game:).call
 
         vote_form = VoteForm.new(game:, current_player:,
@@ -94,14 +107,18 @@ module BurnUnit
     end
 
     def completed_round
-      game = repo.find(params[:id])
-      current_player = game.player_for!(current_user.id)
-      return head :forbidden unless current_player.judge?
+      user_id = current_user.id
+      game, current_player, completed_round_form =
+        repo.update(params[:id], user_id:) do |game, current_player|
+          game.check_complete_round(current_player)
+          completed_round_form = CompletedRoundForm.new(game:)
+          if completed_round_form.valid?
+            game.complete_round(player: current_player)
+          end
+          completed_round_form
+        end
 
-      completed_round_form = CompletedRoundForm.new(game:)
-      if completed_round_form.valid?
-        game.complete_round
-        repo.save(game)
+      if completed_round_form.errors.empty?
         Broadcast::RoundCompleted.new(game:).call
         render :completed, locals: { game:, current_player: }
       else
@@ -122,14 +139,6 @@ module BurnUnit
 
     def new_round_params
       params.expect(round: %w[question])
-    end
-
-    def set_candidate(game:, player:)
-      return if player.playing?
-
-      player.playing = true
-      repo.save(game)
-      Broadcast::CandidateAdded.new(game:, player:).call
     end
 
     def repo = GameRepo

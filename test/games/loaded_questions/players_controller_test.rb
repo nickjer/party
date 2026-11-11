@@ -57,7 +57,7 @@ module LoadedQuestions
       assert_match(/is too short/, response.body)
     end
 
-    test "#answer redirects to new player when current player is nil" do
+    test "#answer returns not found when current player is nil" do
       game = create(:lq_game)
       user = create(:user)
       sign_in(user.id)
@@ -68,7 +68,7 @@ module LoadedQuestions
         }
       }
 
-      assert_redirected_to new_loaded_questions_game_player_path(game.id)
+      assert_response :not_found
     end
 
     test "#create creates player and redirects to game" do
@@ -208,7 +208,7 @@ module LoadedQuestions
       assert_match(/has already been taken/, response.body)
     end
 
-    test "#update redirects to new player when current player is nil" do
+    test "#update returns not found when current player is nil" do
       game = create(:lq_game)
       user = create(:user)
       sign_in(user.id)
@@ -219,7 +219,7 @@ module LoadedQuestions
         }
       }
 
-      assert_redirected_to new_loaded_questions_game_player_path(game.id)
+      assert_response :not_found
     end
   end
 end

@@ -27,38 +27,6 @@ module LoadedQuestions
       assert_equal "What is your name?", form.question.to_s
     end
 
-    test "#valid? returns false when game is in guessing phase" do
-      game = build(:lq_matching_game)
-
-      form = NewRoundForm.new(game:, question: "Why?")
-
-      assert_predicate game.status, :guessing?
-      assert_not_predicate form, :valid?
-      assert form.errors.added?(:base, message: "Game is not completed")
-    end
-
-    test "#valid? returns false when game is in polling phase" do
-      game = build(:lq_game)
-
-      form = NewRoundForm.new(game:, question: "Why?")
-
-      assert_predicate game.status, :polling?
-      assert_not_predicate form, :valid?
-      assert form.errors.added?(:base, message: "Game is not completed")
-    end
-
-    test "#valid? returns false when game is polling and question is invalid" do
-      game = build(:lq_game)
-
-      form = NewRoundForm.new(game:, question: "ab")
-
-      assert_predicate game.status, :polling?
-      assert_not_predicate form, :valid?
-      assert form.errors.added?(:base, message: "Game is not completed")
-      assert form.errors.added?(:question,
-        message: "is too short (minimum is 3 characters)")
-    end
-
     test "#valid? returns false with blank question" do
       game = build(:lq_completed_game)
 

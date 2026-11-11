@@ -19,20 +19,19 @@ module LoadedQuestions
 
     # POST /games/:game_id/player
     def create
-      game = repo.find(params[:game_id])
-      new_player = NewPlayerForm.new(game:, user_id: current_user.id,
-        name: new_player_params[:name])
+      game, new_player = repo.join(params[:game_id]) do |game|
+        new_player = NewPlayerForm.new(game:, user_id: current_user.id,
+          name: new_player_params[:name])
+        if new_player.valid?
+          name = new_player.player_name #: ::PlayerName
+          game.add_player(user_id: current_user.id, name:)
+        end
+        new_player
+      end
 
-      if new_player.valid?
-        name = new_player.player_name #: ::PlayerName
-        player = game.add_player(
-          user_id: current_user.id,
-          name:
-        )
-        repo.save(game)
-
+      if new_player.errors.empty?
+        player = game.player_for!(current_user.id)
         Broadcast::PlayerCreated.new(game:, player:).call
-
         redirect_to_game(game)
       else
         render :new, locals: { new_player: }, status: :unprocessable_content
@@ -51,16 +50,19 @@ module LoadedQuestions
 
     # PATCH/PUT /games/:game_id/player
     def update
-      game = repo.find(params[:game_id])
-      current_player = game.player_for(current_user.id)
-      return redirect_to_new_player(game) if current_player.nil?
+      user_id = current_user.id
+      game, current_player, edit_player =
+        repo.update(params[:game_id], user_id:) do |game, current_player|
+          edit_player = EditPlayerForm.new(game:, current_player:,
+            name: update_player_params[:name])
+          if edit_player.valid?
+            new_name = edit_player.player_name #: ::PlayerName
+            current_player.name = new_name
+          end
+          edit_player
+        end
 
-      edit_player = EditPlayerForm.new(game:, current_player:,
-        name: update_player_params[:name])
-      if edit_player.valid?
-        new_name = edit_player.player_name #: ::PlayerName
-        current_player.name = new_name
-        repo.save(game)
+      if edit_player.errors.empty?
         Broadcast::PlayerNameUpdated.new(game:, player: current_player).call
         redirect_to_game(game)
       else
@@ -71,22 +73,21 @@ module LoadedQuestions
 
     # PATCH /games/:game_id/player/answer
     def answer
-      game = repo.find(params[:game_id])
-      current_player = game.player_for(current_user.id)
-      return redirect_to_new_player(game) if current_player.nil?
-
       answer_form = AnswerForm.new(answer: answer_params[:answer])
-      if answer_form.valid?
-        had_answer = current_player.answered?
-        current_player.answer = answer_form.answer
-        repo.save(game)
-        unless had_answer
-          Broadcast::AnswerCreated.new(game:,
-            player: current_player).call
+      valid = answer_form.valid?
+      user_id = current_user.id
+      game, current_player, had_answer =
+        repo.update(params[:game_id], user_id:) do |_game, current_player|
+          had_answer = current_player.answered?
+          current_player.answer = answer_form.answer if valid
+          had_answer
         end
+
+      if valid && !had_answer
+        Broadcast::AnswerCreated.new(game:, player: current_player).call
       end
 
-      status = answer_form.valid? ? :ok : :unprocessable_content
+      status = valid ? :ok : :unprocessable_content
       render "loaded_questions/games/polling_player",
         locals: { game:, current_player:, answer_form: },
         status:

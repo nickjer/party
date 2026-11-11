@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 module Codenames
-  # Form object for validating the transition from setup to playing. Each team
-  # needs exactly one spymaster and at least one operative.
+  # Readiness check for starting: each team needs exactly one spymaster and at
+  # least one operative. Status and role are the aggregate's concern.
   class StartGameForm
     # @dynamic errors
     attr_reader :errors
@@ -13,10 +13,6 @@ module Codenames
     end
 
     def valid?
-      unless game.status.setup?
-        errors.add(:base, message: "Game has already started")
-      end
-
       [Team.red, Team.blue].each { |team| validate_team(team) }
 
       errors.empty?

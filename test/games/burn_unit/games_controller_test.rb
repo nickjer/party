@@ -87,6 +87,19 @@ module BurnUnit
       assert_predicate updated_player, :playing?
     end
 
+    test "#show leaves a non-playing viewer alone once completed" do
+      game = create(:bu_completed_game, player_names: %w[Bob])
+      bob = player_named(game:, name: "Bob")
+      bob.playing = false
+      GameRepo.save(game)
+      sign_in(bob.user_id)
+
+      get burn_unit_game_path(game.id)
+
+      assert_response :success
+      assert_not_predicate reload(game:).player_for(bob.user_id), :playing?
+    end
+
     test "#show raises on an unknown game status" do
       game = create(:bu_polling_game)
       player = game.players.first

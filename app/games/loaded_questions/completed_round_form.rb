@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
 module LoadedQuestions
-  # Form object for validating transition from guessing to completed phase.
+  # Readiness check for completing the round: every answer must be assigned.
+  # Status and role are the aggregate's concern.
   class CompletedRoundForm
     # @dynamic errors
     attr_reader :errors
@@ -12,10 +13,6 @@ module LoadedQuestions
     end
 
     def valid?
-      unless game.status.guessing?
-        errors.add(:base, message: "Game is not in guessing phase")
-      end
-
       unless game.guesses.complete?
         errors.add(:base, message: "All answers must be assigned to players")
       end

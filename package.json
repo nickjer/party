@@ -2,8 +2,8 @@
   "name": "app",
   "private": true,
   "devDependencies": {
-    "@herb-tools/formatter": "^0.11.1",
-    "@herb-tools/linter": "^0.11.1",
+    "@herb-tools/formatter": "^0.11.2",
+    "@herb-tools/linter": "^0.11.2",
     "esbuild": "^0.28.2"
   },
   "scripts": {
@@ -19,9 +19,9 @@
     "@popperjs/core": "^2.11.8",
     "@stimulus-components/dialog": "^1.0.1",
     "@stimulus-components/reveal": "^5.0.0",
-    "bootstrap": "^5.3.8",
+    "bootstrap": "^5.3.9",
     "bootstrap-icons": "^1.13.2",
-    "sass": "^1.108.0",
+    "sass": "^1.108.2",
     "sortablejs": "^1.15.7"
   }
 }
